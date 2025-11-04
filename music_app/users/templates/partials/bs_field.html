@@ -1,0 +1,15 @@
+<div class="mb-3">
+  <label class="form-label" for="{{ field.id_for_label }}">{{ label }}</label>
+
+  {{ widget|safe }}
+
+  {% if field.errors %}
+    <div class="invalid-feedback">
+      {% for e in field.errors %}
+        {{ e }}{% if not forloop.last %}<br>{% endif %}
+      {% endfor %}
+    </div>
+  {% elif field.help_text %}
+    <div class="form-text">{{ field.help_text|safe }}</div>
+  {% endif %}
+</div>

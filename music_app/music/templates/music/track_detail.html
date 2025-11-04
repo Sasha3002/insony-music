@@ -1,0 +1,653 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-4">
+
+
+<!--ГОЛОВНИЙ БЛОК ТРЕКУ -->
+
+  <div class="card bg-dark border-0 shadow-sm mb-4">
+    <div class="card-body d-flex flex-wrap align-items-center gap-3">
+      <div class="track-cover-large">
+        {% if track.cover_image %}
+          <img src="{{ track.cover_image }}" alt="{{ track.title }}" class="img-fluid rounded">
+        {% else %}
+          <img src="{% static 'img/Insony.jpg' %}" alt="Insony" class="img-fluid rounded">
+        {% endif %}
+      </div>
+      <div class="flex-grow-1">
+        <h2 class="text-white mb-1">{{ track.title }}</h2>
+        <div class="text-muted">
+          <strong>{{ track.artist.name }}</strong>
+          {% if track.genre %}· {{ track.genre.name }}{% endif %}
+          · {{ track.authored_date|date:"d.m.Y"|default:"—" }}
+          <p class="text-muted mb-3">
+            Czas trwania: <strong>{{ track.duration_display }}</strong>
+          </p>
+        </div>
+
+        <div class="mt-3">
+          {% if avg_percent %}
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-4 fw-bold text-warning">{{ avg_percent|floatformat:0 }}</span>
+              <span class="text-white-50">/100</span>
+              <span class="text-muted small">({{ total_reviews }} recenzji)</span>
+            </div>
+            <div class="progress mt-2" style="height:6px;">
+              <div class="progress-bar main-avg" role="progressbar"
+                   style="width: {{ avg_percent|default_if_none:0|floatformat:0 }}%;"></div>
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">Brak ocen — bądź pierwszy!</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="text-end ms-auto d-flex gap-2">
+        {% if user.is_authenticated and user.is_staff %}
+          <a href="{% url 'track_edit' track.id %}" class="btn btn-outline-light btn-sm">✏ Edytuj</a>
+          <a href="{% url 'track_delete' track.id %}" class="btn btn-outline-danger btn-sm">🗑 Usuń</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+
+  <!--ОЦІНКА: 2 колонки × 3 критерії + вкладки-->
+
+  <div class="card bg-dark border-0 shadow-sm mb-4">
+    <div class="card-body">
+
+      {% if user.is_authenticated %}
+      <div class="d-flex justify-content-center mb-4">
+        <div class="rating-toggle">
+          <a href="?mode=review&sort={{ sort }}"
+             class="toggle-btn {% if mode != 'no_text' %}active{% endif %}">
+             Recenzja
+          </a>
+          <a href="?mode=no_text&sort={{ sort }}"
+             class="toggle-btn {% if mode == 'no_text' %}active{% endif %}">
+             Ocena bez recenzji
+          </a>
+        </div>
+      </div>
+      
+
+
+      
+      <form method="post" id="crit-form">
+        {% csrf_token %}
+
+        <input type="hidden" name="mode" value="{{ mode }}">
+
+        {# 2 колонки критеріїв #}
+        <div class="row g-3">
+          <div class="col-lg-6">
+            {% for c in criteria_cfg|slice:":3" %}
+              <div class="crit-panel {{ c.color }}">
+                <div class="crit-head d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="crit-icon">{{ c.icon }}</span>
+                    <span class="crit-label">{{ c.label }}</span>
+                  </div>
+                  <span class="crit-value"><strong id="{{ c.short }}-val">{{ c.value }}</strong>/10</span>
+                </div>
+                <div class="progress crit-progress my-2">
+                  <div id="{{ c.short }}-bar" class="progress-bar crit-bar" style="width: {{ c.value }}0%;"></div>
+                </div>
+                {{ c.bound }}
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="col-lg-6">
+            {% for c in criteria_cfg|slice:"3:" %}
+              <div class="crit-panel {{ c.color }}">
+                <div class="crit-head d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="crit-icon">{{ c.icon }}</span>
+                    <span class="crit-label">{{ c.label }}</span>
+                  </div>
+                  <span class="crit-value"><strong id="{{ c.short }}-val">{{ c.value }}</strong>/10</span>
+                </div>
+                <div class="progress crit-progress my-2">
+                  <div id="{{ c.short }}-bar" class="progress-bar crit-bar" style="width: {{ c.value }}0%;"></div>
+                </div>
+                {{ c.bound }}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% if mode != 'no_text' %}
+          <div class="mb-3">
+            <div class="insony-title-wrap">
+              {{ form.title }}
+              <span class="insony-title-counter">
+                <span id="title-count">0</span>/120
+              </span>
+            </div>
+          </div>
+          <div class="mb-3">
+            {{ form.text }}
+            <div class="d-flex justify-content-end small text-muted mt-1">
+              <span id="text-count">0</span>/8500
+            </div>
+          </div>
+        {% else %}
+          <!-- Режим “без рецензії” — приховуємо поля заголовка і тексту -->
+        {% endif %}
+
+        
+
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <div class="text-white-50">
+            <span class="me-2">Suma</span>
+            <span class="display-6 fw-bold text-warning" id="total-current">0</span>
+            <span class="text-muted">/100</span>
+          </div>
+        
+          <button class="btn btn-primary btn-lg">
+            {% if user_review %}Zapisz zmiany{% else %}Dodaj ocenę{% endif %}
+          </button>
+        </div>
+
+      </form>
+      {% else %}
+        <div class="guest-review-box text-center p-4 mt-4 rounded-3">
+          <h6 class="fw-bold mb-2" style="color:#fff;">Chcesz dodać recenzję lub ocenę?</h6>
+          <p class="text-muted mb-3" style="font-size:14px;">
+              Dołącz do społeczności Insony i podziel się swoją opinią
+          </p>
+          <a href="{% url 'login' %}?next={% url 'track_detail' track.id %}" class="btn btn-primary px-4 me-2">Zaloguj się</a>
+          <a href="{% url 'register' %}?next={% url 'track_detail' track.id %}" class="btn btn-outline-light px-4">Załóż konto</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!--НИЖЧЕ: СПИСОК РЕЦЕНЗІЙ + сортування + пагінація-->
+
+  <div class="card bg-dark border-0 shadow-sm">
+    <div class="card-body">
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="text-white mb-0">Recenzje</h5>
+        <form method="get" class="d-flex align-items-center gap-2">
+          <input type="hidden" name="mode" value="{{ mode }}"> <!-- зберігаємо режим вкладок -->
+          <input type="hidden" name="page" value="1"> <!-- скидаємо на 1 сторінку при зміні сортування -->
+          <label class="form-label mb-0 small text-muted">Sortuj:</label>
+          <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="new"  {% if sort == 'new' %}selected{% endif %}>najnowsze</option>
+            <option value="old"  {% if sort == 'old' %}selected{% endif %}>najstarsze</option>
+            <option value="high" {% if sort == 'high' %}selected{% endif %}>najwyżej oceniane</option>
+            <option value="low"  {% if sort == 'low' %}selected{% endif %}>najniżej oceniane</option>
+          </select>
+        </form>
+      </div>
+
+      {% if reviews_page and reviews_page.object_list %}
+        {% for r in reviews_page %}
+          <div class="rev-card">
+            <div class="rev-head">
+              {# аватар-літера; якщо зберігатимеш URL аватарки — підставиш <img> #}
+              <div class="rev-ava">
+                {{ r.user.username|slice:":1"|upper }}
+              </div>
+            
+              <div>
+                <div class="rev-user">{{ r.user.username }}</div>
+                <div class="rev-date">{{ r.created_at|date:"d.m.Y H:i" }}</div>
+              </div>
+            
+              <div class="rev-score">
+                <div class="big">
+                  {{ r.total_points|default:0|floatformat:0 }}
+                </div>
+                <div class="rev-dots">
+                  <span class="rev-dot dot-blue"   title="Rymy/Obrazy">{{ r.rhyme_imagery }}</span>
+                  <span class="rev-dot dot-indigo" title="Struktura/Rytmika">{{ r.structure_rhythm }}</span>
+                  <span class="rev-dot dot-violet" title="Styl/Realizacja">{{ r.style_execution }}</span>
+                  <span class="rev-dot dot-purple" title="Indywidualność / Charyzma">{{ r.individuality }}</span>
+                  <span class="rev-dot dot-cyan"   title="Atmosfera / Wajb">{{ r.atmosphere_vibe }}</span>
+                  <span class="rev-dot dot-pink"   title="Trend / Aktualność">{{ r.trend_relevance }}</span>
+                </div>
+              </div>
+            </div>
+          
+            {# опційний заголовок (якщо додаси поле title у Review) #}
+            {% if r.title %}
+              <div class="rev-title">{{ r.title }}</div> 
+              <!--- <h5 class="text-white fw-bold mt-2">{{ r.title }}</h5> --->
+            {% endif %}
+          
+            {% if r.text %}
+              <div class="rev-text">{{ r.text }}</div>
+            {% endif %}
+          
+            <div class="rev-foot">
+              <div class="rev-date">{{ r.created_at|date:"d.m.Y" }}</div>
+              <div class="d-flex align-items-center gap-2">
+                {% if user.is_authenticated and r.user_id == user.id %}
+                  <form method="post" action="{% url 'review_delete' track.id %}?sort={{ sort }}&mode={{ mode }}&page={{ reviews_page.number }}">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-outline-danger">Usuń</button>
+                  </form>
+                {% endif %}
+                    {# ❤️ лайк #}
+                <button
+                  class="heart js-like {% if r.id in liked_ids %}is-liked{% endif %}"
+                  type="button"
+                  data-review-id="{{ r.id }}"
+                  data-auth="{% if user.is_authenticated %}1{% else %}0{% endif %}"
+                  data-login="{% url 'login' %}?next={{ request.get_full_path }}"
+                  aria-pressed="{% if r.id in liked_ids %}true{% else %}false{% endif %}"
+                  title="{% if user.is_authenticated %}Polub{% else %}Zaloguj się, aby polubić{% endif %}">
+                  ♥
+                </button>
+                <span class="like-count" id="like-count-{{ r.id }}">{{ r.likes_count }}</span>
+                </div>
+              </div>
+          </div>
+        {% endfor %}
+
+        <nav class="insony-pager" aria-label="Paginacja recenzji">
+          {% if reviews_page.has_previous %}
+            <a class="pg-btn" href="?sort={{ sort }}&page=1" title="Pierwsza">«</a>
+            <a class="pg-btn" href="?sort={{ sort }}&page={{ reviews_page.previous_page_number }}" title="Poprzednia">‹</a>
+          {% else %}
+            <span class="pg-btn is-disabled" aria-hidden="true">«</span>
+            <span class="pg-btn is-disabled" aria-hidden="true">‹</span>
+          {% endif %}
+
+          <span class="pg-current">{{ reviews_page.number }} / {{ reviews_page.paginator.num_pages }}</span>
+
+          {% if reviews_page.has_next %}
+            <a class="pg-btn" href="?sort={{ sort }}&page={{ reviews_page.next_page_number }}" title="Następna">›</a>
+            <a class="pg-btn" href="?sort={{ sort }}&page={{ reviews_page.paginator.num_pages }}" title="Ostatnia">»</a>
+          {% else %}
+            <span class="pg-btn is-disabled" aria-hidden="true">›</span>
+            <span class="pg-btn is-disabled" aria-hidden="true">»</span>
+          {% endif %}
+        </nav>
+
+
+      {% else %}
+        <p class="text-muted mb-0">Brak recenzji.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+  <!--JS: live-оновлення барів, лічильник, режим без тексту-->
+
+<script>
+  (function () {
+    /* ========== SLIDERY + SUMA /100 ========== */
+    const sliders = document.querySelectorAll('#crit-form .form-range');
+    const totalEl = document.getElementById('total-current');
+
+    function recomputeTotal() {
+      let sum = 0;
+      sliders.forEach(sl => sum += Number(sl.value) || 0); // 0..60
+      const total100 = Math.round((sum / 60) * 100);       // 0..100
+      if (totalEl) totalEl.textContent = total100;
+    }
+
+    sliders.forEach(function (sl) {
+      const key = sl.dataset.target; // 'ri','sr','se','ind','av','tr'
+      const bar = document.getElementById(key + '-bar');
+      const val = document.getElementById(key + '-val');
+
+      const update = () => {
+        const v = Number(sl.value) || 0;
+        if (bar) bar.style.width = (v * 10) + '%';
+        if (val) val.textContent = v;
+        recomputeTotal();
+      };
+
+      update(); // init
+      sl.addEventListener('input', update);
+    });
+
+    // на старті порахувати суму (на випадок, якщо слайдерів немає або всі 0)
+    recomputeTotal();
+
+
+    /* ========== ЛІЧИЛЬНИКИ СИМВОЛІВ (TITLE + TEXT) ========== */
+    const titleInput = document.querySelector('.insony-title-input');
+    const titleCount = document.getElementById('title-count');
+    if (titleInput && titleCount) {
+      const upd = () => titleCount.textContent = (titleInput.value || '').length;
+      upd();
+      titleInput.addEventListener('input', upd);
+    }
+
+    const textArea = document.querySelector('#crit-form textarea');
+    const textCount = document.getElementById('text-count');
+    if (textArea && textCount) {
+      const upd = () => textCount.textContent = (textArea.value || '').length;
+      upd();
+      textArea.addEventListener('input', upd);
+    }
+
+
+    /* ========== РЕЖИМ "БЕЗ РЕЦЕНЗІЇ" (якщо є вкладки Bootstrap) ========== */
+    // Слухачі тільки якщо існують елементи вкладок
+    const tabNo  = document.getElementById('tab-no-text');
+    const tabYes = document.getElementById('tab-with-text');
+    if (tabNo && textArea) {
+      tabNo.addEventListener('shown.bs.tab', () => {
+        textArea.value = '';
+        if (textCount) textCount.textContent = '0';
+      });
+    }
+    if (tabYes && textArea && textCount) {
+      tabYes.addEventListener('shown.bs.tab', () => {
+        textCount.textContent = (textArea.value || '').length;
+      });
+    }
+
+
+    /* ========== ЛАЙКИ РЕЦЕНЗІЙ (AJAX + CSRF) ========== */
+    // Отримати CSRF з cookie (Django стандарт)
+    function getCookie(name) {
+      const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return m ? m.pop() : '';
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    document.querySelectorAll('.js-like').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const reviewId = btn.dataset.reviewId;
+        if (!reviewId) return;
+
+        try {
+          const resp = await fetch(`/reviews/${reviewId}/like/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken,
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+
+          if (resp.status === 401 || resp.status === 403) {
+            // Якщо неавторизований — на логін з поверненням назад
+            window.location.href = "{% url 'login' %}?next={{ request.path }}";
+            return;
+          }
+
+          const data = await resp.json();
+          if (!data || !data.ok) return;
+
+          const countEl = document.getElementById(`like-count-${reviewId}`);
+
+          if (data.liked) {
+            btn.classList.add('is-liked');
+            btn.setAttribute('aria-pressed', 'true');
+            btn.title = 'Cofnij polubienie';
+          } else {
+            btn.classList.remove('is-liked');
+            btn.setAttribute('aria-pressed', 'false');
+            btn.title = 'Polub';
+          }
+          if (countEl) countEl.textContent = data.count;
+
+        } catch (e) {
+          console.error(e);
+        }
+      });
+    });
+
+  })();
+</script>
+
+
+<style>
+  .rev-card {
+    background: #171a1f;
+    border: 1px solid #262b33;
+    border-radius: 18px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    box-shadow:
+      0 8px 20px rgba(0,0,0,.35),
+      inset 0 1px 0 rgba(255,255,255,.03);
+  }
+  .rev-head {
+    display:flex; align-items:center; gap:12px;
+  }
+  .rev-ava {
+    width:46px;height:46px;border-radius:50%;
+    display:grid;place-items:center;
+    font-weight:700;color:#fff;
+    background: radial-gradient(120% 120% at 20% 0%, #ff7a7a, #8f57ff);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.15);
+    flex: 0 0 46px;
+  }
+  .rev-user {color:#e6e9ef;font-weight:600;}
+  .rev-date {color:#8b93a2;font-size:.85rem;}
+  .rev-score {
+    margin-left:auto;text-align:right;line-height:1;
+  }
+  .rev-score .big {font-size:28px;font-weight:800;color:#cdd7ff}
+  .rev-dots{display:flex;gap:6px;justify-content:flex-end;margin-top:4px}
+  .rev-dot{
+    width:18px;height:18px;border-radius:6px;
+    font-size:.75rem;font-weight:700;
+    display:grid;place-items:center;color:#0d0f14;
+  }
+  /* по бажанню – різні кольори під критерії */
+  .dot-blue{background:#79a7ff}   /* rytmika */
+  .dot-indigo{background:#9f8bff} /* struktura */
+  .dot-violet{background:#c59bff} /* styl */
+  .dot-purple{background:#d58cff} /* indywid. */
+  .dot-cyan{background:#7de3ff}   /* vibe */
+  .dot-pink{background:#ff87c8}   /* trend */
+
+  .rev-title{margin:10px 0 6px;color:#f3f6ff;font-weight:700;font-size:1.1rem}
+  .rev-text{color:#c7cedb;white-space:pre-wrap}
+  .rev-foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+  .heart{
+    width:36px;height:36px;border-radius:10px;
+    background:#1e2229;border:1px solid #2a2f38;
+    display:grid;place-items:center;color:#8b93a2;cursor:pointer;
+  }
+  .heart:hover{color:#f66}
+
+  .rev-title{
+    margin:10px 0 6px;
+    color:#f3f6ff;font-weight:800;font-size:1.15rem;
+    letter-spacing:.2px;
+    position:relative;padding-right:10px;
+  }
+  .rev-title:after{
+    content:"";
+    display:block;margin-top:6px;height:2px;width:100%;
+    background:linear-gradient(90deg,#7aa2ff,rgba(122,162,255,0));
+    border-radius:2px;
+  }
+
+  .insony-title-wrap{
+  position:relative;
+  border-radius:14px;
+  background:#1c1f24;
+  border:1px solid #2a2f38;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  }
+
+  .insony-title-input{
+  border:none;background:transparent;color:#f5f7ff;
+  padding:14px 56px 14px 16px;font-weight:700;
+  letter-spacing:.2px;
+  }
+
+  .insony-title-input:focus{outline:none;box-shadow:none;}
+  .insony-title-counter{
+    position:absolute;right:10px;top:50%;transform:translateY(-50%);
+    color:#8b93a2;background:#20242b;border:1px solid #2a2f38;
+    border-radius:10px;padding:2px 8px;font-size:.8rem;
+  }
+
+  .insony-title-label{
+    color:#e9edf6;font-weight:700;letter-spacing:.2px;
+  }
+
+  .insony-text-label{color:#e2e7f2;font-weight:600;}
+  .insony-textarea{
+    background:#1a1d22;border:1px solid #2a2f38;color:#dfe6f6;
+    border-radius:14px;resize:vertical;
+  }
+  .insony-textarea:focus{background:#1a1d22;color:#fff;border-color:#3a4150;box-shadow:none;}
+
+
+
+  /* (опціонально) плавні стани для інпутів */
+  .insony-title-input, .insony-textarea { transition: .15s ease; }
+  .insony-title-wrap:focus-within{ border-color:#3a4150; }
+
+  .insony-title-input::placeholder,
+  .insony-textarea::placeholder {
+    color: #8d96a8 !important;  
+    opacity: 1;                 
+  }
+
+  .track-cover-large {
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    background: linear-gradient(135deg, #1e2229 0%, #2a2f38 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .track-cover-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  
+  .rating-toggle {
+    background: #1c1f24;
+    padding: 4px;
+    border-radius: 14px;
+    display: inline-flex;
+    gap: 4px;
+  }
+  
+  .toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 28px;
+    border-radius: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    color: #9ba3af;
+    transition: 0.2s;
+  }
+  
+  .toggle-btn.active {
+    background: #2f3239;
+    color: white;
+    border: 2px solid #6e6e76;
+  }
+  
+  .toggle-btn:hover {
+    color: white;
+  }
+
+  .heart{
+  width:36px;height:36px;border-radius:10px;
+  background:#1e2229;border:1px solid #2a2f38;
+  display:grid;place-items:center;color:#8b93a2;cursor:pointer;
+  transition:transform .08s ease, color .2s ease, background .2s ease, border .2s ease;
+  }
+  .heart:hover{ color:#ff6680; }
+  .heart.is-liked{
+    color:#ff4d6d;
+    background:#2a2330;
+    border-color:#4c2b3b;
+  }
+  .heart:active{ transform:scale(.94); }
+  .like-count{ color:#a8b0bf; min-width:1.5rem; text-align:left; font-weight:600; }
+  
+  /* Insony pagination */
+  .insony-pager{
+    display:flex;
+    gap:4px;
+    align-items:center;
+    justify-content:center;
+    width:max-content;
+    margin:12px auto 0;
+    padding:4px;
+    background:#161a20;                
+    border:1px solid #262c36;
+    border-radius:14px;
+  }
+  
+  .pg-btn,.pg-current{
+    height:32px;
+    min-width:32px;
+    display:grid;
+    place-items:center;
+    padding:0 10px;
+    font-weight:600;
+    font-size:13px;
+    border-radius:10px;
+    border:1px solid #2b3340;
+    background:#1e242e;
+    color:#b8c1d1;
+    text-decoration:none;
+    transition:.15s ease;
+  }
+  
+  .pg-btn:hover{
+    background:#263040;
+    border-color:#3a4658;
+    color:#ffffff;
+  }
+  
+  .pg-btn.is-disabled{
+    pointer-events:none;
+    opacity:.35;
+    background:#1a1f27;
+    border-color:#252b35;
+  }
+  
+  .pg-current{
+    min-width:60px;
+    padding:0 12px;
+    background:#0d6efd;           
+    border-color:#0d6efd;
+    color:#fff;
+  }
+
+  .guest-review-box {
+    background:#181818;
+    border:1px solid #2a2a2a;
+    border-radius:16px;
+    box-shadow:0 2px 10px rgba(0,0,0,.35);
+    animation: fadeIn .4s ease;
+  }
+
+  .guest-review-box .btn-outline-light {
+      --bs-btn-color:#e6e6e6;
+      --bs-btn-border-color:#444;
+      --bs-btn-hover-bg:#2b2b2b;
+      --bs-btn-hover-color:#fff;
+      --bs-btn-hover-border-color:#555;
+  }
+  .guest-review-box a.btn-outline-light:hover {
+      background:#333;
+      color:#fff;
+  }
+
+</style>
+
+{% endblock %}

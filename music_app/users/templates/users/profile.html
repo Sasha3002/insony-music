@@ -1,0 +1,192 @@
+{% extends "users/base.html" %}
+{% block content %}
+
+<div class="container py-4">
+
+  <!-- HERO / GŁÓWKA PROFILU -->
+  <div class="d-flex align-items-center mb-4 gap-4">
+    <img
+      src="https://ui-avatars.com/api/?name={{ user.username }}&background=2a2a2a&color=fff&size=160"
+      alt="{{ user.username }}"
+      class="rounded-circle border border-dark shadow"
+      width="120" height="120">
+    <div class="flex-grow-1">
+      <div class="text-uppercase small text-muted">Profil użytkownika</div>
+      <h2 class="fw-bold text-white mb-1">{{ user.username }}</h2>
+      <div class="text-secondary small">
+        Zarejestrowany: {{ user.date_joined|date:"d.m.Y" }}
+      </div>
+    </div>
+  </div>
+
+  <!-- POZIOM / XP -->
+  <div class="card xp-card mb-4">
+    <div class="card-body">
+      <div class="xp-header mb-2">
+        <div class="level-badge">
+          <span>LV {{ level|default:1 }}</span>
+        </div>
+        <div class="ms-auto d-flex align-items-center gap-2">
+          <span class="badge-chip bdg-{{ badge_slug|default:'bronze' }}">
+            <i class="bi bi-trophy-fill"></i> {{ badge_name|default:"Bronze" }}
+          </span>
+          <div class="text-end">
+            <div class="xp-stats">
+              {{ level_in_xp|default:0 }} / 1000 XP · łącznie: {{ xp|default:0 }} · do następnego: {{ to_next|default:0 }}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+
+      <div class="position-relative mt-2">
+        <!-- Трек прогресу -->
+        <div class="xp-track" aria-label="Postęp poziomu"
+             role="progressbar"
+             aria-valuemin="0" aria-valuemax="100"
+             aria-valuenow="{{ level_progress_pct|default:0 }}">
+          <div class="xp-fill" id="xpFill"
+               style="--xp-pct: 0%;"
+               data-target="{{ level_progress_pct|default:0 }}%"></div>
+
+          <!-- Тики кожні 10% -->
+          <div class="xp-ticks">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+          </div>
+
+          <!-- Тултіп з поточним % -->
+          <div class="xp-tooltip" id="xpTip" style="left: 0%"> {{ level_progress_pct|default:0 }}% </div>
+        </div>
+
+        <div class="xp-legend mt-2">
+          <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ZAKŁADKI (na przyszłość) -->
+  <ul class="nav nav-tabs nav-fill mb-4">
+    <li class="nav-item">
+      <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-reviews" type="button">
+        Recenzje & Oceny
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-favorites" type="button">
+        Ulubione
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-artists" type="button">
+        Artyści
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-genres" type="button">
+        Gatunki
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-playlist" type="button">
+        Playlista
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- TAB: Recenzje -->
+    <div class="tab-pane fade show active" id="tab-reviews">
+      <div class="card bg-dark border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <h5 class="text-white mb-3">Ostatnia aktywność</h5>
+          {% if recent_reviews %}
+            {% for r in recent_reviews %}
+              <div class="d-flex justify-content-between border-bottom border-secondary-subtle py-2">
+                <div class="text-white">
+                  <strong>{{ r.track.title }}</strong>
+                  <span class="text-white-50"> · {{ r.created_at|date:"d.m.Y H:i" }}</span>
+                  {% if r.total_percent %}<div class="small text-white-50">{{ r.total_percent|floatformat:1 }}%</div>{% endif %}
+                </div>
+                <a class="btn btn-sm btn-outline-light" href="{% url 'track_detail' r.track_id %}">Szczegóły</a>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-secondary">Brak aktywności.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Ulubione -->
+    <div class="tab-pane fade" id="tab-favorites">
+      <div class="card bg-dark border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="text-white mb-2">Ulubione utwory</h5>
+          <div class="text-secondary small">Wkrótce…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Artyści -->
+    <div class="tab-pane fade" id="tab-artists">
+      <div class="card bg-dark border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="text-white mb-2">Top artyści</h5>
+          <div class="text-secondary small">Wkrótce…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Gatunki -->
+    <div class="tab-pane fade" id="tab-genres">
+      <div class="card bg-dark border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="text-white mb-2">Top gatunki</h5>
+          <div class="text-secondary small">Wkrótce…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Playlista -->
+    <div class="tab-pane fade" id="tab-playlist">
+      <div class="card bg-dark border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="text-white mb-2">Playlista użytkownika</h5>
+          <div class="text-secondary small">Wkrótce…</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  const fill = document.getElementById('xpFill');
+  const tip  = document.getElementById('xpTip');
+  if (!fill || !tip) return;
+
+  // цільовий % із data-атрибуту
+  const target = parseFloat(fill.dataset.target || '0');
+  const clamp = v => Math.max(0, Math.min(100, v));
+
+  // стартова анімація
+  requestAnimationFrame(() => {
+    fill.style.setProperty('--xp-pct', clamp(target) + '%');
+    tip.textContent = Math.round(clamp(target)) + '%';
+    tip.style.left  = clamp(target) + '%';
+  });
+
+  // якщо хочеш, щоб тултіп плавав при наведенні:
+  fill.parentElement.addEventListener('mousemove', (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = clamp(((e.clientX - rect.left) / rect.width) * 100);
+    tip.style.left = pct + '%';
+  });
+})();
+</script>
+
+{% endblock %}

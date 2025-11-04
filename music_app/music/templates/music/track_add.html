@@ -1,0 +1,31 @@
+{% extends "users/base.html" %}
+{% block content %}
+<h2>➕ Dodaj nowy utwór</h2>
+
+<form method="POST">
+  {% csrf_token %}
+  <label>Tytuł:</label><br>
+  <input type="text" name="title" required><br><br>
+
+  <label>Artysta:</label><br>
+  <select name="artist" required>
+    {% for artist in artists %}
+      <option value="{{ artist.id }}">{{ artist.name }}</option>
+    {% endfor %}
+  </select><br><br>
+
+  <label>Gatunek:</label><br>
+  <select name="genre" required>
+    {% for genre in genres %}
+      <option value="{{ genre.id }}">{{ genre.name }}</option>
+    {% endfor %}
+  </select><br><br>
+
+  <label>Opis:</label><br>
+  <textarea name="description"></textarea><br><br>
+
+  <button type="submit">Zapisz utwór</button>
+</form>
+
+<a href="{% url 'track_list' %}">⬅ Powrót</a>
+{% endblock %}

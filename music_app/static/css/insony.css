@@ -1,0 +1,408 @@
+/* dark tło strony (jeśli używasz jasnego, możesz pominąć) */
+body { background: #121212; color: #e6e6e6; }
+
+/* tabela w stylu Spotify */
+.insony-table{
+  background:#181818;
+  border:1px solid #2a2a2a;
+  table-layout: fixed;
+  width:100%;
+}
+
+/* wiersze jako grid */
+.insony-row{
+  display:grid;
+  /* # | nazwa | wykonawca | gatunek | data | czas | średnia | akcje
+     (jeśli nie masz kolumny Akcje – usuń ostatnią wartość) */
+  grid-template-columns:
+    56px
+    minmax(220px, 1.6fr)
+    minmax(160px, 1fr)
+    minmax(140px, .9fr)
+    140px
+    90px
+    140px
+    120px;
+  gap:12px;
+  align-items:center;
+  padding:10px 16px;
+  border-bottom:1px solid #242424;
+}
+.insony-row:last-child{border-bottom:none;}
+.insony-row:hover{background:#202020;}
+
+/* nagłówek */
+.insony-head{
+  font-size:14px;
+  letter-spacing:.2px;
+  color:#a0a0a0;
+  background:#151515;
+  position:sticky; top:0; z-index:2;
+} /* <-- дужка була втрачена */
+
+/* ogólne: nie pozwalaj na łamanie i wyjeżdżanie tekstu */
+.insony-row > div{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.col-idx{ width:40px; text-align:right; color:#a8a8a8; }
+.col-title{ display:flex; align-items:center; gap:12px; min-width:160px; }
+.col-artist, .col-genre, .col-date{ color:#c9c9c9; }
+.col-duration{ width:90px; text-align:center; color:#cfcfcf; }
+.col-rating{ width:140px; }
+.col-actions{ text-align:right; }
+
+/* okładka/ikonka przy tytule */
+.cover{
+  width:44px; height:44px; border-radius:6px; background:#2a2a2a;
+  display:flex; align-items:center; justify-content:center; font-size:18px; flex:0 0 auto;
+}
+.meta .title-link{ color:#fff; text-decoration:none; font-weight:600; }
+.meta .title-link:hover{ text-decoration:underline; }
+.muted{ color:#9aa0a6; font-size:12px; }
+
+/* średnia (gwiazdki/liczba) – minimalistycznie */
+.col-rating .stars{ color:#f6c343; margin-right:6px; font-size:16px; }
+.col-rating .rating-number{ font-weight:600; }
+
+/* przyciski */
+.btn-outline-light{
+  --bs-btn-color:#e6e6e6;
+  --bs-btn-border-color:#505050;
+  --bs-btn-hover-bg:#2b2b2b;
+}
+
+/* RESPONSYWNOŚĆ:
+   Na tabletach chowamy mniej ważne kolumny */
+@media (max-width: 992px){ /* lg↓ */
+  .col-genre, .col-date{ display:none; }
+  .insony-row{
+    grid-template-columns:
+      56px minmax(220px,1.8fr) minmax(180px,1fr) 90px 140px 120px;
+  }
+}
+@media (max-width: 768px){ /* md↓ */
+  .col-artist{ display:none; }
+  .insony-row{
+    grid-template-columns:
+      56px minmax(220px,2fr) 90px 140px 120px;
+  }
+}
+@media (max-width: 576px){ /* sm↓ */
+  .col-duration{ display:none; }
+  .insony-row{
+    grid-template-columns:
+      40px minmax(200px,1fr) 120px;
+  }
+}
+
+
+
+/* === Pill search bar ============================================ */
+.insony-search{
+  --bg:#202225;            /* tło */
+  --bg-focus:#26282c;      /* tło w focus/hover */
+  --bd:#2c2f34;            /* obramowanie */
+  --fg:#e6e6e6;            /* tekst */
+  --muted:#9aa0a6;         /* ikony/placeholder */
+  display:flex; align-items:center; gap:10px;
+  padding:8px 10px;
+  border:1px solid var(--bd);
+  background:var(--bg);
+  border-radius:999px;
+  min-width: 320px;
+  max-width: 560px;
+}
+
+.insony-search:focus-within{ background:var(--bg-focus); border-color:#3a3f46; }
+
+.insony-search .search-icon{ color:var(--muted); display:flex; align-items:center; margin-left:4px; }
+.insony-search .search-input{
+  background:transparent; border:none; outline:none; color:var(--fg);
+  width:100%; font-size:14px;
+}
+.insony-search .search-input::placeholder{ color:var(--muted); }
+
+.insony-search .clear-btn,
+.insony-search .submit-btn{
+  background:transparent; border:none; color:var(--muted);
+  display:flex; align-items:center; justify-content:center;
+  width:32px; height:32px; border-radius:50%;
+  transition:background .15s ease, color .15s ease;
+}
+.insony-search .clear-btn:hover,
+.insony-search .submit-btn:hover{ background:#2b2f34; color:#ffffff; }
+
+/* responsywność – na małych szerokościach niech zajmuje pełną linię */
+@media (max-width: 576px){
+  .insony-search{ width:100%; min-width:0; }
+}
+
+/* === TRACK DETAIL (hero + recenzje) ============================== */
+.insony-hero .cover-xl{
+  width:96px; height:96px; border-radius:12px; background:#2a2a2a; font-size:36px;
+}
+.stars-lg{ font-size:20px; }
+
+/* karty recenzji */
+.review-list { display: grid; gap: 12px; }
+.review-card{
+  background:#5e5e5e; border:1px solid #141313; border-radius:10px;
+  padding:12px 14px;
+}
+.review-card:hover{ background:#202020; }
+/* koniec dodatków */
+
+
+/* градієнт прогрес-барів (холодний/теплий, як у референсі) */
+.progress .bg-gradient {
+  background: linear-gradient(90deg, #2563eb 0%, #22d3ee 50%, #a855f7 100%);
+}
+.progress .bg-gradient.red {
+  background: linear-gradient(90deg, #ef4444 0%, #f97316 50%, #f43f5e 100%);
+}
+
+/* Czytelny tekst na ciemnym tle */
+.card.bg-dark, .card.bg-dark .form-label, .card.bg-dark .text-white { color: #e9ecf3 !important; }
+.card.bg-dark .text-white-50 { color: #9aa3b2 !important; }
+.card.bg-dark .text-muted    { color: #a0a7b3 !important; }
+
+/* Form controls w dark-theme */
+.card.bg-dark .form-control,
+.card.bg-dark .form-select,
+.card.bg-dark .form-range {
+  background-color:#1f2329;
+  border-color:#2a2f32;
+  color:#e9ecf3;
+}
+.card.bg-dark .form-control:focus,
+.card.bg-dark .form-select:focus {
+  border-color:#3b82f6;
+  box-shadow:0 0 0 .2rem rgba(59,130,246,.25);
+}
+
+/* Slidery (thumb + tor) */
+.form-range::-webkit-slider-runnable-track { background:#2a2f32; height:6px; border-radius:8px; }
+.form-range::-moz-range-track              { background:#2a2f32; height:6px; border-radius:8px; }
+.form-range::-webkit-slider-thumb          { background:#3b82f6; border:none; width:16px; height:16px; margin-top:-5px; border-radius:50%; }
+.form-range::-moz-range-thumb              { background:#3b82f6; border:none; width:16px; height:16px; border-radius:50%; }
+
+/* Progress-bary pod suwakami i w hero */
+.progress-criterion .crit-bar {
+  background: linear-gradient(90deg, #2563eb 0%, #22d3ee 50%, #a855f7 100%);
+}
+.progress .main-avg {
+  background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+/* Karta recenzji – kontrast тексту */
+.p-3.bg-secondary.bg-opacity-10 { color:#e9ecf3; }
+
+/* ---------- DARK UI читабельність ---------- */
+.card.bg-dark, .card.bg-dark .form-label, .card.bg-dark .crit-label { color:#e9ecf3 !important; }
+.card.bg-dark .text-white-50 { color:#9aa3b2 !important; }
+.card.bg-dark .text-muted    { color:#a0a7b3 !important; }
+
+.card.bg-dark .form-control,
+.card.bg-dark .form-select,
+.card.bg-dark .form-range {
+  background:#1f2329;
+  border-color:#2a2f32;
+  color:#e9ecf3;
+}
+.card.bg-dark .form-control:focus,
+.card.bg-dark .form-select:focus {
+  border-color:#3b82f6;
+  box-shadow:0 0 0 .2rem rgba(59,130,246,.25);
+}
+
+/* ---------- ПАНЕЛІ КРИТЕРІЇВ ---------- */
+.crit-panel{
+  border:1px solid #2a2f32;
+  border-radius:12px;
+  padding:10px 12px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.0));
+}
+.crit-head .crit-icon{ font-size:1.1rem; line-height:1; }
+.crit-head .crit-label{ font-weight:600; }
+.crit-head .crit-value{ color:#c8d0dc; }
+
+.crit-progress{ height:8px; background:#22262b; border-radius:999px; }
+.crit-bar{
+  width:0%;
+  height:100%;
+  border-radius:999px;
+  transition:width .25s ease-in-out;
+}
+
+/* Кольорові градієнти (як у референсі) */
+.crit--blue   .crit-bar{ background:linear-gradient(90deg,#2563eb 0%,#22d3ee 50%,#60a5fa 100%); }
+.crit--indigo .crit-bar{ background:linear-gradient(90deg,#4338ca 0%,#6366f1 50%,#818cf8 100%); }
+.crit--violet .crit-bar{ background:linear-gradient(90deg,#6d28d9 0%,#8b5cf6 50%,#a78bfa 100%); }
+.crit--purple .crit-bar{ background:linear-gradient(90deg,#7e22ce 0%,#a855f7 50%,#c084fc 100%); }
+.crit--cyan   .crit-bar{ background:linear-gradient(90deg,#0891b2 0%,#06b6d4 50%,#22d3ee 100%); }
+.crit--pink   .crit-bar{ background:linear-gradient(90deg,#db2777 0%,#ec4899 50%,#f472b6 100%); }
+
+/* ---------- Слайдери (thumb/track) ---------- */
+.form-range { accent-color: #3b82f6; } /* для сучасних браузерів */
+.form-range::-webkit-slider-runnable-track { background:#2a2f32; height:6px; border-radius:8px; }
+.form-range::-moz-range-track              { background:#2a2f32; height:6px; border-radius:8px; }
+.form-range::-webkit-slider-thumb          { background:#3b82f6; border:none; width:16px; height:16px; margin-top:-5px; border-radius:50%; }
+.form-range::-moz-range-thumb              { background:#3b82f6; border:none; width:16px; height:16px; border-radius:50%; }
+
+/* ---------- Верхній загальний прогрес ---------- */
+.progress .main-avg{
+  background:linear-gradient(90deg,#fbbf24 0%,#f59e0b 100%);
+}
+
+
+html, body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.main-wrapper {
+  flex: 1; /* займати весь простір щоб футер ішов вниз */
+}
+
+
+/* ==== AUTH (login + register) shared styles ==== */
+.auth-card{background:#181818;border:1px solid #2a2a2a;border-radius:16px}
+
+/* поля, плейсхолдери, фокус */
+.auth-card .form-control,
+.auth-card .input-group-text,
+.auth-card .btn-outline-secondary{background:#202020;border-color:#3a3a3a;color:#e6e6e6}
+.auth-card .form-control::placeholder{color:#9aa0a6;opacity:1}
+.auth-card .form-control:focus{border-color:#6ea8fe;box-shadow:0 0 0 .2rem rgba(13,110,253,.15)}
+
+/* підписи, help-­тексти, помилки */
+.auth-card label,
+.auth-card .form-check-label{color:#e6e6e6}
+.auth-card .form-text,
+.auth-muted{color:#9aa0a6}
+.auth-card .invalid-feedback{color:#ff6b6b}
+
+/* заголовок/підзаголовок */
+.auth-brand{font-weight:700;letter-spacing:.3px;color:#fff}
+.auth-sub{color:#cfd6df !important}
+
+/* кнопки/лінки */
+.btn-primary{background:#2563eb;border-color:#2563eb}
+.btn-primary:hover{background:#1d4ed8;border-color:#1d4ed8}
+.auth-link{color:#9aa0a6;text-decoration:none}
+.auth-link:hover{color:#cfe2ff;text-decoration:underline}
+
+.auth-card .btn-outline-secondary:hover {background:#2a2a2a;}
+
+
+/* Плаский, темний, акуратний алерт усередині карток */
+.alert-isony {
+  background: #1f1f1f;
+  border: 1px solid #3a2a2a;
+  color: #ffbcbc;
+  border-radius: 10px;
+}
+.alert-isony .btn-close {
+  filter: invert(1) grayscale(100%);
+  opacity: .6;
+}
+.alert-isony .btn-close:hover { opacity: .9; }
+
+
+
+
+/* ===== XP / Level ===== */
+.xp-card { background:#181818; border:1px solid #2a2a2a; border-radius:16px; }
+.xp-header { display:flex; align-items:end; justify-content:space-between; gap:16px; }
+
+.level-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  background:linear-gradient(135deg, #2b2b2b, #1c1c1c);
+  border:1px solid #3a3a3a; color:#eaeaea; border-radius:12px;
+  padding:8px 12px; font-weight:700; letter-spacing:.3px;
+  box-shadow:0 0 0 1px rgba(0,0,0,.25), inset 0 0 24px rgba(255,255,255,.03);
+}
+
+.xp-stats { color:#b6bdc6; font-size:12px; }
+
+.xp-track {
+  position:relative; height:12px; border-radius:999px; overflow:hidden;
+  background: linear-gradient(180deg, #1b1b1b, #151515);
+  border:1px solid #2a2a2a;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,.5);
+}
+
+.xp-fill {
+  --xp-pct: 0%;
+  width: var(--xp-pct); height:100%;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.08), transparent 20%),
+    linear-gradient(90deg, #3b82f6 0%, #22d3ee 50%, #a78bfa 100%);
+  box-shadow: 0 0 18px rgba(59,130,246,.25), 0 0 36px rgba(167,139,250,.15);
+  transition: width .9s cubic-bezier(.22,.8,.3,1);
+}
+
+.xp-ticks {
+  position:absolute; inset:0; display:flex; justify-content:space-between;
+  pointer-events:none;
+}
+.xp-ticks span { width:1px; background:rgba(255,255,255,.07); }
+
+.xp-legend { display:flex; justify-content:space-between; color:#9aa0a6; font-size:12px; }
+
+.xp-tooltip {
+  position:absolute; top:-34px; transform:translateX(-50%);
+  background:#0f0f10; border:1px solid #2b2b2b; color:#e6e6e6;
+  padding:4px 8px; border-radius:10px; font-size:12px; white-space:nowrap;
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+}
+.xp-tooltip::after {
+  content:""; position:absolute; left:50%; bottom:-6px; transform:translateX(-50%);
+  border:6px solid transparent; border-top-color:#2b2b2b;
+}
+
+/* Адаптив */
+@media (max-width: 576px) {
+  .xp-header { flex-direction:column; align-items:flex-start; gap:8px; }
+  .xp-legend { font-size:11px; }
+}
+
+
+/* ------------- BADGE CHIP ------------- */
+.badge-chip{
+  display:inline-flex; align-items:center; gap:.5rem;
+  padding:.35rem .75rem;
+  border-radius:999px;
+  font-weight:600; letter-spacing:.2px;
+  font-size:.95rem;
+  color:#fff;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06), 0 6px 16px rgba(0,0,0,.35);
+  user-select:none;
+}
+
+.badge-chip i{ opacity:.9; }
+
+.bdg-bronze{
+  background:linear-gradient(135deg,#7c4a22,#c3803c);
+}
+.bdg-silver{
+  background:linear-gradient(135deg,#6b7682,#cfd6df);
+  color:#0f1419;
+}
+.bdg-gold{
+  background:linear-gradient(135deg,#8a6b12,#f7cf56);
+  color:#1b1b1b;
+}
+.bdg-diamond{
+  background:linear-gradient(135deg,#2a6bb8,#67d2ff);
+  color:#061018;
+}
+
+

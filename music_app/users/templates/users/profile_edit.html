@@ -1,0 +1,45 @@
+{% extends "users/base.html" %}
+{% block content %}
+<h2 class="mb-3">Edytuj profil</h2>
+
+<form method="POST" class="card shadow-sm p-3">
+  {% csrf_token %}
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label">Imię</label>
+      <input type="text" class="form-control" name="first_name" value="{{ first_name }}">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Nazwisko</label>
+      <input type="text" class="form-control" name="last_name" value="{{ last_name }}">
+    </div>
+
+    <div class="col-md-12">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-control" name="email" value="{{ email }}" required>
+    </div>
+
+    <div class="col-md-12">
+      <label class="form-label">Ulubione gatunki</label>
+      <input type="text" class="form-control" name="favorite_genres" value="{{ favorite_genres }}">
+      <div class="form-text">np. Rock, Jazz, Hip-Hop</div>
+    </div>
+
+    <div class="col-md-12">
+      <label class="form-label">Ulubieni artyści</label>
+      <input type="text" class="form-control" name="favorite_artists" value="{{ favorite_artists }}">
+    </div>
+
+    <div class="col-md-12">
+      <label class="form-label">Bio</label>
+      <textarea class="form-control" name="bio" rows="3">{{ bio }}</textarea>
+    </div>
+
+    <div class="col-12 d-flex gap-2">
+      <button type="submit" class="btn btn-primary">Zapisz</button>
+      <a class="btn btn-outline-secondary" href="{% url 'profile' %}">Anuluj</a>
+    </div>
+  </div>
+</form>
+{% endblock %}

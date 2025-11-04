@@ -1,0 +1,87 @@
+{% extends "users/base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <div class="card bg-dark border-0 shadow-sm">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="text-white mb-0">Edytuj utwór — {{ track.title }}</h4>
+      </div>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Tytuł</label>
+            {{ form.title }}
+            {% if form.title.errors %}
+              <div class="invalid-feedback d-block">
+                {% for e in form.title.errors %}<div>{{ e }}</div>{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Wykonawca</label>
+            {{ form.artist }}
+            {% if form.artist.errors %}
+              <div class="invalid-feedback d-block">
+                {% for e in form.artist.errors %}<div>{{ e }}</div>{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Gatunek</label>
+            {{ form.genre }}
+            {% if form.genre.errors %}
+              <div class="invalid-feedback d-block">
+                {% for e in form.genre.errors %}<div>{{ e }}</div>{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          {% if form.authored_date %}
+          <div class="col-md-3">
+            <label class="form-label">Data powstania</label>
+            {{ form.authored_date }}
+            {% if form.authored_date.errors %}
+              <div class="invalid-feedback d-block">
+                {% for e in form.authored_date.errors %}<div>{{ e }}</div>{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          {% if form.duration %}
+          <div class="col-md-3">
+            <label class="form-label">Czas trwania</label>
+            {{ form.duration }}
+            {% if form.duration.errors %}
+              <div class="invalid-feedback d-block">
+                {% for e in form.duration.errors %}<div>{{ e }}</div>{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <div class="col-12">
+            <label class="form-label">Opis</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+              <div class="invalid-feedback d-block">
+                {% for e in form.description.errors %}<div>{{ e }}</div>{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mt-3 d-flex gap-2">
+          <a href="{% url 'track_detail' track.id %}" class="btn btn-outline-light">Anuluj</a>
+          <button class="btn btn-primary" type="submit">Zapisz</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
