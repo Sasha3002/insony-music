@@ -152,12 +152,12 @@ def track_detail(request, track_id):
         return form[field_name] if form is not None else None
 
     criteria_cfg = [
-        {"icon": "🎤", "label": "Rymy / Obrazy",            "short": "ri",  "field": "rhyme_imagery",    "color": "crit--blue",   "value": val("rhyme_imagery"),    "bound": bound("rhyme_imagery")},
-        {"icon": "🥁", "label": "Struktura / Rytmika",       "short": "sr",  "field": "structure_rhythm", "color": "crit--indigo", "value": val("structure_rhythm"), "bound": bound("structure_rhythm")},
-        {"icon": "🎨", "label": "Styl / Realizacja",         "short": "se",  "field": "style_execution",  "color": "crit--violet", "value": val("style_execution"),  "bound": bound("style_execution")},
-        {"icon": "⚡", "label": "Indywidualność / Charyzma", "short": "ind", "field": "individuality",    "color": "crit--purple", "value": val("individuality"),    "bound": bound("individuality")},
-        {"icon": "🌌", "label": "Atmosfera / Wajb",          "short": "av",  "field": "atmosphere_vibe",  "color": "crit--cyan",   "value": val("atmosphere_vibe"),  "bound": bound("atmosphere_vibe")},
-        {"icon": "🚀", "label": "Trend / Aktualność",        "short": "tr",  "field": "trend_relevance",  "color": "crit--pink",   "value": val("trend_relevance"),  "bound": bound("trend_relevance")},
+        {"label": "Rymy / Obrazy",            "short": "ri",  "field": "rhyme_imagery",    "color": "crit--blue",   "value": val("rhyme_imagery"),    "bound": bound("rhyme_imagery")},
+        {"label": "Struktura / Rytmika",       "short": "sr",  "field": "structure_rhythm", "color": "crit--indigo", "value": val("structure_rhythm"), "bound": bound("structure_rhythm")},
+        {"label": "Styl / Realizacja",         "short": "se",  "field": "style_execution",  "color": "crit--violet", "value": val("style_execution"),  "bound": bound("style_execution")},
+        {"label": "Indywidualność / Charyzma", "short": "ind", "field": "individuality",    "color": "crit--purple", "value": val("individuality"),    "bound": bound("individuality")},
+        {"label": "Atmosfera / Wajb",          "short": "av",  "field": "atmosphere_vibe",  "color": "crit--cyan",   "value": val("atmosphere_vibe"),  "bound": bound("atmosphere_vibe")},
+        {"label": "Trend / Aktualność",        "short": "tr",  "field": "trend_relevance",  "color": "crit--pink",   "value": val("trend_relevance"),  "bound": bound("trend_relevance")},
     ]
 
 

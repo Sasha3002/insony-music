@@ -8,6 +8,7 @@ from .forms import RegisterForm
 #from music.models import Review
 from music.utils.xp import level_from_xp, level_progress, badge_for_level, badge_progress, badge_name
 from music.models import Review
+from django.db.models import Avg, F, FloatField
 
 
 def login_view(request):
@@ -57,8 +58,27 @@ def profile_view(request):
     b = badge_for_level(level)
     badge_pct, badge_slug, next_badge_slug = badge_progress(level, xp_in_level)
 
-    recent_reviews = Review.objects.filter(user=user).order_by('-created_at')[:10]
-         # скільки залишилось
+    recent_reviews = Review.objects.filter(user=user).select_related('track', 'track__artist').order_by('-created_at')[:10]
+    
+    # Calculate average rating from user's reviews
+   
+    avg_data = Review.objects.filter(user=user).aggregate(
+        avg_total=Avg(
+            F('rhyme_imagery') + F('structure_rhythm') + F('style_execution') + 
+            F('individuality') + F('atmosphere_vibe') + F('trend_relevance'),
+            output_field=FloatField()
+        )
+    )
+    # avg_total is the average sum of all 6 criteria (0-60), convert to 0-10 scale
+    average_rating = round(avg_data['avg_total'] / 6, 1) if avg_data['avg_total'] else 0
+    
+    # Parse favorite genres (comma-separated)
+    favorite_genres_list = [g.strip() for g in user.favorite_genres.split(',') if g.strip()] if user.favorite_genres else []
+    
+    # Parse favorite artists (comma-separated) 
+    favorite_artists_list = [a.strip() for a in user.favorite_artists.split(',') if a.strip()] if user.favorite_artists else []
+
+    
 
     ctx = {
         "user": user,
@@ -69,6 +89,9 @@ def profile_view(request):
         "to_next": to_next,
         "level_progress_pct": level_progress_pct,
         "recent_reviews": recent_reviews,
+        "average_rating": average_rating,
+        "favorite_genres_list": favorite_genres_list,
+        "favorite_artists_list": favorite_artists_list,
         "badge": b,                               # dict: slug/name/min/max
         "badge_slug": badge_slug,                 # 'bronze' / 'silver' / 'gold' / 'diamond'
         "badge_name": badge_name(badge_slug),     # 'Bronze' / 'Silver' ...

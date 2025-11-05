@@ -1,45 +1,81 @@
+
 {% extends "users/base.html" %}
+{% load static %}
 {% block content %}
 
-<div class="container py-4">
-
-  <!-- HERO / GŁÓWKA PROFILU -->
-  <div class="d-flex align-items-center mb-4 gap-4">
-    <img
-      src="https://ui-avatars.com/api/?name={{ user.username }}&background=2a2a2a&color=fff&size=160"
-      alt="{{ user.username }}"
-      class="rounded-circle border border-dark shadow"
-      width="120" height="120">
-    <div class="flex-grow-1">
-      <div class="text-uppercase small text-muted">Profil użytkownika</div>
-      <h2 class="fw-bold text-white mb-1">{{ user.username }}</h2>
-      <div class="text-secondary small">
-        Zarejestrowany: {{ user.date_joined|date:"d.m.Y" }}
+<!-- Profile Cover Section -->
+<div class="profile-cover"></div>
+<!-- Main Container -->
+<div class="container" style="margin-top: -50px; position: relative; z-index: 10;">
+  
+  <!-- Profile Header -->
+  <div class="profile-header-content">
+    <img src="https://ui-avatars.com/api/?name=admin&background=2a2a2a&color=fff&size=280" 
+         alt="{{ user.username }}" 
+         class="profile-avatar">
+    
+    <div class="profile-info">
+      <h1 class="profile-username">{{ user.username }}</h1>
+      <div class="profile-meta">
+        <i class="bi bi-calendar3"></i> Zarejestrowany: {{ user.date_joined|date:"d.m.Y" }}
+      </div>
+      <div class="profile-actions">
+        <a href="{% url 'profile_edit' %}" class="btn btn-primary">
+          <i class="bi bi-pencil"></i> Edytuj profil
+        </a>
       </div>
     </div>
   </div>
-
-  <!-- POZIOM / XP -->
-  <div class="card xp-card mb-4">
-    <div class="card-body">
-      <div class="xp-header mb-2">
-        <div class="level-badge">
-          <span>LV {{ level|default:1 }}</span>
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #db2777, #ec4899);">
+        <i class="bi bi-chat-left-text-fill"></i>
+      </div>
+      <div class="stat-value">{{ recent_reviews.count }}</div>
+      <div class="stat-label">Recenzji</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #2563eb, #3b82f6);">
+        <i class="bi bi-star-fill"></i>
+      </div>
+      <div class="stat-value">{{ average_rating|floatformat:1 }}</div>
+      <div class="stat-label">Średnia ocen</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
+        <i class="bi bi-heart-fill"></i>
+      </div>
+      <div class="stat-value">0</div>
+      <div class="stat-label">Ulubionych</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #059669, #10b981);">
+        <i class="bi bi-music-note-list"></i>
+      </div>
+      <div class="stat-value">0</div>
+      <div class="stat-label">Playlist</div>
+    </div>
+  </div>
+  <!-- XP Progress Card -->
+  <div class="xp-card">
+    <div class="xp-header">
+      <div class="level-badge">
+        <i class="bi bi-lightning-fill" style="color: #fbbf24;"></i>
+        <span>POZIOM {{ level }}</span>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <div class="badge-chip bdg-bronze">
+          <i class="bi bi-trophy-fill"></i>
+          <span>{{ badge_name|default:"Bronze" }}</span>
         </div>
-        <div class="ms-auto d-flex align-items-center gap-2">
-          <span class="badge-chip bdg-{{ badge_slug|default:'bronze' }}">
-            <i class="bi bi-trophy-fill"></i> {{ badge_name|default:"Bronze" }}
-          </span>
-          <div class="text-end">
-            <div class="xp-stats">
-              {{ level_in_xp|default:0 }} / 1000 XP · łącznie: {{ xp|default:0 }} · do następnego: {{ to_next|default:0 }}
-            </div>
-          </div>
+        <div class="xp-stats">
+          <div><strong>{{ level_in_xp|default:0 }}</strong> / 1000 XP</div>
+          <div class="text-muted" style="font-size: 0.75rem;">: {{ to_next|default:0 }} do następnego poziomu</div>
         </div>
       </div>
-      
-
-      <div class="position-relative mt-2">
+    </div>
+    <div class="position-relative mt-2">
         <!-- Трек прогресу -->
         <div class="xp-track" aria-label="Postęp poziomu"
              role="progressbar"
@@ -63,107 +99,124 @@
           <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
         </div>
       </div>
-    </div>
   </div>
-
-  <!-- ZAKŁADKI (na przyszłość) -->
-  <ul class="nav nav-tabs nav-fill mb-4">
-    <li class="nav-item">
-      <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-reviews" type="button">
-        Recenzje & Oceny
-      </button>
-    </li>
-    <li class="nav-item">
-      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-favorites" type="button">
-        Ulubione
-      </button>
-    </li>
-    <li class="nav-item">
-      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-artists" type="button">
-        Artyści
-      </button>
-    </li>
-    <li class="nav-item">
-      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-genres" type="button">
-        Gatunki
-      </button>
-    </li>
-    <li class="nav-item">
-      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-playlist" type="button">
-        Playlista
-      </button>
-    </li>
-  </ul>
-
-  <div class="tab-content">
-
-    <!-- TAB: Recenzje -->
-    <div class="tab-pane fade show active" id="tab-reviews">
-      <div class="card bg-dark border-0 shadow-sm mb-4">
-        <div class="card-body">
-          <h5 class="text-white mb-3">Ostatnia aktywność</h5>
-          {% if recent_reviews %}
-            {% for r in recent_reviews %}
-              <div class="d-flex justify-content-between border-bottom border-secondary-subtle py-2">
-                <div class="text-white">
-                  <strong>{{ r.track.title }}</strong>
-                  <span class="text-white-50"> · {{ r.created_at|date:"d.m.Y H:i" }}</span>
-                  {% if r.total_percent %}<div class="small text-white-50">{{ r.total_percent|floatformat:1 }}%</div>{% endif %}
+  <!-- Two Column Layout: Activity Feed + Sidebar -->
+  <div class="content-columns">
+    
+    <!-- Left Column: Recent Activity -->
+    <div>
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="bi bi-clock-history me-2"></i>
+          Ostatnia aktywność
+        </h2>
+      </div>
+      <div class="activity-feed">
+        {% if recent_reviews %}
+          {% for review in recent_reviews %}
+            <div class="activity-item">
+              <div class="cover">
+                {% if review.track.cover_image %}
+                  <img src="{{ review.track.cover_image }}" alt="{{ review.track.title }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
+                {% else %}
+                  <img src="{% static 'img/Insony.jpg' %}" alt="Insony" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
+                {% endif %}
+              </div>
+              <div class="activity-content">
+                <div class="activity-track">{{ review.track.title }}</div>
+                <div class="activity-meta">
+                  <span><i class="bi bi-calendar3"></i> {{ review.created_at|date:"d.m.Y H:i" }}</span>
+                  <span class="activity-score">{{ review.total_percent|floatformat:1 }}%</span>
                 </div>
-                <a class="btn btn-sm btn-outline-light" href="{% url 'track_detail' r.track_id %}">Szczegóły</a>
+              </div>
+              <a href="{% url 'track_detail' review.track.id %}" class="btn-view">Szczegóły</a>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">
+            <i class="bi bi-music-note-list"></i>
+            <div>Brak recenzji</div>
+            <small>Rozpocznij ocenianie utworów</small>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    <!-- Right Column: Sidebar -->
+    <div class="sidebar">
+      
+      <!-- Favorite Genres Card -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">
+          <i class="bi bi-music-note-beamed"></i>
+          Ulubione gatunki
+        </div>
+        
+        {% if favorite_genres_list %}
+          <div class="tag-cloud">
+            {% for genre in favorite_genres_list %}
+              <span class="tag">{{ genre }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <i class="bi bi-music-note-list"></i>
+            <div>Brak ulubionych gatunków</div>
+            <small>Dodaj gatunki w ustawieniach</small>
+          </div>
+        {% endif %}
+      </div>
+      <!-- Favorite Artists Card -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">
+          <i class="bi bi-people-fill"></i>
+          Ulubieni artyści
+        </div>
+        
+        {% if favorite_artists_list %}
+          <div>
+            {% for artist in favorite_artists_list %}
+              <div class="artist-item">
+                <div class="artist-avatar" style="background: linear-gradient(135deg, {% cycle '#dc2626, #f97316' '#2563eb, #7c3aed' '#059669, #10b981' '#7c3aed, #a855f7' '#db2777, #ec4899' %});">
+                  {{ artist|slice:":2"|upper }}
+                </div>
+                <div class="artist-info">
+                  <div class="artist-name">{{ artist }}</div>
+                </div>
               </div>
             {% endfor %}
-          {% else %}
-            <div class="text-secondary">Brak aktywności.</div>
-          {% endif %}
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <i class="bi bi-person"></i>
+            <div>Brak ulubionych artystów</div>
+            <small>Rozpocznij ocenianie utworów</small>
+          </div>
+        {% endif %}
+      </div>
+      <!-- Bio/About Card (if user has bio) -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">
+          <i class="bi bi-person-badge"></i>
+          O mnie
         </div>
+        {% if user.bio %}
+          <p style="color: #b6bdc6; font-size: 0.9rem; line-height: 1.6; margin: 0;">
+            {{ user.bio }}
+          </p>
+        {% else %}
+          <div class="empty-state" style="padding: 20px;">
+            <i class="bi bi-chat-square-text" style="font-size: 32px;"></i>
+            <div style="font-size: 0.875rem;">Brak opisu</div>
+          </div>
+        {% endif %}
       </div>
     </div>
-
-    <!-- TAB: Ulubione -->
-    <div class="tab-pane fade" id="tab-favorites">
-      <div class="card bg-dark border-0 shadow-sm">
-        <div class="card-body">
-          <h5 class="text-white mb-2">Ulubione utwory</h5>
-          <div class="text-secondary small">Wkrótce…</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB: Artyści -->
-    <div class="tab-pane fade" id="tab-artists">
-      <div class="card bg-dark border-0 shadow-sm">
-        <div class="card-body">
-          <h5 class="text-white mb-2">Top artyści</h5>
-          <div class="text-secondary small">Wkrótce…</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB: Gatunki -->
-    <div class="tab-pane fade" id="tab-genres">
-      <div class="card bg-dark border-0 shadow-sm">
-        <div class="card-body">
-          <h5 class="text-white mb-2">Top gatunki</h5>
-          <div class="text-secondary small">Wkrótce…</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB: Playlista -->
-    <div class="tab-pane fade" id="tab-playlist">
-      <div class="card bg-dark border-0 shadow-sm">
-        <div class="card-body">
-          <h5 class="text-white mb-2">Playlista użytkownika</h5>
-          <div class="text-secondary small">Wkrótce…</div>
-        </div>
-      </div>
-    </div>
-
   </div>
+  <div style="height: 80px;"></div>
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  // Animate XP bar on load
 (function () {
   const fill = document.getElementById('xpFill');
   const tip  = document.getElementById('xpTip');
@@ -188,5 +241,6 @@
   });
 })();
 </script>
+
 
 {% endblock %}
