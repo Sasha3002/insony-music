@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Artist, Genre, Track, Review
+from .models import Artist, Genre, Track, Review, Favorite
 
 
 @admin.register(Artist)
@@ -88,3 +88,10 @@ class ReviewAdmin(admin.ModelAdmin):
     search_fields = ("track__title", "user__username")
     list_filter = ("created_at", "track__genre")          # <— теж без rating
     ordering = ("-created_at",)
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ("track", "user", "created_at")
+    search_fields = ("track__title", "user__username")
+    list_filter = ("created_at",)

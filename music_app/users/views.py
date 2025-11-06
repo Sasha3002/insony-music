@@ -7,7 +7,7 @@ from .models import User
 from .forms import RegisterForm
 #from music.models import Review
 from music.utils.xp import level_from_xp, level_progress, badge_for_level, badge_progress, badge_name
-from music.models import Review
+from music.models import Review, Favorite
 from django.db.models import Avg, F, FloatField
 
 
@@ -78,7 +78,7 @@ def profile_view(request):
     # Parse favorite artists (comma-separated) 
     favorite_artists_list = [a.strip() for a in user.favorite_artists.split(',') if a.strip()] if user.favorite_artists else []
 
-    
+    favorites_count = Favorite.objects.filter(user=user).count()
 
     ctx = {
         "user": user,
@@ -91,6 +91,7 @@ def profile_view(request):
         "recent_reviews": recent_reviews,
         "average_rating": average_rating,
         "favorite_genres_list": favorite_genres_list,
+        "favorites_count": favorites_count,
         "favorite_artists_list": favorite_artists_list,
         "badge": b,                               # dict: slug/name/min/max
         "badge_slug": badge_slug,                 # 'bronze' / 'silver' / 'gold' / 'diamond'

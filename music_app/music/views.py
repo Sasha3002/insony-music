@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from .models import Track, Artist, Genre, Review, ReviewLike
+from .models import Track, Artist, Genre, Review, ReviewLike, Favorite
 from django.contrib import messages
 from .forms import ReviewForm
 from django.db.models import Avg, Count, F, ExpressionWrapper, FloatField, Q, Value
@@ -120,6 +120,11 @@ def track_detail(request, track_id):
         )
 
 
+    is_favorited = False
+    if request.user.is_authenticated:
+        is_favorited = Favorite.objects.filter(user=request.user, track=track).exists()
+
+
     # --- форма створення/редагування ---
     user_review = None
     form = None
@@ -170,6 +175,7 @@ def track_detail(request, track_id):
         'reviews_page': reviews_page,
         'liked_ids': liked_ids,
         'sort': sort,
+        'is_favorited': is_favorited,
         'form': form,
         'user_review': user_review,
         'criteria_cfg': criteria_cfg,   
@@ -270,3 +276,39 @@ def track_delete(request, track_id):
 
     # GET – pokazujemy stronę potwierdzenia
     return render(request, 'music/track_delete_confirm.html', {'track': track})
+
+
+#@login_required(login_url="/users/login/")
+#def favorite_toggle(request, track_id):
+#    track = get_object_or_404(Track, pk=track_id)
+#    fav, created = Favorite.objects.get_or_create(user=request.user, track=track)
+#    if not created:
+#        fav.delete()
+#        status = "removed"
+#    else:
+#        status = "added"
+#
+#    count = track.favorites.count()
+#    # AJAX?
+#    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+#        return JsonResponse({"status": status, "count": count})
+#
+#    return redirect("track_detail", track_id=track.id)
+
+
+@require_POST
+@login_required(login_url="/users/login/")
+def favorite_toggle(request, track_id):
+    track = get_object_or_404(Track, pk=track_id)
+
+    fav_qs = Favorite.objects.filter(user=request.user, track=track)
+    already = fav_qs.exists()
+
+    if already:
+        fav_qs.delete()
+        is_favorited = False
+    else:
+        Favorite.objects.create(user=request.user, track=track)
+        is_favorited = True
+
+    return JsonResponse({"ok": True, "favorited": is_favorited, "track_id": track_id})

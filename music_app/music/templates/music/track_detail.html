@@ -45,10 +45,39 @@
       </div>
 
       <div class="text-end ms-auto d-flex gap-2">
-        {% if user.is_authenticated and user.is_staff %}
+        {% if user.is_authenticated %}
+          <button
+            class="btn btn-outline-light btn-sm js-fav"
+            data-track-id="{{ track.id }}"
+            aria-pressed="{{ is_favorited|yesno:'true,false' }}"
+            title="{% if is_favorited %}Usuń z ulubionych{% else %}Dodaj do ulubionych{% endif %}">
+            {% if is_favorited %}
+              <i class="bi bi-check-circle-fill me-1"></i> Ulubiony
+            {% else %}
+              <i class="bi bi-plus-circle me-1"></i> Dodaj
+            {% endif %}
+          </button>
+        {% else %}
+          <a class="btn btn-outline-light btn-sm"
+             href="{% url 'login' %}?next={{ request.get_full_path }}">
+             <i class="bi bi-plus-circle me-1"></i> Dodaj
+          </a>
+        {% endif %}
+        {% if user.is_authenticated  and user.is_staff %}
+          <!--  <form method="post" action="{% url 'favorite_toggle' track.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-light btn-sm">
+              {% if is_favorited %}
+                ★ Ulubiony
+              {% else %}
+                ☆ Dodaj do ulubionych
+              {% endif %}
+            </button> -->
           <a href="{% url 'track_edit' track.id %}" class="btn btn-outline-light btn-sm">✏ Edytuj</a>
           <a href="{% url 'track_delete' track.id %}" class="btn btn-outline-danger btn-sm">🗑 Usuń</a>
         {% endif %}
+    
+
       </div>
     </div>
   </div>
@@ -350,6 +379,10 @@
     }
 
 
+
+
+
+
     /* ========== ЛАЙКИ РЕЦЕНЗІЙ (AJAX + CSRF) ========== */
     // Отримати CSRF з cookie (Django стандарт)
     function getCookie(name) {
@@ -400,8 +433,52 @@
       });
     });
 
+    const favBtn = document.querySelector('.js-fav');
+    if (!favBtn) return;
+
+    favBtn.addEventListener('click', async () => {
+      const trackId = favBtn.dataset.trackId;
+      try {
+        const resp = await fetch(`/${trackId}/favorite/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        if (resp.status === 401 || resp.status === 403) {
+          window.location.href = "{% url 'login' %}?next={{ request.get_full_path }}";
+          return;
+        }
+
+        const data = await resp.json();
+        if (!data.ok) return;
+
+        const pressed = data.favorited === true;
+        favBtn.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+        favBtn.title = pressed ? 'Usuń z ulubionych' : 'Dodaj do ulubionych';
+
+        // swap icon + text
+        favBtn.innerHTML = pressed
+          ? '<i class="bi bi-check-circle-fill me-1"></i> Ulubiony'
+          : '<i class="bi bi-plus-circle me-1"></i> Dodaj';
+
+        // optional: little flash
+        favBtn.classList.add('btn-success');
+        setTimeout(() => favBtn.classList.remove('btn-success'), 300);
+
+      } catch (e) {
+        console.error(e);
+      }
+    });
+
+
   })();
 </script>
+
+
+
 
 
 {% endblock %}

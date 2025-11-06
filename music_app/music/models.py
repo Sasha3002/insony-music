@@ -50,6 +50,13 @@ class Track(models.Model):
         help_text="URL зображення обкладинки з Cover Art Archive"
     )
 
+    #favorited_by = models.ManyToManyField(
+    #settings.AUTH_USER_MODEL,
+    #through="Favorite",
+    #related_name="favorited_tracks",
+    #blank=True,
+    #)
+
     class Meta:
         ordering = ("-created_at",)
         indexes = [
@@ -137,3 +144,27 @@ class ReviewLike(models.Model):
 
     def __str__(self):
         return f"{self.user_id} ♥ {self.review_id}"
+
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="favorite_tracks"
+    )
+    track = models.ForeignKey(
+        "Track",
+        on_delete=models.CASCADE,
+        related_name="favorites"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = (("user", "track"),)
+        ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=["user", "track"]),
+            models.Index(fields=["track", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user} → {self.track} (★ {self.created_at:%Y-%m-%d})"
