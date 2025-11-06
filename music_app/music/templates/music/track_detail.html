@@ -2,154 +2,745 @@
 {% load static %}
 {% block content %}
 
-<div class="container mt-4">
+<style>
+  /* Track Hero Section - PROPER DESIGN */
+  .track-hero {
+    background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 32px;
+    border: 1px solid #2a2a2a;
+  }
 
+  .track-hero-content {
+    display: flex;
+    gap: 32px;
+    align-items: start;
+  }
 
-<!--ГОЛОВНИЙ БЛОК ТРЕКУ -->
+  .track-cover {
+    width: 200px;
+    height: 200px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #2a2a2a, #1f1f1f);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    flex-shrink: 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
 
-  <div class="card bg-dark border-0 shadow-sm mb-4">
-    <div class="card-body d-flex flex-wrap align-items-center gap-3">
-      <div class="track-cover-large">
+  .track-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .track-info {
+    flex: 1;
+  }
+
+  .track-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: #fff;
+  }
+
+  .track-artist {
+    font-size: 1.5rem;
+    color: #9aa0a6;
+    margin-bottom: 16px;
+  }
+
+  .track-meta {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .track-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #b6bdc6;
+    font-size: 0.9rem;
+  }
+
+  .track-meta-item i {
+    color: #6b7280;
+  }
+
+  .track-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  /* Overall Rating Card */
+  .overall-rating-card {
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+  }
+
+  .rating-big {
+    font-size: 5rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+    margin: 0;
+  }
+
+  .rating-label {
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.8);
+    margin-top: 8px;
+  }
+
+  .rating-subtitle {
+    color: rgba(255,255,255,0.6);
+    font-size: 0.875rem;
+    margin-top: 4px;
+  }
+
+  /* Section Headers */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+  }
+
+  /* Criteria Grid - BIGGER, 2-3 COLUMNS */
+  .criteria-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .criterion-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.2s;
+  }
+
+  .criterion-card:hover {
+    border-color: #3a3a3a;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .criterion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .criterion-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #e6e6e6;
+  }
+
+  .criterion-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .criterion-bar {
+    height: 8px;
+    background: #22262b;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .criterion-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.5s cubic-bezier(0.22, 0.8, 0.3, 1);
+  }
+
+  /* Gradient colors */
+  .crit-blue .criterion-fill {
+    background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+    box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
+  }
+  .crit-indigo .criterion-fill {
+    background: linear-gradient(90deg, #4338ca 0%, #818cf8 100%);
+    box-shadow: 0 0 12px rgba(67, 56, 202, 0.5);
+  }
+  .crit-violet .criterion-fill {
+    background: linear-gradient(90deg, #6d28d9 0%, #a78bfa 100%);
+    box-shadow: 0 0 12px rgba(109, 40, 217, 0.5);
+  }
+  .crit-purple .criterion-fill {
+    background: linear-gradient(90deg, #7e22ce 0%, #c084fc 100%);
+    box-shadow: 0 0 12px rgba(126, 34, 206, 0.5);
+  }
+  .crit-cyan .criterion-fill {
+    background: linear-gradient(90deg, #0891b2 0%, #22d3ee 100%);
+    box-shadow: 0 0 12px rgba(8, 145, 178, 0.5);
+  }
+  .crit-pink .criterion-fill {
+    background: linear-gradient(90deg, #db2777 0%, #f472b6 100%);
+    box-shadow: 0 0 12px rgba(219, 39, 119, 0.5);
+  }
+
+  /* Review Form - 2-3 COLUMNS */
+  .review-form-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+  }
+
+  .sliders-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .slider-group {
+    margin-bottom: 0;
+  }
+
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .slider-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #e6e6e6;
+  }
+
+  .slider-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    min-width: 50px;
+    text-align: right;
+  }
+
+  .form-range {
+    width: 100%;
+    height: 8px;
+    background: #22262b;
+    border-radius: 999px;
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  .form-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
+    transition: all 0.2s;
+  }
+
+  .form-range::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.8);
+  }
+
+  .form-range::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
+  }
+
+  /* Review Text Area */
+  .form-control {
+    background: #1f2329;
+    border: 1px solid #2a2f32;
+    color: #e9ecf3;
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .form-control:focus {
+    background: #1f2329;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    color: #e9ecf3;
+  }
+
+  /* Reviews List - MY STYLE WITH YOUR DOTS */
+  .reviews-section {
+    margin-top: 48px;
+  }
+
+  .review-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: all 0.2s;
+  }
+
+  .review-card:hover {
+    border-color: #3a3a3a;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+
+  .review-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .review-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .review-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.25rem;
+  }
+
+  .review-author-info h5 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .review-date {
+    font-size: 0.85rem;
+    color: #9aa0a6;
+  }
+
+  .review-score {
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 1.25rem;
+  }
+
+  /* Mini Criteria Dots - IMPROVED */
+  .review-criteria-mini {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+    padding: 16px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 12px;
+  }
+
+  .mini-criterion {
+    text-align: center;
+  }
+
+  .mini-criterion-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .mini-criterion-label {
+    font-size: 0.75rem;
+    color: #9aa0a6;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .review-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 16px 0 8px 0;
+  }
+
+  .review-text {
+    color: #b6bdc6;
+    line-height: 1.6;
+    margin: 16px 0;
+  }
+
+  .review-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+    align-items: center;
+  }
+
+  .btn-like {
+    background: transparent;
+    border: 1px solid #2a2a2a;
+    color: #9aa0a6;
+    padding: 8px 16px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+  }
+
+  .btn-like:hover {
+    border-color: #dc2626;
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.1);
+  }
+
+  .btn-like.is-liked {
+    border-color: #dc2626;
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.1);
+  }
+
+  /* Tabs/Toggle */
+  .rating-toggle {
+    display: inline-flex;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+  }
+
+  .toggle-btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    background: transparent;
+    color: #9aa0a6;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .toggle-btn:hover {
+    color: #fff;
+    background: #2a2a2a;
+  }
+
+  .toggle-btn.active {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+  }
+
+  /* Guest Box */
+  .guest-review-box {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+  }
+
+  /* Pagination */
+  .insony-pager {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+  }
+
+  .pg-btn {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    border-radius: 10px;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    color: #e6e6e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .pg-btn:hover {
+    background: #2a2a2a;
+    color: #fff;
+  }
+
+  .pg-btn.is-disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .pg-current {
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .criteria-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .track-hero-content {
+      flex-direction: column;
+    }
+
+    .track-cover {
+      width: 160px;
+      height: 160px;
+    }
+
+    .track-title {
+      font-size: 2rem;
+    }
+
+    .rating-big {
+      font-size: 4rem;
+    }
+
+    .criteria-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .sliders-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="container py-4">
+  
+  <!-- Track Hero -->
+  <div class="track-hero">
+    <div class="track-hero-content">
+      <div class="track-cover">
         {% if track.cover_image %}
-          <img src="{{ track.cover_image }}" alt="{{ track.title }}" class="img-fluid rounded">
+          <img src="{{ track.cover_image }}" alt="{{ track.title }}">
         {% else %}
-          <img src="{% static 'img/Insony.jpg' %}" alt="Insony" class="img-fluid rounded">
+          <img src="{% static 'img/Insony.jpg' %}" alt="{{ track.title }}">
         {% endif %}
       </div>
-      <div class="flex-grow-1">
-        <h2 class="text-white mb-1">{{ track.title }}</h2>
-        <div class="text-muted">
-          <strong>{{ track.artist.name }}</strong>
-          {% if track.genre %}· {{ track.genre.name }}{% endif %}
-          · {{ track.authored_date|date:"d.m.Y"|default:"—" }}
-          <p class="text-muted mb-3">
-            Czas trwania: <strong>{{ track.duration_display }}</strong>
-          </p>
+      
+      <div class="track-info">
+        <h1 class="track-title">{{ track.title }}</h1>
+        <div class="track-artist">{{ track.artist.name }}</div>
+        
+        <div class="track-meta">
+          {% if track.genre %}
+          <div class="track-meta-item">
+            <i class="bi bi-music-note"></i>
+            <span>{{ track.genre.name }}</span>
+          </div>
+          {% endif %}
+          <div class="track-meta-item">
+            <i class="bi bi-clock"></i>
+            <span>{{ track.duration_display }}</span>
+          </div>
+          <div class="track-meta-item">
+            <i class="bi bi-calendar3"></i>
+            <span>{{ track.authored_date|date:"d.m.Y"|default:"—" }}</span>
+          </div>
+          <div class="track-meta-item">
+            <i class="bi bi-chat-left-text"></i>
+            <span>{{ total_reviews }} {% if total_reviews == 1 %}recenzja{% elif total_reviews < 5 %}recenzje{% else %}recenzji{% endif %}</span>
+          </div>
         </div>
 
-        <div class="mt-3">
-          {% if avg_percent %}
-            <div class="d-flex align-items-center gap-2">
-              <span class="fs-4 fw-bold text-warning">{{ avg_percent|floatformat:0 }}</span>
-              <span class="text-white-50">/100</span>
-              <span class="text-muted small">({{ total_reviews }} recenzji)</span>
-            </div>
-            <div class="progress mt-2" style="height:6px;">
-              <div class="progress-bar main-avg" role="progressbar"
-                   style="width: {{ avg_percent|default_if_none:0|floatformat:0 }}%;"></div>
-            </div>
+        <div class="track-actions">
+          {% if user.is_authenticated %}
+            <button
+              class="btn btn-primary js-fav"
+              data-track-id="{{ track.id }}"
+              aria-pressed="{{ is_favorited|yesno:'true,false' }}"
+              title="{% if is_favorited %}Usuń z ulubionych{% else %}Dodaj do ulubionych{% endif %}">
+              <i class="bi bi-heart{% if is_favorited %}-fill{% endif %}"></i>
+              {% if is_favorited %}Ulubiony{% else %}Dodaj do ulubionych{% endif %}
+            </button>
           {% else %}
-            <p class="text-muted mb-0">Brak ocen — bądź pierwszy!</p>
+            <a class="btn btn-primary"
+               href="{% url 'login' %}?next={{ request.get_full_path }}">
+               <i class="bi bi-heart"></i> Dodaj do ulubionych
+            </a>
+          {% endif %}
+
+          {% if user.is_staff %}
+            <a href="{% url 'track_edit' track.id %}" class="btn btn-outline-light">
+              <i class="bi bi-pencil"></i> Edytuj
+            </a>
+            <a href="{% url 'track_delete' track.id %}" class="btn btn-outline-danger">
+              <i class="bi bi-trash"></i> Usuń
+            </a>
           {% endif %}
         </div>
-      </div>
-
-      <div class="text-end ms-auto d-flex gap-2">
-        {% if user.is_authenticated %}
-          <button
-            class="btn btn-outline-light btn-sm js-fav"
-            data-track-id="{{ track.id }}"
-            aria-pressed="{{ is_favorited|yesno:'true,false' }}"
-            title="{% if is_favorited %}Usuń z ulubionych{% else %}Dodaj do ulubionych{% endif %}">
-            {% if is_favorited %}
-              <i class="bi bi-check-circle-fill me-1"></i> Ulubiony
-            {% else %}
-              <i class="bi bi-plus-circle me-1"></i> Dodaj
-            {% endif %}
-          </button>
-        {% else %}
-          <a class="btn btn-outline-light btn-sm"
-             href="{% url 'login' %}?next={{ request.get_full_path }}">
-             <i class="bi bi-plus-circle me-1"></i> Dodaj
-          </a>
-        {% endif %}
-        {% if user.is_authenticated  and user.is_staff %}
-          <!--  <form method="post" action="{% url 'favorite_toggle' track.id %}">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-outline-light btn-sm">
-              {% if is_favorited %}
-                ★ Ulubiony
-              {% else %}
-                ☆ Dodaj do ulubionych
-              {% endif %}
-            </button> -->
-          <a href="{% url 'track_edit' track.id %}" class="btn btn-outline-light btn-sm">✏ Edytuj</a>
-          <a href="{% url 'track_delete' track.id %}" class="btn btn-outline-danger btn-sm">🗑 Usuń</a>
-        {% endif %}
-    
-
       </div>
     </div>
   </div>
 
+  <!-- Overall Rating -->
+  {% if avg_percent %}
+  <div class="overall-rating-card">
+    <div class="rating-big">{{ avg_percent|floatformat:0 }}</div>
+    <div class="rating-label">Średnia ocena</div>
+    <div class="rating-subtitle">na podstawie {{ total_reviews }} {% if total_reviews == 1 %}recenzji{% elif total_reviews < 5 %}recenzji{% else %}recenzji{% endif %}</div>
+  </div>
+  {% endif %}
 
-  <!--ОЦІНКА: 2 колонки × 3 критерії + вкладки-->
+  <!-- Average Criteria Display - 2-3 COLUMNS -->
+  {% if avg_percent %}
+  <div class="section-header">
+    <h2 class="section-title">
+      <i class="bi bi-bar-chart-fill me-2"></i>
+      Średnie oceny kryteriów
+    </h2>
+  </div>
+  
+  <div class="criteria-grid">
+    <div class="criterion-card crit-blue">
+      <div class="criterion-header">
+        <span class="criterion-label">Rymy / Obrazy</span>
+        <span class="criterion-value">{{ criteria_avg.ri_avg|default:0|floatformat:1 }}</span>
+      </div>
+      <div class="criterion-bar">
+        <div class="criterion-fill" style="width: {{ criteria_avg.ri_avg|default:0|floatformat:0|add:'0' }}0%;"></div>
+      </div>
+    </div>
 
-  <div class="card bg-dark border-0 shadow-sm mb-4">
-    <div class="card-body">
+    <div class="criterion-card crit-indigo">
+      <div class="criterion-header">
+        <span class="criterion-label">Struktura / Rytmika</span>
+        <span class="criterion-value">{{ criteria_avg.sr_avg|default:0|floatformat:1 }}</span>
+      </div>
+      <div class="criterion-bar">
+        <div class="criterion-fill" style="width: {{ criteria_avg.sr_avg|default:0|floatformat:0|add:'0' }}0%;"></div>
+      </div>
+    </div>
 
-      {% if user.is_authenticated %}
+    <div class="criterion-card crit-violet">
+      <div class="criterion-header">
+        <span class="criterion-label">Styl / Realizacja</span>
+        <span class="criterion-value">{{ criteria_avg.se_avg|default:0|floatformat:1 }}</span>
+      </div>
+      <div class="criterion-bar">
+        <div class="criterion-fill" style="width: {{ criteria_avg.se_avg|default:0|floatformat:0|add:'0' }}0%;"></div>
+      </div>
+    </div>
+
+    <div class="criterion-card crit-purple">
+      <div class="criterion-header">
+        <span class="criterion-label">Indywidualność / Charyzma</span>
+        <span class="criterion-value">{{ criteria_avg.ind_avg|default:0|floatformat:1 }}</span>
+      </div>
+      <div class="criterion-bar">
+        <div class="criterion-fill" style="width: {{ criteria_avg.ind_avg|default:0|floatformat:0|add:'0' }}0%;"></div>
+      </div>
+    </div>
+
+    <div class="criterion-card crit-cyan">
+      <div class="criterion-header">
+        <span class="criterion-label">Atmosfera / Wajb</span>
+        <span class="criterion-value">{{ criteria_avg.av_avg|default:0|floatformat:1 }}</span>
+      </div>
+      <div class="criterion-bar">
+        <div class="criterion-fill" style="width: {{ criteria_avg.av_avg|default:0|floatformat:0|add:'0' }}0%;"></div>
+      </div>
+    </div>
+
+    <div class="criterion-card crit-pink">
+      <div class="criterion-header">
+        <span class="criterion-label">Trend / Aktualność</span>
+        <span class="criterion-value">{{ criteria_avg.tr_avg|default:0|floatformat:1 }}</span>
+      </div>
+      <div class="criterion-bar">
+        <div class="criterion-fill" style="width: {{ criteria_avg.tr_avg|default:0|floatformat:0|add:'0' }}0%;"></div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Review Form - 2-3 COLUMNS -->
+  <div class="review-form-card">
+    <h2 class="section-title mb-3">
+      <i class="bi bi-pencil-square me-2"></i>
+      {% if user.is_authenticated %}Twoja recenzja{% else %}Dodaj recenzję{% endif %}
+    </h2>
+
+    {% if user.is_authenticated %}
       <div class="d-flex justify-content-center mb-4">
         <div class="rating-toggle">
           <a href="?mode=review&sort={{ sort }}"
              class="toggle-btn {% if mode != 'no_text' %}active{% endif %}">
-             Recenzja
+             Pełna recenzja
           </a>
           <a href="?mode=no_text&sort={{ sort }}"
              class="toggle-btn {% if mode == 'no_text' %}active{% endif %}">
-             Ocena bez recenzji
+             Tylko oceny
           </a>
         </div>
       </div>
-      
 
-
-      
       <form method="post" id="crit-form">
         {% csrf_token %}
-
         <input type="hidden" name="mode" value="{{ mode }}">
 
-        {# 2 колонки критеріїв #}
-        <div class="row g-3">
-          <div class="col-lg-6">
-            {% for c in criteria_cfg|slice:":3" %}
-              <div class="crit-panel {{ c.color }}">
-                <div class="crit-head d-flex align-items-center justify-content-between">
-                  <div class="d-flex align-items-center gap-2">
-                    <span class="crit-icon">{{ c.icon }}</span>
-                    <span class="crit-label">{{ c.label }}</span>
-                  </div>
-                  <span class="crit-value"><strong id="{{ c.short }}-val">{{ c.value }}</strong>/10</span>
-                </div>
-                <div class="progress crit-progress my-2">
-                  <div id="{{ c.short }}-bar" class="progress-bar crit-bar" style="width: {{ c.value }}0%;"></div>
-                </div>
-                {{ c.bound }}
-              </div>
-            {% endfor %}
+        <!-- Sliders in 2 columns -->
+        <div class="sliders-grid">
+          {% for c in criteria_cfg %}
+          <div class="slider-group">
+            <div class="slider-header">
+              <label class="slider-label">{{ c.label }}</label>
+              <span class="slider-value" id="{{ c.short }}-val">{{ c.value }}</span>
+            </div>
+            {{ c.bound }}
           </div>
-
-          <div class="col-lg-6">
-            {% for c in criteria_cfg|slice:"3:" %}
-              <div class="crit-panel {{ c.color }}">
-                <div class="crit-head d-flex align-items-center justify-content-between">
-                  <div class="d-flex align-items-center gap-2">
-                    <span class="crit-icon">{{ c.icon }}</span>
-                    <span class="crit-label">{{ c.label }}</span>
-                  </div>
-                  <span class="crit-value"><strong id="{{ c.short }}-val">{{ c.value }}</strong>/10</span>
-                </div>
-                <div class="progress crit-progress my-2">
-                  <div id="{{ c.short }}-bar" class="progress-bar crit-bar" style="width: {{ c.value }}0%;"></div>
-                </div>
-                {{ c.bound }}
-              </div>
-            {% endfor %}
-          </div>
+          {% endfor %}
         </div>
+
         {% if mode != 'no_text' %}
-          <div class="mb-3">
+          <div class="mb-3 mt-4">
+            <label class="form-label">Tytuł recenzji</label>
             <div class="insony-title-wrap">
               {{ form.title }}
               <span class="insony-title-counter">
@@ -157,289 +748,284 @@
               </span>
             </div>
           </div>
+
           <div class="mb-3">
+            <label class="form-label">Treść recenzji</label>
             {{ form.text }}
             <div class="d-flex justify-content-end small text-muted mt-1">
               <span id="text-count">0</span>/8500
             </div>
           </div>
-        {% else %}
-          <!-- Режим “без рецензії” — приховуємо поля заголовка і тексту -->
         {% endif %}
 
-        
-
-
-        <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="d-flex justify-content-between align-items-center mt-4">
           <div class="text-white-50">
             <span class="me-2">Suma</span>
             <span class="display-6 fw-bold text-warning" id="total-current">0</span>
             <span class="text-muted">/100</span>
           </div>
         
-          <button class="btn btn-primary btn-lg">
-            {% if user_review %}Zapisz zmiany{% else %}Dodaj ocenę{% endif %}
+          <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-check-circle"></i>
+            {% if user_review %}Zapisz zmiany{% else %}Dodaj recenzję{% endif %}
           </button>
         </div>
-
       </form>
-      {% else %}
-        <div class="guest-review-box text-center p-4 mt-4 rounded-3">
-          <h6 class="fw-bold mb-2" style="color:#fff;">Chcesz dodać recenzję lub ocenę?</h6>
-          <p class="text-muted mb-3" style="font-size:14px;">
-              Dołącz do społeczności Insony i podziel się swoją opinią
-          </p>
-          <a href="{% url 'login' %}?next={% url 'track_detail' track.id %}" class="btn btn-primary px-4 me-2">Zaloguj się</a>
-          <a href="{% url 'register' %}?next={% url 'track_detail' track.id %}" class="btn btn-outline-light px-4">Załóż konto</a>
-        </div>
-      {% endif %}
-    </div>
+
+    {% else %}
+      <div class="guest-review-box text-center p-4 mt-4 rounded-3">
+        <h6 class="fw-bold mb-2" style="color:#fff;">Chcesz dodać recenzję lub ocenę?</h6>
+        <p class="text-muted mb-3" style="font-size:14px;">
+          Dołącz do społeczności Insony i podziel się swoją opinią
+        </p>
+        <a href="{% url 'login' %}?next={% url 'track_detail' track.id %}" class="btn btn-primary px-4 me-2">Zaloguj się</a>
+        <a href="{% url 'register' %}?next={% url 'track_detail' track.id %}" class="btn btn-outline-light px-4">Załóż konto</a>
+      </div>
+    {% endif %}
   </div>
 
-  <!--НИЖЧЕ: СПИСОК РЕЦЕНЗІЙ + сортування + пагінація-->
+  <!-- Reviews Section - MY STYLE WITH YOUR IMPROVED DOTS -->
+  <div class="reviews-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <i class="bi bi-chat-left-text me-2"></i>
+        Recenzje{% if total_reviews %} ({{ total_reviews }}){% endif %}
+      </h2>
+      
+      <form method="get" class="d-flex align-items-center gap-2">
+        <input type="hidden" name="mode" value="{{ mode }}">
+        <input type="hidden" name="page" value="1">
+        <label class="form-label mb-0 small text-muted">Sortuj:</label>
+        <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+          <option value="new" {% if sort == 'new' %}selected{% endif %}>najnowsze</option>
+          <option value="old" {% if sort == 'old' %}selected{% endif %}>najstarsze</option>
+          <option value="high" {% if sort == 'high' %}selected{% endif %}>najwyżej oceniane</option>
+          <option value="low" {% if sort == 'low' %}selected{% endif %}>najniżej oceniane</option>
+        </select>
+      </form>
+    </div>
 
-  <div class="card bg-dark border-0 shadow-sm">
-    <div class="card-body">
-
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="text-white mb-0">Recenzje</h5>
-        <form method="get" class="d-flex align-items-center gap-2">
-          <input type="hidden" name="mode" value="{{ mode }}"> <!-- зберігаємо режим вкладок -->
-          <input type="hidden" name="page" value="1"> <!-- скидаємо на 1 сторінку при зміні сортування -->
-          <label class="form-label mb-0 small text-muted">Sortuj:</label>
-          <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
-            <option value="new"  {% if sort == 'new' %}selected{% endif %}>najnowsze</option>
-            <option value="old"  {% if sort == 'old' %}selected{% endif %}>najstarsze</option>
-            <option value="high" {% if sort == 'high' %}selected{% endif %}>najwyżej oceniane</option>
-            <option value="low"  {% if sort == 'low' %}selected{% endif %}>najniżej oceniane</option>
-          </select>
-        </form>
-      </div>
-
-      {% if reviews_page and reviews_page.object_list %}
-        {% for r in reviews_page %}
-          <div class="rev-card">
-            <div class="rev-head">
-              {# аватар-літера; якщо зберігатимеш URL аватарки — підставиш <img> #}
-              <div class="rev-ava">
-                {{ r.user.username|slice:":1"|upper }}
-              </div>
-            
-              <div>
-                <div class="rev-user">{{ r.user.username }}</div>
-                <div class="rev-date">{{ r.created_at|date:"d.m.Y H:i" }}</div>
-              </div>
-            
-              <div class="rev-score">
-                <div class="big">
-                  {{ r.total_points|default:0|floatformat:0 }}
-                </div>
-                <div class="rev-dots">
-                  <span class="rev-dot dot-blue"   title="Rymy/Obrazy">{{ r.rhyme_imagery }}</span>
-                  <span class="rev-dot dot-indigo" title="Struktura/Rytmika">{{ r.structure_rhythm }}</span>
-                  <span class="rev-dot dot-violet" title="Styl/Realizacja">{{ r.style_execution }}</span>
-                  <span class="rev-dot dot-purple" title="Indywidualność / Charyzma">{{ r.individuality }}</span>
-                  <span class="rev-dot dot-cyan"   title="Atmosfera / Wajb">{{ r.atmosphere_vibe }}</span>
-                  <span class="rev-dot dot-pink"   title="Trend / Aktualność">{{ r.trend_relevance }}</span>
-                </div>
+    {% if reviews_page and reviews_page.object_list %}
+      {% for r in reviews_page %}
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author">
+              <div class="review-avatar">{{ r.user.username|slice:":1"|upper }}</div>
+              <div class="review-author-info">
+                <h5>{{ r.user.username }}</h5>
+                <div class="review-date">{{ r.created_at|date:"d.m.Y H:i" }}</div>
               </div>
             </div>
-          
-            {# опційний заголовок (якщо додаси поле title у Review) #}
-            {% if r.title %}
-              <div class="rev-title">{{ r.title }}</div> 
-              <!--- <h5 class="text-white fw-bold mt-2">{{ r.title }}</h5> --->
-            {% endif %}
-          
-            {% if r.text %}
-              <div class="rev-text">{{ r.text }}</div>
-            {% endif %}
-          
-            <div class="rev-foot">
-              <div class="rev-date">{{ r.created_at|date:"d.m.Y" }}</div>
-              <div class="d-flex align-items-center gap-2">
-                {% if user.is_authenticated and r.user_id == user.id %}
-                  <form method="post" action="{% url 'review_delete' track.id %}?sort={{ sort }}&mode={{ mode }}&page={{ reviews_page.number }}">
-                    {% csrf_token %}
-                    <button class="btn btn-sm btn-outline-danger">Usuń</button>
-                  </form>
-                {% endif %}
-                    {# ❤️ лайк #}
-                <button
-                  class="heart js-like {% if r.id in liked_ids %}is-liked{% endif %}"
-                  type="button"
-                  data-review-id="{{ r.id }}"
-                  data-auth="{% if user.is_authenticated %}1{% else %}0{% endif %}"
-                  data-login="{% url 'login' %}?next={{ request.get_full_path }}"
-                  aria-pressed="{% if r.id in liked_ids %}true{% else %}false{% endif %}"
-                  title="{% if user.is_authenticated %}Polub{% else %}Zaloguj się, aby polubić{% endif %}">
-                  ♥
-                </button>
-                <span class="like-count" id="like-count-{{ r.id }}">{{ r.likes_count }}</span>
-                </div>
-              </div>
+            <div class="review-score">{{ r.total_percent|default:0|floatformat:0 }}/100</div>
           </div>
-        {% endfor %}
 
-        <nav class="insony-pager" aria-label="Paginacja recenzji">
-          {% if reviews_page.has_previous %}
-            <a class="pg-btn" href="?sort={{ sort }}&page=1" title="Pierwsza">«</a>
-            <a class="pg-btn" href="?sort={{ sort }}&page={{ reviews_page.previous_page_number }}" title="Poprzednia">‹</a>
-          {% else %}
-            <span class="pg-btn is-disabled" aria-hidden="true">«</span>
-            <span class="pg-btn is-disabled" aria-hidden="true">‹</span>
+          <!-- Mini Criteria Dots -->
+          <div class="review-criteria-mini">
+            <div class="mini-criterion">
+              <div class="mini-criterion-value">{{ r.rhyme_imagery }}</div>
+              <div class="mini-criterion-label">Rymy</div>
+            </div>
+            <div class="mini-criterion">
+              <div class="mini-criterion-value">{{ r.structure_rhythm }}</div>
+              <div class="mini-criterion-label">Struktura</div>
+            </div>
+            <div class="mini-criterion">
+              <div class="mini-criterion-value">{{ r.style_execution }}</div>
+              <div class="mini-criterion-label">Styl</div>
+            </div>
+            <div class="mini-criterion">
+              <div class="mini-criterion-value">{{ r.individuality }}</div>
+              <div class="mini-criterion-label">Indywidualność</div>
+            </div>
+            <div class="mini-criterion">
+              <div class="mini-criterion-value">{{ r.atmosphere_vibe }}</div>
+              <div class="mini-criterion-label">Atmosfera</div>
+            </div>
+            <div class="mini-criterion">
+              <div class="mini-criterion-value">{{ r.trend_relevance }}</div>
+              <div class="mini-criterion-label">Trend</div>
+            </div>
+          </div>
+
+          {% if r.title %}
+            <div class="review-title">{{ r.title }}</div>
           {% endif %}
 
-          <span class="pg-current">{{ reviews_page.number }} / {{ reviews_page.paginator.num_pages }}</span>
-
-          {% if reviews_page.has_next %}
-            <a class="pg-btn" href="?sort={{ sort }}&page={{ reviews_page.next_page_number }}" title="Następna">›</a>
-            <a class="pg-btn" href="?sort={{ sort }}&page={{ reviews_page.paginator.num_pages }}" title="Ostatnia">»</a>
-          {% else %}
-            <span class="pg-btn is-disabled" aria-hidden="true">›</span>
-            <span class="pg-btn is-disabled" aria-hidden="true">»</span>
+          {% if r.text %}
+            <div class="review-text">{{ r.text }}</div>
           {% endif %}
-        </nav>
 
+          <div class="review-actions">
+            <button
+              class="btn-like js-like {% if r.id in liked_ids %}is-liked{% endif %}"
+              type="button"
+              data-review-id="{{ r.id }}"
+              aria-pressed="{% if r.id in liked_ids %}true{% else %}false{% endif %}"
+              title="{% if user.is_authenticated %}Polub{% else %}Zaloguj się, aby polubić{% endif %}">
+              <i class="bi bi-heart{% if r.id in liked_ids %}-fill{% endif %}"></i>
+              <span id="like-count-{{ r.id }}">{{ r.likes_count }}</span>
+            </button>
 
-      {% else %}
-        <p class="text-muted mb-0">Brak recenzji.</p>
-      {% endif %}
-    </div>
+            {% if user.is_authenticated and r.user_id == user.id %}
+              <form method="post" action="{% url 'review_delete' track.id %}?sort={{ sort }}&mode={{ mode }}&page={{ reviews_page.number }}" style="display: inline;">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger">
+                  <i class="bi bi-trash"></i> Usuń
+                </button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+
+      <!-- Pagination -->
+      <nav class="insony-pager" aria-label="Paginacja recenzji">
+        {% if reviews_page.has_previous %}
+          <a class="pg-btn" href="?sort={{ sort }}&mode={{ mode }}&page=1" title="Pierwsza">«</a>
+          <a class="pg-btn" href="?sort={{ sort }}&mode={{ mode }}&page={{ reviews_page.previous_page_number }}" title="Poprzednia">‹</a>
+        {% else %}
+          <span class="pg-btn is-disabled" aria-hidden="true">«</span>
+          <span class="pg-btn is-disabled" aria-hidden="true">‹</span>
+        {% endif %}
+
+        <span class="pg-current">{{ reviews_page.number }} / {{ reviews_page.paginator.num_pages }}</span>
+
+        {% if reviews_page.has_next %}
+          <a class="pg-btn" href="?sort={{ sort }}&mode={{ mode }}&page={{ reviews_page.next_page_number }}" title="Następna">›</a>
+          <a class="pg-btn" href="?sort={{ sort }}&mode={{ mode }}&page={{ reviews_page.paginator.num_pages }}" title="Ostatnia">»</a>
+        {% else %}
+          <span class="pg-btn is-disabled" aria-hidden="true">›</span>
+          <span class="pg-btn is-disabled" aria-hidden="true">»</span>
+        {% endif %}
+      </nav>
+
+    {% else %}
+      <div class="text-center py-5">
+        <i class="bi bi-chat-left-text" style="font-size: 48px; color: #6b7280; opacity: 0.5;"></i>
+        <p class="text-muted mt-3 mb-0">Brak recenzji. Bądź pierwszy!</p>
+      </div>
+    {% endif %}
   </div>
+
 </div>
 
-  <!--JS: live-оновлення барів, лічильник, режим без тексту-->
-
 <script>
-  (function () {
-    /* ========== SLIDERY + SUMA /100 ========== */
-    const sliders = document.querySelectorAll('#crit-form .form-range');
-    const totalEl = document.getElementById('total-current');
+(function () {
+  /* ========== SLIDERY + SUMA /100 ========== */
+  const sliders = document.querySelectorAll('#crit-form .form-range');
+  const totalEl = document.getElementById('total-current');
 
-    function recomputeTotal() {
-      let sum = 0;
-      sliders.forEach(sl => sum += Number(sl.value) || 0); // 0..60
-      const total100 = Math.round((sum / 60) * 100);       // 0..100
-      if (totalEl) totalEl.textContent = total100;
-    }
+  function recomputeTotal() {
+    let sum = 0;
+    sliders.forEach(sl => sum += Number(sl.value) || 0);
+    const total100 = Math.round((sum / 60) * 100);
+    if (totalEl) totalEl.textContent = total100;
+  }
 
-    sliders.forEach(function (sl) {
-      const key = sl.dataset.target; // 'ri','sr','se','ind','av','tr'
-      const bar = document.getElementById(key + '-bar');
-      const val = document.getElementById(key + '-val');
+  sliders.forEach(function (sl) {
+    const key = sl.dataset.target;
+    const val = document.getElementById(key + '-val');
 
-      const update = () => {
-        const v = Number(sl.value) || 0;
-        if (bar) bar.style.width = (v * 10) + '%';
-        if (val) val.textContent = v;
-        recomputeTotal();
-      };
+    const update = () => {
+      const v = Number(sl.value) || 0;
+      if (val) val.textContent = v;
+      recomputeTotal();
+    };
 
-      update(); // init
-      sl.addEventListener('input', update);
-    });
+    update();
+    sl.addEventListener('input', update);
+  });
 
-    // на старті порахувати суму (на випадок, якщо слайдерів немає або всі 0)
-    recomputeTotal();
+  recomputeTotal();
 
+  /* ========== ЛІЧИЛЬНИКИ СИМВОЛІВ ========== */
+  const titleInput = document.querySelector('.insony-title-input');
+  const titleCount = document.getElementById('title-count');
+  if (titleInput && titleCount) {
+    const upd = () => titleCount.textContent = (titleInput.value || '').length;
+    upd();
+    titleInput.addEventListener('input', upd);
+  }
 
-    /* ========== ЛІЧИЛЬНИКИ СИМВОЛІВ (TITLE + TEXT) ========== */
-    const titleInput = document.querySelector('.insony-title-input');
-    const titleCount = document.getElementById('title-count');
-    if (titleInput && titleCount) {
-      const upd = () => titleCount.textContent = (titleInput.value || '').length;
-      upd();
-      titleInput.addEventListener('input', upd);
-    }
+  const textArea = document.querySelector('#crit-form textarea');
+  const textCount = document.getElementById('text-count');
+  if (textArea && textCount) {
+    const upd = () => textCount.textContent = (textArea.value || '').length;
+    upd();
+    textArea.addEventListener('input', upd);
+  }
 
-    const textArea = document.querySelector('#crit-form textarea');
-    const textCount = document.getElementById('text-count');
-    if (textArea && textCount) {
-      const upd = () => textCount.textContent = (textArea.value || '').length;
-      upd();
-      textArea.addEventListener('input', upd);
-    }
+  /* ========== ЛАЙКИ РЕЦЕНЗІЙ ========== */
+  function getCookie(name) {
+    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? m.pop() : '';
+  }
+  const csrftoken = getCookie('csrftoken');
 
+  document.querySelectorAll('.js-like').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const reviewId = btn.dataset.reviewId;
+      if (!reviewId) return;
 
-    /* ========== РЕЖИМ "БЕЗ РЕЦЕНЗІЇ" (якщо є вкладки Bootstrap) ========== */
-    // Слухачі тільки якщо існують елементи вкладок
-    const tabNo  = document.getElementById('tab-no-text');
-    const tabYes = document.getElementById('tab-with-text');
-    if (tabNo && textArea) {
-      tabNo.addEventListener('shown.bs.tab', () => {
-        textArea.value = '';
-        if (textCount) textCount.textContent = '0';
-      });
-    }
-    if (tabYes && textArea && textCount) {
-      tabYes.addEventListener('shown.bs.tab', () => {
-        textCount.textContent = (textArea.value || '').length;
-      });
-    }
+      // Check if user is authenticated - if not, redirect
+      {% if not user.is_authenticated %}
+        window.location.href = "{% url 'login' %}?next={{ request.get_full_path }}";
+        return;
+      {% endif %}
 
-
-
-
-
-
-    /* ========== ЛАЙКИ РЕЦЕНЗІЙ (AJAX + CSRF) ========== */
-    // Отримати CSRF з cookie (Django стандарт)
-    function getCookie(name) {
-      const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-      return m ? m.pop() : '';
-    }
-    const csrftoken = getCookie('csrftoken');
-
-    document.querySelectorAll('.js-like').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const reviewId = btn.dataset.reviewId;
-        if (!reviewId) return;
-
-        try {
-          const resp = await fetch(`/reviews/${reviewId}/like/`, {
-            method: 'POST',
-            headers: {
-              'X-CSRFToken': csrftoken,
-              'X-Requested-With': 'XMLHttpRequest'
-            }
-          });
-
-          if (resp.status === 401 || resp.status === 403) {
-            // Якщо неавторизований — на логін з поверненням назад
-            window.location.href = "{% url 'login' %}?next={{ request.path }}";
-            return;
+      try {
+        const resp = await fetch(`/reviews/${reviewId}/like/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
           }
+        });
 
-          const data = await resp.json();
-          if (!data || !data.ok) return;
-
-          const countEl = document.getElementById(`like-count-${reviewId}`);
-
-          if (data.liked) {
-            btn.classList.add('is-liked');
-            btn.setAttribute('aria-pressed', 'true');
-            btn.title = 'Cofnij polubienie';
-          } else {
-            btn.classList.remove('is-liked');
-            btn.setAttribute('aria-pressed', 'false');
-            btn.title = 'Polub';
-          }
-          if (countEl) countEl.textContent = data.count;
-
-        } catch (e) {
-          console.error(e);
+        if (resp.status === 401 || resp.status === 403) {
+          window.location.href = "{% url 'login' %}?next={{ request.get_full_path }}";
+          return;
         }
-      });
+
+        const data = await resp.json();
+        if (!data || !data.ok) return;
+
+        const countEl = document.getElementById(`like-count-${reviewId}`);
+        const icon = btn.querySelector('i');
+
+        if (data.liked) {
+          btn.classList.add('is-liked');
+          btn.setAttribute('aria-pressed', 'true');
+          if (icon) {
+            icon.classList.remove('bi-heart');
+            icon.classList.add('bi-heart-fill');
+          }
+        } else {
+          btn.classList.remove('is-liked');
+          btn.setAttribute('aria-pressed', 'false');
+          if (icon) {
+            icon.classList.remove('bi-heart-fill');
+            icon.classList.add('bi-heart');
+          }
+        }
+        if (countEl) countEl.textContent = data.count;
+
+      } catch (e) {
+        console.error('Like error:', e);
+      }
     });
+  });
 
-    const favBtn = document.querySelector('.js-fav');
-    if (!favBtn) return;
-
+  /* ========== FAVORITE TOGGLE ========== */
+  const favBtn = document.querySelector('.js-fav');
+  if (favBtn) {
     favBtn.addEventListener('click', async () => {
       const trackId = favBtn.dataset.trackId;
       try {
-        const resp = await fetch(`/${trackId}/favorite/`, {
+        const resp = await fetch(`/favorite/${trackId}/toggle/`, {
           method: 'POST',
           headers: {
             'X-CSRFToken': csrftoken,
@@ -457,14 +1043,24 @@
 
         const pressed = data.favorited === true;
         favBtn.setAttribute('aria-pressed', pressed ? 'true' : 'false');
-        favBtn.title = pressed ? 'Usuń z ulubionych' : 'Dodaj do ulubionych';
 
-        // swap icon + text
-        favBtn.innerHTML = pressed
-          ? '<i class="bi bi-check-circle-fill me-1"></i> Ulubiony'
-          : '<i class="bi bi-plus-circle me-1"></i> Dodaj';
+        const icon = favBtn.querySelector('i');
+        const text = pressed ? 'Ulubiony' : 'Dodaj do ulubionych';
+        
+        if (icon) {
+          if (pressed) {
+            icon.classList.remove('bi-heart');
+            icon.classList.add('bi-heart-fill');
+          } else {
+            icon.classList.remove('bi-heart-fill');
+            icon.classList.add('bi-heart');
+          }
+        }
+        
+        // Update button text (preserving the icon)
+        favBtn.innerHTML = `<i class="bi bi-heart${pressed ? '-fill' : ''}"></i> ${text}`;
 
-        // optional: little flash
+        // Flash effect
         favBtn.classList.add('btn-success');
         setTimeout(() => favBtn.classList.remove('btn-success'), 300);
 
@@ -472,13 +1068,21 @@
         console.error(e);
       }
     });
+  }
 
+  /* ========== ANIMATE BARS ON LOAD ========== */
+  document.addEventListener('DOMContentLoaded', () => {
+    const fills = document.querySelectorAll('.criterion-fill');
+    fills.forEach(fill => {
+      const targetWidth = fill.style.width;
+      fill.style.width = '0%';
+      setTimeout(() => {
+        fill.style.width = targetWidth;
+      }, 100);
+    });
+  });
 
-  })();
+})();
 </script>
-
-
-
-
 
 {% endblock %}

@@ -1,13 +1,14 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.functions import Lower
+from django.core.validators import MinValueValidator
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)  
     favorite_genres = models.TextField(blank=True, default="")
     favorite_artists = models.TextField(blank=True, default="")
     bio = models.TextField(blank=True, default="")
-    xp = models.PositiveIntegerField(default=0)
+    xp = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])
 
     class Meta:
         constraints = [

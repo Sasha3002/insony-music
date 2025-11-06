@@ -1,26 +1,33 @@
 # music/utils/xp.py
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Case, When, Value, IntegerField
 
 @transaction.atomic
 def add_xp(user, delta: int):
     """
     Безпечно додає/знімає XP прямо в User.xp.
-    delta може бути від’ємним. XP не опускаємо нижче 0.
+    delta може бути від'ємним. XP не опускаємо нижче 0.
     """
     if not user or not delta:
         return
 
-    # 1) інкремент в БД (без читання поточного значення в пам'ять)
-    user.__class__.objects.filter(pk=user.pk).update(xp=F("xp") + int(delta))
+    # Використовуємо Case/When для атомарної операції без перевірки після
+    # Це запобігає race condition і робить одну операцію замість двох
+    if delta < 0:
+        # При відніманні використовуємо Case, щоб не йти нижче 0
+        user.__class__.objects.filter(pk=user.pk).update(
+            xp=Case(
+                When(xp__gte=abs(delta), then=F('xp') + delta),
+                default=Value(0),
+                output_field=IntegerField()
+            )
+        )
+    else:
+        # При додаванні просто інкрементуємо
+        user.__class__.objects.filter(pk=user.pk).update(xp=F("xp") + int(delta))
 
-    # 2) підтягнути оновлене значення в об’єкт
+    # Підтягнути оновлене значення в об'єкт
     user.refresh_from_db(fields=["xp"])
-
-    # 3) не даємо піти нижче нуля
-    if user.xp < 0:
-        user.__class__.objects.filter(pk=user.pk).update(xp=0)
-        user.xp = 0
 
 def level_from_xp(xp: int) -> int:
     return max(1, xp // 1000 + 1)
