@@ -37,6 +37,16 @@ def track_list(request):
             Q(genre__name__icontains=q)
         )
 
+    favorite_ids = set()
+    if request.user.is_authenticated:
+        favorite_ids = set(
+            Favorite.objects.filter(user=request.user)
+            .values_list('track_id', flat=True)
+        )
+
+    artist_number = Artist.objects.count()
+    review_count = Review.objects.count()
+
     # Сортування
     sort_map = {
         'custom':      '-created_at',
@@ -63,6 +73,9 @@ def track_list(request):
         'tracks': tracks_page,   # це тепер page object
         'sort': sort,
         'q': q,
+        'favorite_ids': favorite_ids,
+        'artist_number': artist_number,
+        'review_count': review_count,
     })
 
 

@@ -10,5 +10,6 @@ urlpatterns = [
     path('<int:track_id>/review/delete/', views.review_delete, name='review_delete'),
     path('reviews/<int:review_id>/like/', views.review_like_toggle, name='review_like_toggle'),
     path("<int:track_id>/favorite/", views.favorite_toggle, name="favorite_toggle"),
+    path('favorite/<int:track_id>/toggle/', views.favorite_toggle, name='favorite_toggle'),
 
 ]

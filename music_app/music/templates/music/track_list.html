@@ -2,13 +2,357 @@
 {% load rating_tags %}
 {% load static %}
 {% block content %}
+
+<style>
+  /* Track List Modern Card Design */
+  .page-header {
+    margin-bottom: 32px;
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* Controls Bar */
+  .controls-bar {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 320px;
+    max-width: 600px;
+  }
+
+  /* Stats Bar */
+  .stats-bar {
+    display: flex;
+    gap: 24px;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #fff;
+  }
+
+  .stat-content h4 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .stat-content p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #9aa0a6;
+  }
+
+  /* Tracks Grid */
+  .tracks-grid {
+    display: grid;
+    gap: 16px;
+  }
+
+  .track-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 16px;
+    align-items: center;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .track-card:hover {
+    border-color: #3a3a3a;
+    transform: translateX(4px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg, #1f1f1f, #1a1a1a);
+  }
+
+  .track-number {
+    width: 40px;
+    text-align: center;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 1.1rem;
+  }
+
+  .track-main {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .track-cover {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #2a2a2a, #1f1f1f);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #6b7280;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .track-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .track-info {
+    min-width: 0;
+  }
+
+  .track-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 4px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .track-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .track-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #9aa0a6;
+  }
+
+  .track-meta-item i {
+    font-size: 0.9rem;
+  }
+
+  .genre-badge {
+    background: linear-gradient(135deg, #2a2a2a, #1f1f1f);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: #b6bdc6;
+    border: 1px solid #3a3a3a;
+  }
+
+  .track-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .rating-display {
+    text-align: right;
+    min-width: 80px;
+  }
+
+  .rating-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+  }
+
+  .rating-bar {
+    width: 80px;
+    height: 6px;
+    background: #22262b;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+
+  .rating-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+
+  .rating-high { background: linear-gradient(90deg, #10b981, #34d399); }
+  .rating-medium { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+  .rating-low { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+  .rating-none { background: #3a3a3a; }
+
+
+  .btn-favorite {
+    background: transparent;
+    border: 1px solid #2a2a2a;
+    color: #6b7280;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1.1rem;
+  }
+
+  .btn-favorite:hover {
+    border-color: #dc2626;
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.1);
+  }
+
+  .btn-favorite.favorited {
+    border-color: #dc2626;
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.1);
+  }
+
+  /* Pagination */
+  .pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+  }
+
+  .pagination {
+    display: flex;
+    gap: 8px;
+  }
+
+  .page-btn {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    border-radius: 10px;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    color: #e6e6e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .page-btn:hover {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+    color: #fff;
+  }
+
+  .page-btn.active {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    border-color: #2563eb;
+    color: #fff;
+  }
+
+  .page-btn:disabled,
+  .page-btn.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: #6b7280;
+  }
+
+  .empty-state i {
+    font-size: 64px;
+    margin-bottom: 24px;
+    opacity: 0.5;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .track-card {
+      grid-template-columns: 1fr;
+    }
+
+    .track-number {
+      display: none;
+    }
+
+    .track-actions {
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .stats-bar {
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .page-title {
+      font-size: 2rem;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .track-main {
+      grid-template-columns: 1fr;
+    }
+
+    .track-cover {
+      width: 100%;
+      height: 120px;
+    }
+  }
+</style>
+
 <div class="container mt-4">
 
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-    <h2 class="mb-0 text-white">🎵 Biblioteka utworów</h2>
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">
+      <i class="bi bi-music-note-list"></i>
+      Biblioteka utworów
+    </h1>
+  </div>
 
-    <!-- WYSZUKIWARKA – wariant "pill" -->
-    <form method="get" class="insony-search" role="search">
+  <!-- Controls Bar -->
+  <div class="controls-bar">
+    <!-- Search Box -->
+    <form method="get" class="insony-search search-box" role="search">
       {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
 
       <span class="search-icon" aria-hidden="true">
@@ -45,9 +389,9 @@
     </form>
 
     <!-- Sortowanie -->
-    <div class="dropdown ms-auto">
+    <div class="dropdown">
       <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-        Sortuj
+        <i class="bi bi-sort-down"></i> Sortuj
       </button>
       <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
         <li class="dropdown-header">Podstawowe</li>
@@ -72,116 +416,170 @@
   </div>
 
   {% if q %}
-    <p class="text-muted small mb-2">Wyniki dla: <strong>„{{ q }}”</strong></p>
+    <p class="text-muted small mb-3">Wyniki dla: <strong>"{{ q }}"</strong></p>
   {% endif %}
 
   {% if tracks %}
-  <div class="insony-table list-group list-group-flush rounded-3 overflow-hidden">
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #2563eb, #3b82f6);">
+          <i class="bi bi-music-note-beamed"></i>
+        </div>
+        <div class="stat-content">
+          <h4>{{ tracks.paginator.count }}</h4>
+          <p>Utworów</p>
+        </div>
+      </div>
 
-    <!-- nagłówek -->
-    <div class="insony-row insony-head">
-      <div class="col-idx">#</div>
-      <div class="col-title">Nazwa</div>
-      <div class="col-artist d-none d-md-block">Wykonawca</div>
-      <div class="col-genre d-none d-lg-block">Gatunek</div>
-      <div class="col-authored d-none d-lg-block">Data utworu</div> 
-      <div class="col-duration d-none d-md-block">Czas</div>
-      <div class="col-rating">Średnia</div>
+      <div class="stat-item">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="stat-content">
+          <h4>{{ artist_number }}</h4>
+          <p>Artystów</p>
+        </div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #db2777, #ec4899);">
+          <i class="bi bi-funnel-fill"></i>
+        </div>
+        <div class="stat-content">
+          <h4>{{ review_count }}</h4>
+          <p>Recenzji</p>
+        </div>
+      </div>
     </div>
 
-    <!-- wiersze -->
-    {% for track in tracks %}
-    <div class="insony-row">
-      <div class="col-idx">{{ forloop.counter }}</div>
+    <!-- Tracks Grid -->
+    <div class="tracks-grid">
+      {% for track in tracks %}
+      <div class="track-card" onclick="window.location.href='{% url 'track_detail' track.id %}'">
+        <div class="track-number">{{ forloop.counter }}</div>
+        
+        <div class="track-main">
+          <div class="track-cover">
+            {% if track.cover_image %}
+              <img src="{{ track.cover_image }}" alt="{{ track.title }}">
+            {% else %}
+              <img src="{% static 'img/Insony.jpg' %}" alt="{{ track.title }}">
+            {% endif %}
+          </div>
+          
+          <div class="track-info">
+            <h3 class="track-title">{{ track.title }}</h3>
+            <div class="track-meta">
+              <span class="track-meta-item">
+                <i class="bi bi-person"></i>
+                {{ track.artist.name }}
+              </span>
+              {% if track.genre %}
+              <span class="genre-badge">{{ track.genre.name }}</span>
+              {% endif %}
+              <span class="track-meta-item">
+                <i class="bi bi-clock"></i>
+                {{ track.duration_display }}
+              </span>
+              <span class="track-meta-item">
+                <i class="bi bi-calendar3"></i>
+                {{ track.authored_date|date:"d.m.Y"|default:"—" }}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="track-actions">
+          <div class="rating-display">
+            {% if track.avg %}
+              <p class="rating-number">{{ track.avg|floatformat:0 }}</p>
+              <div class="rating-bar">
+                {% if track.avg >= 70 %}
+                  <div class="rating-fill rating-high" style="width: {{ track.avg }}%;"></div>
+                {% elif track.avg >= 40 %}
+                  <div class="rating-fill rating-medium" style="width: {{ track.avg }}%;"></div>
+                {% else %}
+                  <div class="rating-fill rating-low" style="width: {{ track.avg }}%;"></div>
+                {% endif %}
+              </div>
+            {% else %}
+              <p class="rating-number">—</p>
+              <div class="rating-bar">
+                <div class="rating-fill rating-none" style="width: 0%;"></div>
+              </div>
+            {% endif %}
+          </div>
 
-      <div class="col-title">
-        <div class="cover">
-          {% if track.cover_image %}
-            <img src="{{ track.cover_image }}" alt="{{ track.title }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
-          {% else %}
-            <img src="{% static 'img/Insony.jpg' %}" alt="Insony" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
+          <!-- Favorite Button -->
+          {% if user.is_authenticated %}
+          <button 
+            class="btn-favorite {% if track.id in favorite_ids %}favorited{% endif %}" 
+            data-track-id="{{ track.id }}"
+            onclick="event.stopPropagation(); toggleFavorite(this, {{ track.id }});"
+            title="{% if track.id in favorite_ids %}Usuń z ulubionych{% else %}Dodaj do ulubionych{% endif %}">
+            <i class="bi bi-heart{% if track.id in favorite_ids %}-fill{% endif %}"></i>
+          </button>
           {% endif %}
         </div>
-        <div class="meta">
-          <a href="{% url 'track_detail' track.id %}" class="title-link">{{ track.title }}</a>
-          <div class="muted d-md-none">{{ track.artist.name }}</div>
-        </div>
       </div>
-
-      <div class="col-artist d-none d-md-block text-truncate">{{ track.artist.name }}</div>
-      <div class="col-genre d-none d-lg-block text-truncate">
-        {% if track.genre %}{{ track.genre.name }}{% else %}—{% endif %}
-      </div>
-      <!---<div class="col-date d-none d-md-block">{{ track.created_at|date:"d.m.Y" }}</div> -->
-      <div class="col-authored d-none d-lg-block">{{ track.authored_date|date:"d.m.Y"|default:"—" }}</div> <!-- ✅ -->
-      <div class="col-duration d-none d-md-block">{{ track.duration_display }}</div>
-
-      <div class="col-rating" style="min-width:120px;">
-        {% if track.avg %}
-          <div class="d-flex align-items-center gap-1">
-            <strong>{{ track.avg|floatformat:0 }}</strong><span class="muted">/100</span>
-          </div>
-          <div class="progress mt-1" style="height:4px;">
-            <div class="progress-bar" style="width: {{ track.avg|floatformat:0 }}%;"></div>
-          </div>
-        {% else %}
-          <span class="muted">Brak</span>
-        {% endif %}
-      </div>
-
-      
+      {% endfor %}
     </div>
-    {% endfor %}
 
-  </div>
-    <!-- pagination -->
-  <nav class="mt-3">
-    <ul class="pagination pagination-sm mb-0 justify-content-center">
-      <li class="page-item {% if not tracks.has_previous %}disabled{% endif %}">
+    <!-- Pagination -->
+    <div class="pagination-wrapper">
+      <div class="pagination">
         {% if tracks.has_previous %}
-          <a class="page-link" href="?sort={{ sort }}{% if q %}&q={{ q|urlencode }}{% endif %}&page=1">«</a>
+          <a class="page-btn" href="?sort={{ sort }}{% if q %}&q={{ q|urlencode }}{% endif %}&page=1">
+            <i class="bi bi-chevron-double-left"></i>
+          </a>
+          <a class="page-btn" href="?sort={{ sort }}{% if q %}&q={{ q|urlencode }}{% endif %}&page={{ tracks.previous_page_number }}">
+            <i class="bi bi-chevron-left"></i>
+          </a>
         {% else %}
-          <span class="page-link">«</span>
+          <span class="page-btn disabled">
+            <i class="bi bi-chevron-double-left"></i>
+          </span>
+          <span class="page-btn disabled">
+            <i class="bi bi-chevron-left"></i>
+          </span>
         {% endif %}
-      </li>
 
-      <li class="page-item {% if not tracks.has_previous %}disabled{% endif %}">
-        {% if tracks.has_previous %}
-          <a class="page-link" href="?sort={{ sort }}{% if q %}&q={{ q|urlencode }}{% endif %}&page={{ tracks.previous_page_number }}">‹</a>
-        {% else %}
-          <span class="page-link">‹</span>
-        {% endif %}
-      </li>
+        <span class="page-btn active">{{ tracks.number }} / {{ tracks.paginator.num_pages }}</span>
 
-      <li class="page-item active">
-        <span class="page-link">{{ tracks.number }} / {{ tracks.paginator.num_pages }}</span>
-      </li>
-
-      <li class="page-item {% if not tracks.has_next %}disabled{% endif %}">
         {% if tracks.has_next %}
-          <a class="page-link" href="?sort={{ sort }}{% if q %}&q={{ q|urlencode }}{% endif %}&page={{ tracks.next_page_number }}">›</a>
+          <a class="page-btn" href="?sort={{ sort }}{% if q %}&q={{ q|urlencode }}{% endif %}&page={{ tracks.next_page_number }}">
+            <i class="bi bi-chevron-right"></i>
+          </a>
+          <a class="page-btn" href="?sort={{ sort }}{% if q %}&q={{ q|urlencode }}{% endif %}&page={{ tracks.paginator.num_pages }}">
+            <i class="bi bi-chevron-double-right"></i>
+          </a>
         {% else %}
-          <span class="page-link">›</span>
+          <span class="page-btn disabled">
+            <i class="bi bi-chevron-right"></i>
+          </span>
+          <span class="page-btn disabled">
+            <i class="bi bi-chevron-double-right"></i>
+          </span>
         {% endif %}
-      </li>
-
-      <li class="page-item {% if not tracks.has_next %}disabled{% endif %}">
-        {% if tracks.has_next %}
-          <a class="page-link" href="?sort={{ sort }}{% if q %}&q={{ q|urlencode }}{% endif %}&page={{ tracks.paginator.num_pages }}">»</a>
-        {% else %}
-          <span class="page-link">»</span>
-        {% endif %}
-      </li>
-    </ul>
-  </nav>
+      </div>
+    </div>
 
   {% else %}
-    <div class="alert alert-secondary text-center mt-4">Brak utworów do wyświetlenia.</div>
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <h3>Brak utworów do wyświetlenia</h3>
+      {% if q %}
+        <p>Nie znaleziono utworów dla zapytania "{{ q }}"</p>
+      {% else %}
+        <p>Biblioteka jest pusta</p>
+      {% endif %}
+    </div>
   {% endif %}
 </div>
 
-<!-- mini skrypt do działania przycisku „Wyczyść” -->
 <script>
+  // Clear search button
   const clearBtn = document.querySelector('.insony-search .clear-btn');
   if (clearBtn) {
     clearBtn.addEventListener('click', () => {
@@ -191,5 +589,61 @@
       form.submit();
     });
   }
+
+  // Animate rating bars on load
+  document.addEventListener('DOMContentLoaded', () => {
+    const fills = document.querySelectorAll('.rating-fill');
+    fills.forEach(fill => {
+      const targetWidth = fill.style.width;
+      fill.style.width = '0%';
+      setTimeout(() => {
+        fill.style.width = targetWidth;
+      }, 100);
+    });
+  });
+
+  // Favorite toggle function
+  function toggleFavorite(button, trackId) {
+    fetch(`/favorite/${trackId}/toggle/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-Type': 'application/json',
+      },
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.ok) {
+        const icon = button.querySelector('i');
+        if (data.favorited) {
+          button.classList.add('favorited');
+          icon.classList.remove('bi-heart');
+          icon.classList.add('bi-heart-fill');
+        } else {
+          button.classList.remove('favorited');
+          icon.classList.remove('bi-heart-fill');
+          icon.classList.add('bi-heart');
+        }
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  }
+
+  // Get CSRF token
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
 </script>
+
 {% endblock %}
