@@ -11,8 +11,11 @@ env/
 # Django
 *.log
 *.sqlite3
-/media/
+media/
+!media/.gitkeep
 
+# But keep the directory structure
+!media/profile_pics/.gitkeep
 # IDE
 .vscode/
 .idea/

@@ -133,5 +133,8 @@ LOGOUT_REDIRECT_URL = '/users/login/'      # куди кидати після л
 
 CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 
 

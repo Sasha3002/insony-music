@@ -7,7 +7,7 @@ from .models import User
 from .forms import RegisterForm
 #from music.models import Review
 from music.utils.xp import level_from_xp, level_progress, badge_for_level, badge_progress, badge_name
-from music.models import Review, Favorite
+from music.models import Review, Favorite, Genre, Artist
 from django.db.models import Avg, F, FloatField
 
 
@@ -121,18 +121,32 @@ def register_view(request):
 @login_required
 def profile_edit(request):
     user = request.user
-
     if request.method == "POST":
-        # просте оновлення базових полів
+        if request.method == "POST":
+            # Handle picture removal
+            if request.POST.get('remove_picture') == 'true':
+                if user.profile_picture:
+                    user.profile_picture.delete()
+                    user.profile_picture = None
+            # Handle new picture upload
+            elif 'profile_picture' in request.FILES:
+                # Delete old picture if exists
+                if user.profile_picture:
+                    user.profile_picture.delete()
+                user.profile_picture = request.FILES['profile_picture']
         user.email = request.POST.get("email", user.email)
         user.first_name = request.POST.get("first_name", user.first_name)
         user.last_name  = request.POST.get("last_name", user.last_name)
-        user.favorite_genres  = request.POST.get("favorite_genres", user.favorite_genres)
+        user.favorite_genres = request.POST.get("favorite_genres", user.favorite_genres)
         user.favorite_artists = request.POST.get("favorite_artists", user.favorite_artists)
         user.bio = request.POST.get("bio", user.bio)
         user.save()
         messages.success(request, "Profil zaktualizowano.")
         return redirect("profile")
+    
+    all_genres = Genre.objects.all().order_by('name')
+    all_artists = Artist.objects.all().order_by('name')
+
 
     # GET – показуємо форму з поточними значеннями
     context = {
@@ -142,5 +156,7 @@ def profile_edit(request):
         "favorite_genres": user.favorite_genres,
         "favorite_artists": user.favorite_artists,
         "bio": user.bio,
+        "all_genres": all_genres,
+        "all_artists": all_artists,
     }
     return render(request, "users/profile_edit.html", context)

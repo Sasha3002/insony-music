@@ -810,7 +810,9 @@
         <div class="review-card">
           <div class="review-header">
             <div class="review-author">
-              <div class="review-avatar">{{ r.user.username|slice:":1"|upper }}</div>
+              <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=2a2a2a&color=fff&size=280{% endif %}" 
+                alt="{{ user.username }}" 
+                class="review-avatar">
               <div class="review-author-info">
                 <h5>{{ r.user.username }}</h5>
                 <div class="review-date">{{ r.created_at|date:"d.m.Y H:i" }}</div>

@@ -9,6 +9,7 @@ class User(AbstractUser):
     favorite_artists = models.TextField(blank=True, default="")
     bio = models.TextField(blank=True, default="")
     xp = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
     class Meta:
         constraints = [

@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.http import HttpResponse
+from django.conf import settings
+from django.conf.urls.static import static
 
 def placeholder(request, name): return HttpResponse(f"<h2>{name}</h2><p>Wkrótce…</p>")
 
@@ -32,3 +34,6 @@ urlpatterns = [
     path('reviews/',   lambda r: placeholder(r, "Recenzje"),  name='review_list'),
     path('about/',     lambda r: placeholder(r, "O projekcie"), name='about'),
 ]
+# Serving media files during development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

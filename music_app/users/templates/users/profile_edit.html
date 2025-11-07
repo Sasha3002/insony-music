@@ -1,45 +1,774 @@
 {% extends "users/base.html" %}
 {% block content %}
-<h2 class="mb-3">Edytuj profil</h2>
 
-<form method="POST" class="card shadow-sm p-3">
-  {% csrf_token %}
+<style>
+  /* Profile Edit Page Styles */
+  .edit-hero {
+    background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    border: 1px solid #2a2a2a;
+  }
 
-  <div class="row g-3">
-    <div class="col-md-6">
-      <label class="form-label">Imię</label>
-      <input type="text" class="form-control" name="first_name" value="{{ first_name }}">
-    </div>
-    <div class="col-md-6">
-      <label class="form-label">Nazwisko</label>
-      <input type="text" class="form-control" name="last_name" value="{{ last_name }}">
-    </div>
+  .page-title-edit {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
 
-    <div class="col-md-12">
-      <label class="form-label">Email</label>
-      <input type="email" class="form-control" name="email" value="{{ email }}" required>
-    </div>
+  .page-subtitle {
+    color: #9aa0a6;
+    font-size: 0.95rem;
+  }
 
-    <div class="col-md-12">
-      <label class="form-label">Ulubione gatunki</label>
-      <input type="text" class="form-control" name="favorite_genres" value="{{ favorite_genres }}">
-      <div class="form-text">np. Rock, Jazz, Hip-Hop</div>
-    </div>
+  /* Form Card */
+  .form-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
 
-    <div class="col-md-12">
-      <label class="form-label">Ulubieni artyści</label>
-      <input type="text" class="form-control" name="favorite_artists" value="{{ favorite_artists }}">
-    </div>
+  .form-section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #2a2a2a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
-    <div class="col-md-12">
-      <label class="form-label">Bio</label>
-      <textarea class="form-control" name="bio" rows="3">{{ bio }}</textarea>
-    </div>
+  /* Form Controls */
+  .form-group {
+    margin-bottom: 24px;
+  }
 
-    <div class="col-12 d-flex gap-2">
-      <button type="submit" class="btn btn-primary">Zapisz</button>
-      <a class="btn btn-outline-secondary" href="{% url 'profile' %}">Anuluj</a>
-    </div>
+  .form-label-modern {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e6e6e6;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .form-control-modern {
+    background: #1f2329;
+    border: 1px solid #2a2f32;
+    color: #e9ecf3;
+    border-radius: 12px;
+    padding: 12px 16px;
+    width: 100%;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+  }
+
+  .form-control-modern:focus {
+    background: #1f2329;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    color: #e9ecf3;
+    outline: none;
+  }
+
+  .form-control-modern::placeholder {
+    color: #6b7280;
+  }
+
+  textarea.form-control-modern {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .form-text-modern {
+    font-size: 0.8rem;
+    color: #9aa0a6;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Two Column Layout */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .form-grid-full {
+    grid-column: 1 / -1;
+  }
+
+  /* Character Counter */
+  .char-counter {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-top: 6px;
+    text-align: right;
+  }
+
+  /* Autocomplete Dropdown */
+  .autocomplete-wrapper {
+    position: relative;
+  }
+
+  .autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #1f2329;
+    border: 1px solid #2a2f32;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+
+  .autocomplete-dropdown.show {
+    display: block;
+  }
+
+  .autocomplete-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    color: #e9ecf3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .autocomplete-item:hover {
+    background: #2a2f32;
+  }
+
+  .autocomplete-item i {
+    color: #6b7280;
+  }
+
+  .autocomplete-empty {
+    padding: 12px 16px;
+    color: #6b7280;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+
+  /* Selected Tags */
+  .selected-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    min-height: 32px;
+  }
+
+  .selected-tag {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border: 1px solid #2563eb;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: tagAppear 0.2s ease;
+  }
+
+  @keyframes tagAppear {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .tag-remove {
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+  }
+
+  .tag-remove:hover {
+    transform: scale(1.3);
+  }
+
+  /* Action Buttons */
+  .action-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 24px;
+    border-top: 1px solid #2a2a2a;
+  }
+
+  .btn-save {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+  }
+
+  .btn-cancel {
+    background: transparent;
+    border: 1px solid #2a2a2a;
+    color: #e6e6e6;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel:hover {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+    color: #fff;
+  }
+
+  /* Avatar Section */
+  .avatar-section {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 24px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+
+  .avatar-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 2.5rem;
+    flex-shrink: 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .avatar-info h4 {
+    color: #fff;
+    font-size: 1.1rem;
+    margin: 0 0 8px 0;
+  }
+
+  .avatar-info p {
+    color: #9aa0a6;
+    font-size: 0.85rem;
+    margin: 0;
+  }
+
+  /* Upload button */
+  .btn-upload {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+
+  .btn-upload:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  }
+
+  .btn-remove-picture {
+    background: transparent;
+    border: 1px solid #dc2626;
+    color: #dc2626;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 8px;
+    transition: all 0.2s;
+  }
+
+  .btn-remove-picture:hover {
+    background: rgba(220, 38, 38, 0.1);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .edit-hero {
+      padding: 24px;
+    }
+
+    .form-card {
+      padding: 24px;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+    }
+
+    .btn-save,
+    .btn-cancel {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .avatar-section {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+</style>
+
+<div class="container py-4">
+  
+  <!-- Page Hero -->
+  <div class="edit-hero">
+    <h1 class="page-title-edit">
+      <i class="bi bi-pencil-square"></i>
+      Edytuj profil
+    </h1>
+    <p class="page-subtitle">Zaktualizuj swoje informacje i preferencje muzyczne</p>
   </div>
-</form>
+
+  <form method="POST" enctype="multipart/form-data" class="form-card">
+    {% csrf_token %}
+
+    <!-- Avatar Section -->
+    <div class="avatar-section">
+      <div class="avatar-preview" id="avatar-preview">
+        {% if user.profile_picture %}
+          <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+        {% else %}
+          {{ user.username|slice:":1"|upper }}
+        {% endif %}
+      </div>
+      <div class="avatar-info" style="flex: 1;">
+        <h4>{{ user.username }}</h4>
+        <p>Dołączył {{ user.date_joined|date:"d F Y" }}</p>
+        
+        <div style="margin-top: 12px;">
+          <label for="picture-upload" class="btn-upload">
+            <i class="bi bi-camera"></i>
+            Zmień zdjęcie
+          </label>
+          <input 
+            type="file" 
+            id="picture-upload" 
+            name="profile_picture" 
+            accept="image/*"
+            style="display: none;">
+          
+          {% if user.profile_picture %}
+          <button type="button" class="btn-remove-picture" id="remove-picture">
+            <i class="bi bi-trash"></i>
+            Usuń zdjęcie
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Personal Information Section -->
+    <div class="form-section-title">
+      <i class="bi bi-person"></i>
+      Informacje osobiste
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label-modern">Imię</label>
+        <input 
+          type="text" 
+          class="form-control-modern" 
+          name="first_name" 
+          value="{{ first_name }}"
+          placeholder="Twoje imię">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label-modern">Nazwisko</label>
+        <input 
+          type="text" 
+          class="form-control-modern" 
+          name="last_name" 
+          value="{{ last_name }}"
+          placeholder="Twoje nazwisko">
+      </div>
+
+      <div class="form-group form-grid-full">
+        <label class="form-label-modern">Email</label>
+        <input 
+          type="email" 
+          class="form-control-modern" 
+          name="email" 
+          value="{{ email }}" 
+          required
+          placeholder="twoj@email.com">
+        <div class="form-text-modern">
+          <i class="bi bi-info-circle"></i>
+          Używany do logowania i powiadomień
+        </div>
+      </div>
+    </div>
+
+    <!-- Music Preferences Section -->
+    <div class="form-section-title" style="margin-top: 32px;">
+      <i class="bi bi-music-note-beamed"></i>
+      Preferencje muzyczne
+    </div>
+
+    <div class="form-grid">
+      <!-- Genres Autocomplete -->
+      <div class="form-group form-grid-full">
+        <label class="form-label-modern">Ulubione gatunki</label>
+        <div class="autocomplete-wrapper">
+          <input 
+            type="text" 
+            class="form-control-modern" 
+            id="genres-search"
+            placeholder="Zacznij pisać aby wyszukać gatunek..."
+            autocomplete="off">
+          <div class="autocomplete-dropdown" id="genres-dropdown"></div>
+        </div>
+        <div class="form-text-modern">
+          <i class="bi bi-info-circle"></i>
+          Wpisz nazwę gatunku i wybierz z listy
+        </div>
+        
+        <!-- Selected Tags -->
+        <div class="selected-tags" id="genres-tags"></div>
+        
+        <!-- Hidden input for form submission -->
+        <input type="hidden" name="favorite_genres" id="genres-hidden" value="{{ favorite_genres }}">
+      </div>
+
+      <!-- Artists Autocomplete -->
+      <div class="form-group form-grid-full">
+        <label class="form-label-modern">Ulubieni artyści</label>
+        <div class="autocomplete-wrapper">
+          <input 
+            type="text" 
+            class="form-control-modern" 
+            id="artists-search"
+            placeholder="Zacznij pisać aby wyszukać artystę..."
+            autocomplete="off">
+          <div class="autocomplete-dropdown" id="artists-dropdown"></div>
+        </div>
+        <div class="form-text-modern">
+          <i class="bi bi-info-circle"></i>
+          Wpisz nazwę artysty i wybierz z listy
+        </div>
+        
+        <!-- Selected Tags -->
+        <div class="selected-tags" id="artists-tags"></div>
+        
+        <!-- Hidden input for form submission -->
+        <input type="hidden" name="favorite_artists" id="artists-hidden" value="{{ favorite_artists }}">
+      </div>
+    </div>
+
+    <!-- Bio Section -->
+    <div class="form-section-title" style="margin-top: 32px;">
+      <i class="bi bi-chat-quote"></i>
+      O mnie
+    </div>
+
+    <div class="form-group">
+      <label class="form-label-modern">Bio</label>
+      <textarea 
+        class="form-control-modern" 
+        name="bio" 
+        id="bio-input"
+        rows="5"
+        maxlength="500"
+        placeholder="Opowiedz coś o sobie i swoich muzycznych pasjach...">{{ bio }}</textarea>
+      <div class="char-counter">
+        <span id="bio-count">0</span> / 500 znaków
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <a class="btn-cancel" href="{% url 'profile' %}">
+        <i class="bi bi-x-circle"></i>
+        Anuluj
+      </a>
+      <button type="submit" class="btn-save">
+        <i class="bi bi-check-circle"></i>
+        Zapisz zmiany
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+(function() {
+  // Get all genres and artists from Django context
+  const allGenres = [
+    {% for genre in all_genres %}
+      "{{ genre.name|escapejs }}"{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+  
+  const allArtists = [
+    {% for artist in all_artists %}
+      "{{ artist.name|escapejs }}"{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+
+  // Initialize selected items from current values
+  const currentGenres = "{{ favorite_genres|escapejs }}".split(',').map(g => g.trim()).filter(g => g);
+  const currentArtists = "{{ favorite_artists|escapejs }}".split(',').map(a => a.trim()).filter(a => a);
+
+  // Generic autocomplete class
+  class Autocomplete {
+    constructor(inputId, dropdownId, tagsId, hiddenId, allItems, icon) {
+      this.input = document.getElementById(inputId);
+      this.dropdown = document.getElementById(dropdownId);
+      this.tagsContainer = document.getElementById(tagsId);
+      this.hiddenInput = document.getElementById(hiddenId);
+      this.allItems = allItems;
+      this.icon = icon;
+      this.selectedItems = [];
+      
+      this.init();
+    }
+
+    init() {
+      // Load initial selected items
+      const initialValue = this.hiddenInput.value;
+      if (initialValue) {
+        this.selectedItems = initialValue.split(',').map(i => i.trim()).filter(i => i);
+        this.renderTags();
+      }
+
+      // Input events
+      this.input.addEventListener('input', () => this.handleInput());
+      this.input.addEventListener('focus', () => this.handleInput());
+      
+      // Click outside to close
+      document.addEventListener('click', (e) => {
+        if (!this.input.contains(e.target) && !this.dropdown.contains(e.target)) {
+          this.dropdown.classList.remove('show');
+        }
+      });
+    }
+
+    handleInput() {
+      const query = this.input.value.trim().toLowerCase();
+      
+      if (query.length === 0) {
+        this.dropdown.classList.remove('show');
+        return;
+      }
+
+      // Filter items
+      const filtered = this.allItems.filter(item => 
+        item.toLowerCase().includes(query) && !this.selectedItems.includes(item)
+      );
+
+      this.renderDropdown(filtered);
+    }
+
+    renderDropdown(items) {
+      if (items.length === 0) {
+        this.dropdown.innerHTML = '<div class="autocomplete-empty">Nie znaleziono wyników</div>';
+        this.dropdown.classList.add('show');
+        return;
+      }
+
+      this.dropdown.innerHTML = items.slice(0, 10).map(item => `
+        <div class="autocomplete-item" data-value="${item}">
+          <i class="bi ${this.icon}"></i>
+          ${item}
+        </div>
+      `).join('');
+
+      // Add click handlers
+      this.dropdown.querySelectorAll('.autocomplete-item').forEach(el => {
+        el.addEventListener('click', () => {
+          this.addItem(el.dataset.value);
+        });
+      });
+
+      this.dropdown.classList.add('show');
+    }
+
+    addItem(item) {
+      if (!this.selectedItems.includes(item)) {
+        this.selectedItems.push(item);
+        this.updateHidden();
+        this.renderTags();
+      }
+      
+      this.input.value = '';
+      this.dropdown.classList.remove('show');
+      this.input.focus();
+    }
+
+    removeItem(item) {
+      this.selectedItems = this.selectedItems.filter(i => i !== item);
+      this.updateHidden();
+      this.renderTags();
+    }
+
+    updateHidden() {
+      this.hiddenInput.value = this.selectedItems.join(', ');
+    }
+
+    renderTags() {
+      if (this.selectedItems.length === 0) {
+        this.tagsContainer.innerHTML = '<span class="text-muted small">Nie wybrano żadnych pozycji</span>';
+        return;
+      }
+
+      this.tagsContainer.innerHTML = this.selectedItems.map(item => `
+        <span class="selected-tag">
+          <i class="bi ${this.icon}"></i>
+          ${item}
+          <span class="tag-remove" data-value="${item}">×</span>
+        </span>
+      `).join('');
+
+      // Add remove handlers
+      this.tagsContainer.querySelectorAll('.tag-remove').forEach(el => {
+        el.addEventListener('click', () => {
+          this.removeItem(el.dataset.value);
+        });
+      });
+    }
+  }
+
+  // Initialize autocompletes
+  const genresAutocomplete = new Autocomplete(
+    'genres-search',
+    'genres-dropdown',
+    'genres-tags',
+    'genres-hidden',
+    allGenres,
+    'bi-music-note'
+  );
+
+  const artistsAutocomplete = new Autocomplete(
+    'artists-search',
+    'artists-dropdown',
+    'artists-tags',
+    'artists-hidden',
+    allArtists,
+    'bi-person'
+  );
+
+  // Bio character counter
+  const bioInput = document.getElementById('bio-input');
+  const bioCount = document.getElementById('bio-count');
+  
+  if (bioInput && bioCount) {
+    const updateBioCount = () => {
+      bioCount.textContent = bioInput.value.length;
+    };
+    updateBioCount();
+    bioInput.addEventListener('input', updateBioCount);
+  }
+
+  // Form validation on submit
+  const form = document.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      const email = form.querySelector('[name="email"]');
+      if (!email.value.trim()) {
+        e.preventDefault();
+        alert('Email jest wymagany');
+        email.focus();
+      }
+    });
+  }
+
+  // Profile picture preview
+  const pictureUpload = document.getElementById('picture-upload');
+  const avatarPreview = document.getElementById('avatar-preview');
+  const removeButton = document.getElementById('remove-picture');
+  
+  if (pictureUpload && avatarPreview) {
+    pictureUpload.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  if (removeButton) {
+    removeButton.addEventListener('click', function() {
+      if (confirm('Czy na pewno chcesz usunąć zdjęcie profilowe?')) {
+        // Create hidden input to signal removal
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'remove_picture';
+        input.value = 'true';
+        document.querySelector('form').appendChild(input);
+        document.querySelector('form').submit();
+      }
+    });
+  }
+
+})();
+</script>
+
 {% endblock %}
