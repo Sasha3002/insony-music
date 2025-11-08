@@ -1,0 +1,445 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  /* Playlist Hero */
+  .playlist-hero {
+    background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 32px;
+    border: 1px solid #2a2a2a;
+  }
+
+  .playlist-hero-content {
+    display: flex;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .playlist-cover-large {
+    width: 240px;
+    height: 240px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #2a2a2a, #1f1f1f);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 96px;
+    color: #6b7280;
+    flex-shrink: 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .playlist-cover-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .favorite-badge-large {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .playlist-info-main {
+    flex: 1;
+  }
+
+  .playlist-type {
+    color: #9aa0a6;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .playlist-title-big {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 16px 0;
+    line-height: 1.1;
+  }
+
+  .playlist-description-big {
+    color: #b6bdc6;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .playlist-meta-big {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item-big {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #b6bdc6;
+    font-size: 0.95rem;
+  }
+
+  .meta-item-big i {
+    color: #6b7280;
+    font-size: 1.1rem;
+  }
+
+  .playlist-actions-hero {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  /* Track List */
+  .tracks-section {
+    margin-top: 32px;
+  }
+
+  .section-header-tracks {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .section-title-tracks {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* Track Card in Playlist */
+  .playlist-track-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: auto auto 1fr auto auto;
+    gap: 16px;
+    align-items: center;
+    transition: all 0.2s;
+  }
+
+  .playlist-track-card:hover {
+    border-color: #3a3a3a;
+    transform: translateX(4px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+
+  .track-position {
+    width: 32px;
+    text-align: center;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 1rem;
+  }
+
+  .track-cover-small {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #2a2a2a, #1f1f1f);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .track-cover-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .track-info-playlist {
+    min-width: 0;
+  }
+
+  .track-title-playlist {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 4px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .track-artist-playlist {
+    font-size: 0.85rem;
+    color: #9aa0a6;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .track-duration-playlist {
+    color: #9aa0a6;
+    font-size: 0.9rem;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  .track-actions-playlist {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-track-action {
+    background: transparent;
+    border: 1px solid #2a2a2a;
+    color: #9aa0a6;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-track-action:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+  }
+
+  .btn-track-action.danger:hover {
+    border-color: #dc2626;
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.1);
+  }
+
+  /* Empty Playlist */
+  .empty-playlist {
+    text-align: center;
+    padding: 80px 20px;
+    color: #6b7280;
+  }
+
+  .empty-playlist i {
+    font-size: 64px;
+    margin-bottom: 24px;
+    opacity: 0.5;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .playlist-hero-content {
+      flex-direction: column;
+    }
+
+    .playlist-cover-large {
+      width: 200px;
+      height: 200px;
+    }
+
+    .playlist-title-big {
+      font-size: 2rem;
+    }
+
+    .playlist-track-card {
+      grid-template-columns: auto 1fr auto;
+    }
+
+    .track-position,
+    .track-duration-playlist {
+      display: none;
+    }
+  }
+</style>
+
+<div class="container py-4">
+  
+  <!-- Playlist Hero -->
+  <div class="playlist-hero">
+    <div class="playlist-hero-content">
+      <div class="playlist-cover-large">
+        {% if playlist.cover_image %}
+          <img src="{{ playlist.cover_image.url }}" alt="{{ playlist.name }}">
+        {% else %}
+          <i class="bi bi-music-note-list"></i>
+        {% endif %}
+        
+        {% if playlist.is_favorite %}
+          <div class="favorite-badge-large">
+            <i class="bi bi-heart-fill"></i>
+            Ulubione
+          </div>
+        {% endif %}
+      </div>
+      
+      <div class="playlist-info-main">
+        <div class="playlist-type">Playlista</div>
+        <h1 class="playlist-title-big">{{ playlist.name }}</h1>
+        
+        {% if playlist.description %}
+        <p class="playlist-description-big">{{ playlist.description }}</p>
+        {% endif %}
+        
+        <div class="playlist-meta-big">
+          <div class="meta-item-big">
+            <i class="bi bi-person-circle"></i>
+            <span>{{ playlist.user.username }}</span>
+          </div>
+          <div class="meta-item-big">
+            <i class="bi bi-music-note"></i>
+            <span>{{ playlist_tracks|length }} {% if playlist_tracks|length == 1 %}utwór{% elif playlist_tracks|length < 5 %}utwory{% else %}utworów{% endif %}</span>
+          </div>
+          <div class="meta-item-big">
+            <i class="bi bi-calendar3"></i>
+            <span>{{ playlist.created_at|date:"d.m.Y" }}</span>
+          </div>
+        </div>
+
+        <div class="playlist-actions-hero">
+          {% if not playlist.is_favorite %}
+            <a href="{% url 'playlist_edit' playlist.id %}" class="btn btn-outline-light">
+              <i class="bi bi-pencil"></i> Edytuj
+            </a>
+            <a href="{% url 'playlist_delete' playlist.id %}" class="btn btn-outline-danger">
+              <i class="bi bi-trash"></i> Usuń
+            </a>
+          {% else %}
+            <span class="text-muted small">
+              <i class="bi bi-info-circle"></i> Ta playlista jest automatycznie zarządzana
+            </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tracks Section -->
+  <div class="tracks-section">
+    <div class="section-header-tracks">
+      <h2 class="section-title-tracks">
+        <i class="bi bi-list-ol"></i>
+        Utwory
+      </h2>
+    </div>
+
+    {% if playlist_tracks %}
+      {% for pt in playlist_tracks %}
+        <div class="playlist-track-card">
+          <div class="track-position">{{ forloop.counter }}</div>
+          
+          <div class="track-cover-small">
+            {% if pt.track.cover_image %}
+              <img src="{{ pt.track.cover_image }}" alt="{{ pt.track.title }}">
+            {% else %}
+              <i class="bi bi-music-note"></i>
+            {% endif %}
+          </div>
+          
+          <div class="track-info-playlist">
+            <div class="track-title-playlist">{{ pt.track.title }}</div>
+            <div class="track-artist-playlist">{{ pt.track.artist.name }}</div>
+          </div>
+          
+          <div class="track-duration-playlist">
+            {{ pt.track.duration_display }}
+          </div>
+          
+          <div class="track-actions-playlist">
+            <button 
+              class="btn-track-action" 
+              onclick="window.location.href='{% url 'track_detail' pt.track.id %}'"
+              title="Zobacz szczegóły">
+              <i class="bi bi-play-circle"></i>
+            </button>
+            
+            {% if not playlist.is_favorite %}
+            <button 
+              class="btn-track-action danger" 
+              onclick="removeFromPlaylist({{ playlist.id }}, {{ pt.track.id }})"
+              title="Usuń z playlisty">
+              <i class="bi bi-x-lg"></i>
+            </button>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-playlist">
+        <i class="bi bi-music-note-list"></i>
+        <h3>Playlista jest pusta</h3>
+        <p>
+          {% if playlist.is_favorite %}
+            Dodaj utwory do ulubionych, aby wypełnić tę playlistę
+          {% else %}
+            Przeglądaj utwory i dodawaj je do swojej playlisty
+          {% endif %}
+        </p>
+        <a href="{% url 'track_list' %}" class="btn btn-primary">
+          <i class="bi bi-music-note-beamed"></i>
+          Przeglądaj utwory
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+  function getCookie(name) {
+    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? m.pop() : '';
+  }
+
+  async function removeFromPlaylist(playlistId, trackId) {
+    if (!confirm('Czy na pewno chcesz usunąć ten utwór z playlisty?')) {
+      return;
+    }
+
+    try {
+      const resp = await fetch(`/music/playlists/${playlistId}/remove/${trackId}/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+
+      const data = await resp.json();
+      
+      if (data.ok) {
+        // Reload page to show updated list
+        window.location.reload();
+      } else {
+        alert(data.message || 'Wystąpił błąd');
+      }
+    } catch (e) {
+      console.error('Error:', e);
+      alert('Wystąpił błąd podczas usuwania utworu');
+    }
+  }
+</script>
+
+{% endblock %}

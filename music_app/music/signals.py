@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django.db.models import Avg, Count, F
-from .models import Review, Track, ReviewLike
+from .models import Review, Track, ReviewLike, Favorite, Playlist,  PlaylistTrack
 from .utils.xp import add_xp
 
 
@@ -82,3 +82,42 @@ def like_post_save_xp(sender, instance: ReviewLike, created: bool, **kwargs):
 def like_post_delete_xp(sender, instance: ReviewLike, **kwargs):
     add_xp(instance.review.user, -XP_LIKE_GOT)
     add_xp(instance.user, -XP_LIKE_GIVEN)
+
+# --------------------------- FAVORITES: playlist ---------------------------
+
+@receiver(post_save, sender=Favorite)
+def add_to_favorites_playlist(sender, instance, created, **kwargs):
+    """When a track is favorited, add it to user's favorites playlist"""
+    if created:
+        # Get or create favorites playlist
+        favorites_playlist, _ = Playlist.objects.get_or_create(
+            user=instance.user,
+            is_favorite=True,
+            defaults={
+                'name': 'Ulubione',
+                'description': 'Twoje ulubione utwory'
+            }
+        )
+        
+        # Add track to favorites playlist if not already there
+        PlaylistTrack.objects.get_or_create(
+            playlist=favorites_playlist,
+            track=instance.track,
+            defaults={'position': favorites_playlist.track_count}
+        )
+
+
+@receiver(post_delete, sender=Favorite)
+def remove_from_favorites_playlist(sender, instance, **kwargs):
+    """When a track is unfavorited, remove it from favorites playlist"""
+    try:
+        favorites_playlist = Playlist.objects.get(
+            user=instance.user,
+            is_favorite=True
+        )
+        PlaylistTrack.objects.filter(
+            playlist=favorites_playlist,
+            track=instance.track
+        ).delete()
+    except Playlist.DoesNotExist:
+        pass

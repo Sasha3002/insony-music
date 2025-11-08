@@ -168,3 +168,84 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f"{self.user} → {self.track} (★ {self.created_at:%Y-%m-%d})"
+    
+
+class Playlist(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="playlists"
+    )
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    cover_image = models.ImageField(upload_to='playlist_covers/', blank=True, null=True)
+    is_favorite = models.BooleanField(default=False)  # Special flag for favorites playlist
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    
+    # Many-to-many relationship with Track through PlaylistTrack
+    tracks = models.ManyToManyField(
+        'Track',
+        through='PlaylistTrack',
+        related_name='playlists',
+        blank=True
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'is_favorite']),
+        ]
+        constraints = [
+            # Each user can have only one favorites playlist
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=models.Q(is_favorite=True),
+                name='unique_favorite_playlist_per_user'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.name} - {self.user.username}"
+
+    @property
+    def track_count(self):
+        return self.tracks.count()
+
+    @property
+    def total_duration(self):
+        from datetime import timedelta
+        total = timedelta()
+        for track in self.tracks.all():
+            if track.duration:
+                total += track.duration
+        return total
+
+
+class PlaylistTrack(models.Model):
+    """Through model for many-to-many relationship with ordering"""
+    playlist = models.ForeignKey(
+        Playlist,
+        on_delete=models.CASCADE,
+        related_name='playlist_tracks'
+    )
+    track = models.ForeignKey(
+        'Track',
+        on_delete=models.CASCADE,
+        related_name='in_playlists'
+    )
+    position = models.PositiveIntegerField(default=0)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['position', 'added_at']
+        unique_together = [['playlist', 'track']]
+        indexes = [
+            models.Index(fields=['playlist', 'position']),
+        ]
+
+    def __str__(self):
+        return f"{self.track.title} in {self.playlist.name}"
+
+

@@ -1,0 +1,385 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  /* Reuse styles from playlist_create */
+  .edit-hero {
+    background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    border: 1px solid #2a2a2a;
+  }
+
+  .page-title-edit {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .page-subtitle {
+    color: #9aa0a6;
+    font-size: 0.95rem;
+  }
+
+  .form-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+
+  .form-group {
+    margin-bottom: 24px;
+  }
+
+  .form-label-modern {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e6e6e6;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .form-control-modern {
+    background: #1f2329;
+    border: 1px solid #2a2f32;
+    color: #e9ecf3;
+    border-radius: 12px;
+    padding: 12px 16px;
+    width: 100%;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+  }
+
+  .form-control-modern:focus {
+    background: #1f2329;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    color: #e9ecf3;
+    outline: none;
+  }
+
+  textarea.form-control-modern {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .cover-upload-section {
+    display: flex;
+    align-items: start;
+    gap: 24px;
+    padding: 24px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+
+  .cover-preview {
+    width: 200px;
+    height: 200px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #2a2a2a, #1f1f1f);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    color: #6b7280;
+    flex-shrink: 0;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .cover-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .cover-upload-info {
+    flex: 1;
+  }
+
+  .cover-upload-info h4 {
+    color: #fff;
+    font-size: 1.1rem;
+    margin: 0 0 8px 0;
+  }
+
+  .cover-upload-info p {
+    color: #9aa0a6;
+    font-size: 0.85rem;
+    margin: 0 0 16px 0;
+  }
+
+  .btn-upload {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+
+  .btn-upload:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  }
+
+  .btn-remove-cover {
+    background: transparent;
+    border: 1px solid #dc2626;
+    color: #dc2626;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 12px;
+    transition: all 0.2s;
+  }
+
+  .btn-remove-cover:hover {
+    background: rgba(220, 38, 38, 0.1);
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 24px;
+    border-top: 1px solid #2a2a2a;
+  }
+
+  .btn-save {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+  }
+
+  .btn-cancel {
+    background: transparent;
+    border: 1px solid #2a2a2a;
+    color: #e6e6e6;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel:hover {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+    color: #fff;
+  }
+
+  .char-counter {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-top: 6px;
+    text-align: right;
+  }
+
+  @media (max-width: 768px) {
+    .cover-upload-section {
+      flex-direction: column;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+    }
+
+    .btn-save,
+    .btn-cancel {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+
+<div class="container py-4">
+  
+  <!-- Page Hero -->
+  <div class="edit-hero">
+    <h1 class="page-title-edit">
+      <i class="bi bi-pencil-square"></i>
+      Edytuj playlistę
+    </h1>
+    <p class="page-subtitle">Zaktualizuj informacje o swojej playliście</p>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" class="form-card">
+    {% csrf_token %}
+
+    <!-- Cover Upload Section -->
+    <div class="cover-upload-section">
+      <div class="cover-preview" id="cover-preview">
+        {% if playlist.cover_image %}
+          <img src="{{ playlist.cover_image.url }}" alt="{{ playlist.name }}">
+        {% else %}
+          <i class="bi bi-music-note-list"></i>
+        {% endif %}
+      </div>
+      <div class="cover-upload-info">
+        <h4>Okładka playlisty</h4>
+        <p>Zmień okładkę lub pozostaw obecną</p>
+        <label for="cover-upload" class="btn-upload">
+          <i class="bi bi-camera"></i>
+          {% if playlist.cover_image %}Zmień zdjęcie{% else %}Dodaj zdjęcie{% endif %}
+        </label>
+        <input 
+          type="file" 
+          id="cover-upload" 
+          name="cover_image" 
+          accept="image/*"
+          style="display: none;">
+        
+        {% if playlist.cover_image %}
+        <button type="button" class="btn-remove-cover" id="remove-cover-btn">
+          <i class="bi bi-trash"></i>
+          Usuń okładkę
+        </button>
+        <input type="hidden" name="remove_cover" id="remove-cover-input" value="false">
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Playlist Name -->
+    <div class="form-group">
+      <label class="form-label-modern">Nazwa playlisty *</label>
+      <input 
+        type="text" 
+        class="form-control-modern" 
+        name="name" 
+        id="name-input"
+        maxlength="200"
+        required
+        value="{{ playlist.name }}">
+      <div class="char-counter">
+        <span id="name-count">0</span> / 200 znaków
+      </div>
+    </div>
+
+    <!-- Playlist Description -->
+    <div class="form-group">
+      <label class="form-label-modern">Opis (opcjonalnie)</label>
+      <textarea 
+        class="form-control-modern" 
+        name="description" 
+        id="description-input"
+        rows="4"
+        maxlength="500">{{ playlist.description }}</textarea>
+      <div class="char-counter">
+        <span id="description-count">0</span> / 500 znaków
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <a class="btn-cancel" href="{% url 'playlist_detail' playlist.id %}">
+        <i class="bi bi-x-circle"></i>
+        Anuluj
+      </a>
+      <button type="submit" class="btn-save">
+        <i class="bi bi-check-circle"></i>
+        Zapisz zmiany
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+(function() {
+  // Cover preview
+  const coverUpload = document.getElementById('cover-upload');
+  const coverPreview = document.getElementById('cover-preview');
+  
+  if (coverUpload && coverPreview) {
+    coverUpload.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          coverPreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  // Remove cover button
+  const removeCoverBtn = document.getElementById('remove-cover-btn');
+  const removeCoverInput = document.getElementById('remove-cover-input');
+  
+  if (removeCoverBtn && removeCoverInput) {
+    removeCoverBtn.addEventListener('click', function() {
+      if (confirm('Czy na pewno chcesz usunąć okładkę?')) {
+        removeCoverInput.value = 'true';
+        coverPreview.innerHTML = '<i class="bi bi-music-note-list"></i>';
+        removeCoverBtn.style.display = 'none';
+      }
+    });
+  }
+
+  // Name character counter
+  const nameInput = document.getElementById('name-input');
+  const nameCount = document.getElementById('name-count');
+  
+  if (nameInput && nameCount) {
+    const updateNameCount = () => {
+      nameCount.textContent = nameInput.value.length;
+    };
+    updateNameCount();
+    nameInput.addEventListener('input', updateNameCount);
+  }
+
+  // Description character counter
+  const descInput = document.getElementById('description-input');
+  const descCount = document.getElementById('description-count');
+  
+  if (descInput && descCount) {
+    const updateDescCount = () => {
+      descCount.textContent = descInput.value.length;
+    };
+    updateDescCount();
+    descInput.addEventListener('input', updateDescCount);
+  }
+})();
+</script>
+
+{% endblock %}

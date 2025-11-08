@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from .models import Track, Artist, Genre, Review, ReviewLike, Favorite
+from .models import Track, Artist, Genre, Review, ReviewLike, Favorite, Playlist, PlaylistTrack
 from django.contrib import messages
 from .forms import ReviewForm
 from django.db.models import Avg, Count, F, ExpressionWrapper, FloatField, Q, Value
@@ -291,24 +291,6 @@ def track_delete(request, track_id):
     return render(request, 'music/track_delete_confirm.html', {'track': track})
 
 
-#@login_required(login_url="/users/login/")
-#def favorite_toggle(request, track_id):
-#    track = get_object_or_404(Track, pk=track_id)
-#    fav, created = Favorite.objects.get_or_create(user=request.user, track=track)
-#    if not created:
-#        fav.delete()
-#        status = "removed"
-#    else:
-#        status = "added"
-#
-#    count = track.favorites.count()
-#    # AJAX?
-#    if request.headers.get("x-requested-with") == "XMLHttpRequest":
-#        return JsonResponse({"status": status, "count": count})
-#
-#    return redirect("track_detail", track_id=track.id)
-
-
 @require_POST
 @login_required(login_url="/users/login/")
 def favorite_toggle(request, track_id):
@@ -325,3 +307,150 @@ def favorite_toggle(request, track_id):
         is_favorited = True
 
     return JsonResponse({"ok": True, "favorited": is_favorited, "track_id": track_id})
+
+
+@login_required
+def playlist_list(request):
+    """List all user's playlists"""
+    playlists = Playlist.objects.filter(user=request.user)
+    
+    return render(request, 'music/playlist_list.html', {
+        'playlists': playlists
+    })
+
+
+@login_required
+def playlist_detail(request, playlist_id):
+    """View single playlist with tracks"""
+    playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
+    
+    # Get tracks in order
+    playlist_tracks = PlaylistTrack.objects.filter(
+        playlist=playlist
+    ).select_related('track', 'track__artist', 'track__genre').order_by('position')
+    
+    return render(request, 'music/playlist_detail.html', {
+        'playlist': playlist,
+        'playlist_tracks': playlist_tracks
+    })
+
+
+@login_required
+def playlist_create(request):
+    """Create new playlist"""
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        
+        if not name:
+            messages.error(request, 'Nazwa playlisty jest wymagana')
+            return redirect('playlist_list')
+        
+        playlist = Playlist.objects.create(
+            user=request.user,
+            name=name,
+            description=description
+        )
+        
+        # Handle cover image
+        if 'cover_image' in request.FILES:
+            playlist.cover_image = request.FILES['cover_image']
+            playlist.save()
+        
+        messages.success(request, f'Playlista "{name}" została utworzona!')
+        return redirect('playlist_detail', playlist_id=playlist.id)
+    
+    return render(request, 'music/playlist_create.html')
+
+
+@login_required
+def playlist_edit(request, playlist_id):
+    """Edit playlist details"""
+    playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
+    
+    # Don't allow editing favorites playlist name
+    if playlist.is_favorite:
+        messages.error(request, 'Nie możesz edytować playlisty ulubionych')
+        return redirect('playlist_detail', playlist_id=playlist.id)
+    
+    if request.method == 'POST':
+        playlist.name = request.POST.get('name', playlist.name)
+        playlist.description = request.POST.get('description', playlist.description)
+        
+        if 'cover_image' in request.FILES:
+            if playlist.cover_image:
+                playlist.cover_image.delete()
+            playlist.cover_image = request.FILES['cover_image']
+        
+        if request.POST.get('remove_cover') == 'true':
+            if playlist.cover_image:
+                playlist.cover_image.delete()
+                playlist.cover_image = None
+        
+        playlist.save()
+        messages.success(request, 'Playlista zaktualizowana!')
+        return redirect('playlist_detail', playlist_id=playlist.id)
+    
+    return render(request, 'music/playlist_edit.html', {'playlist': playlist})
+
+
+@login_required
+def playlist_delete(request, playlist_id):
+    """Delete playlist"""
+    playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
+    
+    # Don't allow deleting favorites playlist
+    if playlist.is_favorite:
+        messages.error(request, 'Nie możesz usunąć playlisty ulubionych')
+        return redirect('playlist_list')
+    
+    if request.method == 'POST':
+        name = playlist.name
+        playlist.delete()
+        messages.success(request, f'Playlista "{name}" została usunięta')
+        return redirect('playlist_list')
+    
+    return render(request, 'music/playlist_delete_confirm.html', {'playlist': playlist})
+
+
+@login_required
+@require_POST
+def playlist_add_track(request, playlist_id, track_id):
+    """Add track to playlist (AJAX)"""
+    playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
+    track = get_object_or_404(Track, id=track_id)
+    
+    # Check if track already in playlist
+    if PlaylistTrack.objects.filter(playlist=playlist, track=track).exists():
+        return JsonResponse({'ok': False, 'message': 'Utwór już jest w playliście'})
+    
+    # Add track at the end
+    position = playlist.track_count
+    PlaylistTrack.objects.create(
+        playlist=playlist,
+        track=track,
+        position=position
+    )
+    
+    return JsonResponse({'ok': True, 'message': 'Utwór dodany do playlisty'})
+
+
+@login_required
+@require_POST
+def playlist_remove_track(request, playlist_id, track_id):
+    """Remove track from playlist (AJAX)"""
+    playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
+    
+    # Don't allow removing from favorites playlist (use unfavorite instead)
+    if playlist.is_favorite:
+        return JsonResponse({'ok': False, 'message': 'Usuń utwór z ulubionych zamiast tego'})
+    
+    PlaylistTrack.objects.filter(playlist=playlist, track_id=track_id).delete()
+    
+    # Reorder remaining tracks
+    remaining = PlaylistTrack.objects.filter(playlist=playlist).order_by('position')
+    for i, pt in enumerate(remaining):
+        pt.position = i
+        pt.save()
+    
+    return JsonResponse({'ok': True, 'message': 'Utwór usunięty z playlisty'})
