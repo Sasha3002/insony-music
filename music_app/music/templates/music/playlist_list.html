@@ -204,20 +204,38 @@
 </style>
 
 <div class="container py-4">
+
+  {% if viewing_other_user %}
+    <a href="{% url 'user_profile_public' profile_user.username %}" class="btn btn-outline-light mb-3">
+      <i class="bi bi-arrow-left"></i> Powrót do profilu
+    </a>
+  {% endif %}
   
   <!-- Hero Section -->
   <div class="playlist-hero">
     <div class="hero-content">
       <h1>
         <i class="bi bi-music-note-list"></i>
-        Moje Playlisty
+        {% if viewing_other_user %}
+          Playlisty użytkownika @{{ profile_user.username }}
+        {% else %}
+          Moje Playlisty
+        {% endif %}
       </h1>
-      <p>Zarządzaj swoimi kolekcjami muzycznymi</p>
+      <p>
+        {% if viewing_other_user %}
+          Publiczne playlisty użytkownika
+        {% else %}
+          Zarządzaj swoimi kolekcjami muzycznymi
+        {% endif %}
+      </p>
     </div>
-    <a href="{% url 'playlist_create' %}" class="btn-create-playlist">
-      <i class="bi bi-plus-circle"></i>
-      Utwórz playlistę
-    </a>
+    {% if not viewing_other_user %}
+      <a href="{% url 'playlist_create' %}" class="btn-create-playlist">
+        <i class="bi bi-plus-circle"></i>
+        Utwórz playlistę
+      </a>
+    {% endif %}
   </div>
 
   {% if playlists %}
@@ -264,6 +282,14 @@
                 <i class="bi bi-clock"></i>
                 <span>{{ playlist.created_at|date:"d.m.Y" }}</span>
               </div>
+              {% if not viewing_other_user %}
+                <div class="playlist-stat">
+                  <i class="bi bi-{% if playlist.is_public %}globe{% else %}lock{% endif %}" style="color: {% if playlist.is_public %}#10b981{% else %}#6b7280{% endif %};"></i>
+                  <span style="color: {% if playlist.is_public %}#10b981{% else %}#6b7280{% endif %};">
+                    {% if playlist.is_public %}Publiczna{% else %}Prywatna{% endif %}
+                  </span>
+                </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -273,12 +299,20 @@
     <!-- Empty State -->
     <div class="empty-playlists">
       <i class="bi bi-music-note-list"></i>
-      <h3>Nie masz jeszcze żadnych playlist</h3>
-      <p>Utwórz swoją pierwszą playlistę i organizuj ulubioną muzykę</p>
-      <a href="{% url 'playlist_create' %}" class="btn-create-playlist">
-        <i class="bi bi-plus-circle"></i>
-        Utwórz pierwszą playlistę
-      </a>
+      <h3>
+        {% if viewing_other_user %}
+          Ten użytkownik nie ma publicznych playlist
+        {% else %}
+          Nie masz jeszcze żadnych playlist
+        {% endif %}
+      </h3>
+      {% if not viewing_other_user %}
+        <p>Utwórz swoją pierwszą playlistę i organizuj ulubioną muzykę</p>
+        <a href="{% url 'playlist_create' %}" class="btn-create-playlist">
+          <i class="bi bi-plus-circle"></i>
+          Utwórz pierwszą playlistę
+        </a>
+      {% endif %}
     </div>
   {% endif %}
 

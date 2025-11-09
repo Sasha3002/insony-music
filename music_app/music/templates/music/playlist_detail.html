@@ -354,7 +354,7 @@
             {% if pt.track.cover_image %}
               <img src="{{ pt.track.cover_image }}" alt="{{ pt.track.title }}">
             {% else %}
-              <i class="bi bi-music-note"></i>
+              <img src="{% static 'img/Insony.jpg' %}" alt="{{ pt.track.title }}">
             {% endif %}
           </div>
           
@@ -419,7 +419,7 @@
     }
 
     try {
-      const resp = await fetch(`/music/playlists/${playlistId}/remove/${trackId}/`, {
+      const resp = await fetch(`/playlists/${playlistId}/remove/${trackId}/`, {
         method: 'POST',
         headers: {
           'X-CSRFToken': getCookie('csrftoken'),

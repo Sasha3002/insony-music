@@ -1,0 +1,284 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="profile-cover"></div>
+
+<div class="container" style="margin-top: -50px; position: relative; z-index: 10;">
+  
+  <!-- Profile Header -->
+  <div class="profile-header-content">
+    <img src="{% if profile_user.profile_picture %}{{ profile_user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ profile_user.username }}&background=2a2a2a&color=fff&size=280{% endif %}" 
+         alt="{{ profile_user.username }}" 
+         class="profile-avatar">
+    
+    <div class="profile-info">
+      <h1 class="profile-username">{{ profile_user.username }}</h1>
+      <div class="profile-meta">
+        <i class="bi bi-calendar3"></i> Zarejestrowany: {{ profile_user.date_joined|date:"d.m.Y" }}
+      </div>
+      
+      {% if request.user.is_authenticated and request.user != profile_user %}
+      <div class="profile-actions">
+        <button 
+          id="followBtn"
+          class="btn {% if is_following %}btn-success{% else %}btn-primary{% endif %}"
+          onclick="toggleFollow()">
+          <i class="bi bi-{% if is_following %}check-circle{% else %}plus-circle{% endif %}"></i>
+          <span id="followText">{% if is_following %}Obserwujesz{% else %}Obserwuj{% endif %}</span>
+        </button>
+        
+        <button 
+          class="btn btn-outline-danger"
+          onclick="toggleBlock()">
+          <i class="bi bi-slash-circle"></i>
+          Zablokuj
+        </button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <a href="{% url 'user_reviews_public' profile_user.username %}" style="text-decoration: none; color: inherit;">
+      <div class="stat-card" style="cursor: pointer;">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #db2777, #ec4899);">
+          <i class="bi bi-chat-left-text-fill"></i>
+        </div>
+        <div class="stat-value">{{ recent_reviews_count }}</div>
+        <div class="stat-label">Recenzji</div>
+      </div>
+    </a>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #2563eb, #3b82f6);">
+        <i class="bi bi-star-fill"></i>
+      </div>
+      <div class="stat-value">{{ average_rating|floatformat:1 }}</div>
+      <div class="stat-label">Średnia ocen</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
+        <i class="bi bi-heart-fill"></i>
+      </div>
+      <div class="stat-value">{{ favorites_count }}</div>
+      <div class="stat-label">Ulubionych</div>
+    </div>
+    <a href="{% url 'user_playlists_public' profile_user.username %}" style="text-decoration: none; color: inherit;">
+      <div class="stat-card" style="cursor: pointer;">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #059669, #10b981);">
+          <i class="bi bi-music-note-list"></i>
+        </div>
+        <div class="stat-value">{{ playlists_number }}</div>
+        <div class="stat-label">Playlist</div>
+      </div>
+    </a>
+    <a href="{% url 'followers_list' profile_user.username %}" style="text-decoration: none; color: inherit;">
+      <div class="stat-card" style="cursor: pointer;">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="stat-value" id="followersCount">{{ followers_count }}</div>
+        <div class="stat-label">Obserwujących</div>
+      </div>
+    </a>
+    
+    <a href="{% url 'following_list' profile_user.username %}" style="text-decoration: none; color: inherit;">
+      <div class="stat-card" style="cursor: pointer;">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #0891b2, #06b6d4);">
+          <i class="bi bi-person-check-fill"></i>
+        </div>
+        <div class="stat-value">{{ following_count }}</div>
+        <div class="stat-label">Obserwuje</div>
+      </div>
+    </a>
+    
+  </div>
+
+  <!-- XP Progress Card -->
+  <div class="xp-card">
+    <div class="xp-header">
+      <div class="level-badge">
+        <i class="bi bi-lightning-fill" style="color: #fbbf24;"></i>
+        <span>POZIOM {{ level }}</span>
+      </div>
+      <div class="xp-stats">
+        <div><strong>{{ level_in_xp|default:0 }}</strong> / 1000 XP</div>
+      </div>
+    </div>
+    <div class="position-relative mt-2">
+      <div class="xp-track">
+        <div class="xp-fill" style="--xp-pct: {{ level_progress_pct }}%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two Column Layout -->
+  <div class="content-columns">
+    
+    <!-- Recent Activity -->
+    <div>
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="bi bi-clock-history me-2"></i>
+          Ostatnia aktywność
+        </h2>
+      </div>
+      <div class="activity-feed">
+        {% if recent_reviews %}
+          {% for review in recent_reviews %}
+            <div class="activity-item">
+              <div class="cover">
+                {% if review.track.cover_image %}
+                  <img src="{{ review.track.cover_image }}" alt="{{ review.track.title }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
+                {% else %}
+                  <img src="{% static 'img/Insony.jpg' %}" alt="Insony" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
+                {% endif %}
+              </div>
+              <div class="activity-content">
+                <div class="activity-track">{{ review.track.title }}</div>
+                <div class="activity-meta">
+                  <span><i class="bi bi-calendar3"></i> {{ review.created_at|date:"d.m.Y H:i" }}</span>
+                  <span class="activity-score">{{ review.total_percent|floatformat:1 }}%</span>
+                </div>
+              </div>
+              <a href="{% url 'track_detail' review.track.id %}" class="btn-view">Szczegóły</a>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">
+            <i class="bi bi-music-note-list"></i>
+            <div>Brak recenzji</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      
+      {% if favorite_genres_list %}
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">
+          <i class="bi bi-music-note-beamed"></i>
+          Ulubione gatunki
+        </div>
+        <div class="tag-cloud">
+          {% for genre in favorite_genres_list %}
+            <span class="tag">{{ genre }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if favorite_artists_list %}
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">
+          <i class="bi bi-people-fill"></i>
+          Ulubieni artyści
+        </div>
+        <div>
+          {% for artist in favorite_artists_list %}
+            <div class="artist-item">
+              <div class="artist-avatar" style="background: linear-gradient(135deg, {% cycle '#dc2626, #f97316' '#2563eb, #7c3aed' '#059669, #10b981' '#7c3aed, #a855f7' '#db2777, #ec4899' %});">
+                {{ artist|slice:":2"|upper }}
+              </div>
+              <div class="artist-info">
+                <div class="artist-name">{{ artist }}</div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if profile_user.bio %}
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">
+          <i class="bi bi-person-badge"></i>
+          O mnie
+        </div>
+        <p style="color: #b6bdc6; font-size: 0.9rem; line-height: 1.6; margin: 0;">
+          {{ profile_user.bio }}
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div style="height: 80px;"></div>
+</div>
+
+<script>
+  function getCookie(name) {
+    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? m.pop() : '';
+  }
+
+  async function toggleFollow() {
+    const btn = document.getElementById('followBtn');
+    const text = document.getElementById('followText');
+    const icon = btn.querySelector('i');
+    
+    btn.disabled = true;
+    
+    try {
+      const resp = await fetch('/users/u/{{ profile_user.username }}/follow/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      
+      const data = await resp.json();
+      
+      if (data.ok) {
+        if (data.is_following) {
+          btn.className = 'btn btn-success';
+          icon.className = 'bi bi-check-circle';
+          text.textContent = 'Obserwujesz';
+        } else {
+          btn.className = 'btn btn-primary';
+          icon.className = 'bi bi-plus-circle';
+          text.textContent = 'Obserwuj';
+        }
+        document.getElementById('followersCount').textContent = data.followers_count;
+      }
+      
+      btn.disabled = false;
+    } catch (e) {
+      console.error(e);
+      btn.disabled = false;
+    }
+  }
+
+  async function toggleBlock() {
+    if (!confirm('Czy na pewno chcesz zablokować tego użytkownika?')) {
+      return;
+    }
+    
+    try {
+      const resp = await fetch('/users/u/{{ profile_user.username }}/block/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      
+      const data = await resp.json();
+      
+      if (data.ok) {
+        alert(data.message);
+        if (data.is_blocked) {
+          window.location.href = '/users/search/';
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+</script>
+
+{% endblock %}

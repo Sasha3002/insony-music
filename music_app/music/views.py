@@ -13,6 +13,7 @@ from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .forms import TrackEditForm
+from users.models import User, UserBlock
 
 
 
@@ -168,6 +169,8 @@ def track_detail(request, track_id):
     
     def bound(field_name):
         return form[field_name] if form is not None else None
+    
+    playlists= Playlist.objects.filter(user=request.user, is_favorite = False) if request.user.is_authenticated else []
 
     criteria_cfg = [
         {"label": "Rymy / Obrazy",            "short": "ri",  "field": "rhyme_imagery",    "color": "crit--blue",   "value": val("rhyme_imagery"),    "bound": bound("rhyme_imagery")},
@@ -191,6 +194,7 @@ def track_detail(request, track_id):
         'is_favorited': is_favorited,
         'form': form,
         'user_review': user_review,
+        'playlists': playlists,
         'criteria_cfg': criteria_cfg,   
         'mode': mode,
     })
@@ -302,9 +306,35 @@ def favorite_toggle(request, track_id):
     if already:
         fav_qs.delete()
         is_favorited = False
+        
+        # Remove from favorites playlist
+        favorites_playlist = Playlist.objects.filter(user=request.user, is_favorite=True).first()
+        if favorites_playlist:
+            PlaylistTrack.objects.filter(playlist=favorites_playlist, track=track).delete()
     else:
         Favorite.objects.create(user=request.user, track=track)
         is_favorited = True
+        
+        # Add to favorites playlist
+        favorites_playlist, created = Playlist.objects.get_or_create(
+            user=request.user,
+            is_favorite=True,
+            defaults={'name': 'Ulubione', 'description': 'Twoje ulubione utwory'}
+        )
+        
+        # Check if track already in playlist
+        if not PlaylistTrack.objects.filter(playlist=favorites_playlist, track=track).exists():
+            # Get max position
+            max_pos = PlaylistTrack.objects.filter(playlist=favorites_playlist).aggregate(
+                max_pos=models.Max('position')
+            )['max_pos']
+            next_position = (max_pos or 0) + 1
+            
+            PlaylistTrack.objects.create(
+                playlist=favorites_playlist,
+                track=track,
+                position=next_position
+            )
 
     return JsonResponse({"ok": True, "favorited": is_favorited, "track_id": track_id})
 
@@ -341,6 +371,7 @@ def playlist_create(request):
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         description = request.POST.get('description', '').strip()
+        is_public = request.POST.get('is_public') == 'on'
         
         if not name:
             messages.error(request, 'Nazwa playlisty jest wymagana')
@@ -349,7 +380,8 @@ def playlist_create(request):
         playlist = Playlist.objects.create(
             user=request.user,
             name=name,
-            description=description
+            description=description,
+            is_public=is_public
         )
         
         # Handle cover image
@@ -376,6 +408,7 @@ def playlist_edit(request, playlist_id):
     if request.method == 'POST':
         playlist.name = request.POST.get('name', playlist.name)
         playlist.description = request.POST.get('description', playlist.description)
+        playlist.is_public = request.POST.get('is_public') == 'on'
         
         if 'cover_image' in request.FILES:
             if playlist.cover_image:
@@ -454,3 +487,4 @@ def playlist_remove_track(request, playlist_id, track_id):
         pt.save()
     
     return JsonResponse({'ok': True, 'message': 'Utwór usunięty z playlisty'})
+

@@ -1,0 +1,346 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .search-header {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 32px;
+    border: 1px solid #2a2a2a;
+  }
+
+  .search-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .search-form {
+    display: flex;
+    gap: 12px;
+  }
+
+  .search-input {
+    flex: 1;
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    color: #fff;
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .user-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.2s;
+  }
+
+  .user-card:hover {
+    border-color: #3a3a3a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+
+  .user-avatar-large {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 2px solid #2a2a2a;
+  }
+
+  .user-avatar-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .user-info-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name-big {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .user-name-big a {
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .user-name-big a:hover {
+    color: #3b82f6;
+  }
+
+  .user-stats-inline {
+    display: flex;
+    gap: 20px;
+    color: #9aa0a6;
+    font-size: 0.95rem;
+  }
+
+  .user-stats-inline span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .user-actions-buttons {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .btn-user-action {
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid #2a2a2a;
+    background: transparent;
+    color: #9aa0a6;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-follow-user {
+    border-color: #3b82f6;
+    color: #3b82f6;
+  }
+
+  .btn-follow-user:hover {
+    background: rgba(59, 130, 246, 0.1);
+  }
+
+  .btn-follow-user.following {
+    background: #3b82f6;
+    color: #fff;
+  }
+
+  .btn-follow-user.following:hover {
+    background: #2563eb;
+  }
+
+  .btn-block-user {
+    border-color: #dc2626;
+    color: #dc2626;
+  }
+
+  .btn-block-user:hover {
+    background: rgba(220, 38, 38, 0.1);
+  }
+
+  .empty-search {
+    text-align: center;
+    padding: 80px 20px;
+    color: #6b7280;
+  }
+
+  .empty-search i {
+    font-size: 80px;
+    margin-bottom: 24px;
+    opacity: 0.3;
+  }
+
+  .empty-search h3 {
+    color: #9aa0a6;
+    margin-bottom: 12px;
+  }
+</style>
+
+<div class="container py-4">
+  
+  <div class="search-header">
+    <h1 class="search-title">
+      <i class="bi bi-search"></i>
+      Szukaj użytkowników
+    </h1>
+    
+    <form method="get" class="search-form">
+      <input 
+        type="text" 
+        name="q" 
+        class="search-input" 
+        placeholder="Wpisz nazwę użytkownika..."
+        value="{{ q }}"
+        autofocus>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-search"></i> Szukaj
+      </button>
+    </form>
+  </div>
+
+  {% if q %}
+    {% if users %}
+      <div id="usersList">
+        {% for user in users %}
+          <div class="user-card">
+            <a href="{% url 'user_profile_public' user.username %}">
+              <div class="user-avatar-large">
+                <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=2a2a2a&color=fff&size=144{% endif %}" 
+                     alt="{{ user.username }}">
+              </div>
+            </a>
+            
+            <div class="user-info-main">
+              <div class="user-name-big">
+                <a href="{% url 'user_profile_public' user.username %}">{{ user.username }}</a>
+              </div>
+              <div class="user-stats-inline">
+                <span>
+                  <i class="bi bi-people"></i>
+                  <strong>{{ user.followers_count }}</strong> obserwujących
+                </span>
+                <span>
+                  <i class="bi bi-person-check"></i>
+                  <strong>{{ user.following_count }}</strong> obserwuje
+                </span>
+              </div>
+            </div>
+
+            {% if request.user.is_authenticated %}
+            <div class="user-actions-buttons">
+              <button 
+                class="btn-user-action btn-follow-user {% if user.is_followed %}following{% endif %}" 
+                onclick="toggleFollow('{{ user.username }}', this)">
+                {% if user.is_followed %}
+                  <i class="bi bi-check-circle"></i> Obserwujesz
+                {% else %}
+                  <i class="bi bi-plus-circle"></i> Obserwuj
+                {% endif %}
+              </button>
+              
+              <button 
+                class="btn-user-action btn-block-user"
+                onclick="toggleBlock('{{ user.username }}', this)"
+                title="Zablokuj użytkownika">
+                <i class="bi bi-slash-circle"></i>
+              </button>
+            </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-search">
+        <i class="bi bi-person-x"></i>
+        <h3>Nie znaleziono użytkowników</h3>
+        <p>Spróbuj innego wyszukiwania</p>
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="empty-search">
+      <i class="bi bi-search"></i>
+      <h3>Wpisz nazwę użytkownika</h3>
+      <p>Znajdź użytkowników Insony</p>
+    </div>
+  {% endif %}
+
+</div>
+
+<script>
+  function getCookie(name) {
+    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? m.pop() : '';
+  }
+
+  async function toggleFollow(username, btn) {
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    
+    try {
+      const resp = await fetch(`/users/u/${username}/follow/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      
+      const data = await resp.json();
+      
+      if (data.ok) {
+        if (data.is_following) {
+          btn.classList.add('following');
+          btn.innerHTML = '<i class="bi bi-check-circle"></i> Obserwujesz';
+        } else {
+          btn.classList.remove('following');
+          btn.innerHTML = '<i class="bi bi-plus-circle"></i> Obserwuj';
+        }
+      } else {
+        alert(data.message || 'Wystąpił błąd');
+      }
+      
+      btn.disabled = false;
+    } catch (e) {
+      console.error(e);
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+    }
+  }
+
+  async function toggleBlock(username, btn) {
+    if (!confirm('Czy na pewno chcesz zablokować tego użytkownika?')) {
+      return;
+    }
+    
+    btn.disabled = true;
+    
+    try {
+      const resp = await fetch(`/users/u/${username}/block/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      
+      const data = await resp.json();
+      
+      if (data.ok) {
+        alert(data.message);
+        // Remove user card
+        btn.closest('.user-card').style.opacity = '0';
+        setTimeout(() => {
+          btn.closest('.user-card').remove();
+        }, 300);
+      } else {
+        alert(data.message || 'Wystąpił błąd');
+        btn.disabled = false;
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Wystąpił błąd');
+      btn.disabled = false;
+    }
+  }
+</script>
+
+{% endblock %}

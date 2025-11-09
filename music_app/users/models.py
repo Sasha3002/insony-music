@@ -25,3 +25,47 @@ class User(AbstractUser):
     @property
     def level_progress(self):
         return self.xp % 1000
+    
+
+class UserFollow(models.Model):
+    """User following/subscription system"""
+    follower = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following'
+    )
+    following = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='followers'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('follower', 'following')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.follower.username} → {self.following.username}"
+
+
+class UserBlock(models.Model):
+    """User blocking system"""
+    blocker = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='blocking'
+    )
+    blocked = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='blocked_by'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('blocker', 'blocked')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.blocker.username} ✕ {self.blocked.username}"

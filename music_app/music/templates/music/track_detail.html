@@ -549,6 +549,158 @@
       grid-template-columns: 1fr;
     }
   }
+
+    /* Playlist Modal Styles */
+  .playlist-modal-content {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 20px;
+    color: #fff;
+  }
+
+  .playlist-modal-header {
+    border-bottom: 1px solid #2a2a2a;
+    padding: 24px;
+  }
+
+  .playlist-modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+  }
+
+  .playlist-modal-body {
+    padding: 24px;
+  }
+
+  .playlist-list-item {
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: all 0.2s;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .playlist-list-item:hover {
+    border-color: #3b82f6;
+    background: #111111;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
+  }
+
+  .playlist-list-item:active {
+    transform: translateY(0);
+  }
+
+  .playlist-list-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .playlist-info h6 {
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+  }
+
+  .playlist-info small {
+    color: #9aa0a6;
+    font-size: 0.85rem;
+  }
+
+  .playlist-icon {
+    font-size: 1.5rem;
+    color: #3b82f6;
+    transition: all 0.2s;
+  }
+
+  .playlist-list-item:hover .playlist-icon {
+    color: #60a5fa;
+    transform: scale(1.1);
+  }
+
+  .playlist-message {
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+    font-size: 0.95rem;
+  }
+
+  .playlist-message.success {
+    background: rgba(5, 150, 105, 0.2);
+    border: 1px solid rgba(5, 150, 105, 0.4);
+    color: #34d399;
+  }
+
+  .playlist-message.warning {
+    background: rgba(245, 158, 11, 0.2);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fbbf24;
+  }
+
+  .playlist-message.error {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #f87171;
+  }
+
+  .empty-playlists {
+    text-align: center;
+    padding: 32px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 12px;
+    border: 1px dashed #2a2a2a;
+  }
+
+  .empty-playlists i {
+    font-size: 48px;
+    color: #6b7280;
+    opacity: 0.5;
+    margin-bottom: 16px;
+  }
+
+  .empty-playlists p {
+    color: #9aa0a6;
+    margin-bottom: 16px;
+  }
+
+  .btn-playlist-action {
+    background: transparent;
+    border: 1px solid #2a2a2a;
+    color: #3b82f6;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1.2rem;
+  }
+
+  .btn-playlist-action:hover {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    transform: scale(1.1);
+  }
+
+  .btn-playlist-action.remove-from-playlist {
+    color: #dc2626;
+  }
+
+  .btn-playlist-action.remove-from-playlist:hover {
+    border-color: #dc2626;
+    background: rgba(220, 38, 38, 0.1);
+  }
+
 </style>
 
 <div class="container py-4">
@@ -598,6 +750,15 @@
               title="{% if is_favorited %}Usuń z ulubionych{% else %}Dodaj do ulubionych{% endif %}">
               <i class="bi bi-heart{% if is_favorited %}-fill{% endif %}"></i>
               {% if is_favorited %}Ulubiony{% else %}Dodaj do ulubionych{% endif %}
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-light"
+              data-bs-toggle="modal"
+              data-bs-target="#playlistModal"
+              title="Dodaj do playlisty">
+              <i class="bi bi-music-note-list"></i>
+              Dodaj do playlisty
             </button>
           {% else %}
             <a class="btn btn-primary"
@@ -1088,7 +1249,182 @@
     });
   });
 
+  /* ========== ADD TO PLAYLIST ========== */
+  document.addEventListener('DOMContentLoaded', function() {
+    const addButtons = document.querySelectorAll('.add-to-playlist');
+    const removeButtons = document.querySelectorAll('.remove-from-playlist');
+    const messageDiv = document.getElementById('playlistMessage');
+    
+    // Add to playlist
+    addButtons.forEach(btn => {
+      btn.addEventListener('click', async function(e) {
+        e.stopPropagation();
+        if (this.disabled) return;
+        
+        const playlistId = this.dataset.playlistId;
+        const trackId = this.dataset.trackId;
+        this.disabled = true;
+        
+        try {
+          const resp = await fetch(`/playlists/${playlistId}/add/${trackId}/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken,
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+          
+          const data = await resp.json();
+          
+          if (data.ok) {
+            showPlaylistMessage('success', data.message || 'Utwór dodany!');
+            
+            // Update count
+            const playlistItem = this.closest('.playlist-list-item');
+            const countSpan = playlistItem.querySelector('.track-count');
+            if (countSpan) {
+              const match = countSpan.textContent.match(/\d+/);
+              if (match) {
+                const newCount = parseInt(match[0]) + 1;
+                countSpan.textContent = `${newCount} utwor${newCount === 1 ? '' : newCount < 5 ? 'y' : 'ów'}`;
+              }
+            }
+            
+            // Change icon
+            this.querySelector('i').className = 'bi bi-check-circle-fill';
+          } else {
+            showPlaylistMessage('warning', data.message || 'Nie udało się dodać');
+          }
+          
+          this.disabled = false;
+        } catch (error) {
+          showPlaylistMessage('error', 'Wystąpił błąd');
+          this.disabled = false;
+        }
+      });
+    });
+    
+    // Remove from playlist
+    removeButtons.forEach(btn => {
+      btn.addEventListener('click', async function(e) {
+        e.stopPropagation();
+        if (this.disabled) return;
+        
+        const playlistId = this.dataset.playlistId;
+        const trackId = this.dataset.trackId;
+        this.disabled = true;
+        
+        try {
+          const resp = await fetch(`/playlists/${playlistId}/remove/${trackId}/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken,
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+          
+          const data = await resp.json();
+          
+          if (data.ok) {
+            showPlaylistMessage('success', 'Utwór usunięty!');
+            
+            // Update count
+            const playlistItem = this.closest('.playlist-list-item');
+            const countSpan = playlistItem.querySelector('.track-count');
+            if (countSpan) {
+              const match = countSpan.textContent.match(/\d+/);
+              if (match) {
+                const newCount = Math.max(0, parseInt(match[0]) - 1);
+                countSpan.textContent = `${newCount} utwor${newCount === 1 ? '' : newCount < 5 ? 'y' : 'ów'}`;
+              }
+            }
+          } else {
+            showPlaylistMessage('warning', data.message || 'Nie udało się usunąć');
+          }
+          
+          this.disabled = false;
+        } catch (error) {
+          showPlaylistMessage('error', 'Wystąpił błąd');
+          this.disabled = false;
+        }
+      });
+    });
+    
+    function showPlaylistMessage(type, message) {
+      messageDiv.className = `playlist-message ${type}`;
+      messageDiv.textContent = message;
+      messageDiv.classList.remove('d-none');
+      
+      setTimeout(() => {
+        messageDiv.classList.add('d-none');
+      }, 3000);
+    }
+  });
+
 })();
 </script>
 
+<!-- Add to Playlist Modal -->
+<div class="modal fade" id="playlistModal" tabindex="-1" aria-labelledby="playlistModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content playlist-modal-content">
+      <div class="modal-header playlist-modal-header">
+        <h5 class="playlist-modal-title" id="playlistModalLabel">
+          <i class="bi bi-music-note-list me-2"></i>
+          Dodaj do playlisty
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+      </div>
+      <div class="modal-body playlist-modal-body">
+        {% if user.is_authenticated %}
+          <div id="playlistsContainer">
+            {% if playlists %}
+              <div id="playlistsList">
+                {% for playlist in playlists %}
+                  <div class="playlist-list-item" data-playlist-id="{{ playlist.id }}" data-track-id="{{ track.id }}">
+                    <div class="playlist-info">
+                      <h6>{{ playlist.name }}</h6>
+                      <small class="track-count">{{ playlist.track_count }} utwor{{ playlist.track_count|pluralize:"ów,ów,y" }}</small>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                      <button class="btn-playlist-action add-to-playlist" data-playlist-id="{{ playlist.id }}" data-track-id="{{ track.id }}" title="Dodaj do playlisty">
+                        <i class="bi bi-plus-circle"></i>
+                      </button>
+                      <button class="btn-playlist-action remove-from-playlist" data-playlist-id="{{ playlist.id }}" data-track-id="{{ track.id }}" title="Usuń z playlisty">
+                        <i class="bi bi-x-circle"></i>
+                      </button>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="empty-playlists">
+                <i class="bi bi-music-note-list"></i>
+                <p>Nie masz jeszcze żadnych playlist!</p>
+                <a href="{% url 'playlist_create' %}" class="btn btn-primary">
+                  <i class="bi bi-plus-circle"></i> Utwórz pierwszą playlistę
+                </a>
+              </div>
+            {% endif %}
+          </div>
+          
+          <!-- Success/Error Messages -->
+          <div id="playlistMessage" class="playlist-message d-none" role="alert"></div>
+        {% else %}
+          <div class="empty-playlists">
+            <i class="bi bi-lock"></i>
+            <p>Zaloguj się, aby dodawać utwory do playlist.</p>
+            <a href="{% url 'login' %}?next={{ request.get_full_path }}" class="btn btn-primary">
+              <i class="bi bi-box-arrow-in-right"></i> Zaloguj się
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
 {% endblock %}
+

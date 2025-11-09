@@ -180,8 +180,10 @@ class Playlist(models.Model):
     description = models.TextField(blank=True, null=True)
     cover_image = models.ImageField(upload_to='playlist_covers/', blank=True, null=True)
     is_favorite = models.BooleanField(default=False)  # Special flag for favorites playlist
+    is_public = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
 
     
     # Many-to-many relationship with Track through PlaylistTrack

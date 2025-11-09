@@ -1,0 +1,89 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .followers-header {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    border: 1px solid #2a2a2a;
+  }
+
+  .followers-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .followers-subtitle {
+    color: #9aa0a6;
+    font-size: 1rem;
+  }
+
+  .follower-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s;
+  }
+
+  .follower-card:hover {
+    border-color: #3a3a3a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+</style>
+
+<div class="container py-4">
+  
+  <a href="{% url 'user_profile_public' profile_user.username %}" class="btn btn-outline-light mb-3">
+    <i class="bi bi-arrow-left"></i> Powrót do profilu
+  </a>
+
+  <div class="followers-header">
+    <h1 class="followers-title">Obserwujący</h1>
+    <p class="followers-subtitle">Użytkownicy obserwujący @{{ profile_user.username }}</p>
+  </div>
+
+  {% if followers %}
+    {% for follow in followers %}
+      <div class="follower-card">
+        <a href="{% url 'user_profile_public' follow.follower.username %}">
+          <div class="user-avatar-large">
+            <img src="{% if follow.follower.profile_picture %}{{ follow.follower.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ follow.follower.username }}&background=2a2a2a&color=fff&size=144{% endif %}" 
+                 alt="{{ follow.follower.username }}"
+                 style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover;">
+          </div>
+        </a>
+        
+        <div style="flex: 1;">
+          <div style="font-size: 1.1rem; font-weight: 600; color: #fff; margin-bottom: 4px;">
+            <a href="{% url 'user_profile_public' follow.follower.username %}" style="color: #fff; text-decoration: none;">
+              {{ follow.follower.username }}
+            </a>
+          </div>
+          <div style="color: #9aa0a6; font-size: 0.9rem;">
+            <i class="bi bi-calendar3"></i> Obserwuje od {{ follow.created_at|date:"d.m.Y" }}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-search">
+      <i class="bi bi-people"></i>
+      <h3>Brak obserwujących</h3>
+      <p>Nikt jeszcze nie obserwuje tego użytkownika</p>
+    </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

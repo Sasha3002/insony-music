@@ -290,6 +290,14 @@
       </div>
     </div>
 
+    <!-- Privacy Setting -->
+    <div class="form-group">
+      <label>
+        <input type="checkbox" name="is_public" {% if is_public %}checked{% endif %}>
+        Publiczna playlista (inni użytkownicy będą mogli ją zobaczyć)
+      </label>
+    </div>
+
     <!-- Action Buttons -->
     <div class="action-buttons">
       <a class="btn-cancel" href="{% url 'playlist_list' %}">
