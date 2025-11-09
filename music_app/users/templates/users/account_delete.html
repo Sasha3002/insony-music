@@ -1,0 +1,310 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .delete-container {
+    max-width: 600px;
+    margin: 80px auto;
+  }
+
+  .delete-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 2px solid #dc2626;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 8px 32px rgba(220, 38, 38, 0.2);
+  }
+
+  .delete-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .delete-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 2.5rem;
+    color: #fff;
+  }
+
+  .delete-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ef4444;
+    margin-bottom: 12px;
+  }
+
+  .delete-subtitle {
+    color: #9aa0a6;
+    font-size: 0.95rem;
+  }
+
+  .warning-box {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  .warning-box h5 {
+    color: #ef4444;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .warning-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .warning-list li {
+    color: #b6bdc6;
+    padding: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+  }
+
+  .warning-list li i {
+    color: #ef4444;
+  }
+
+  .form-group-delete {
+    margin-bottom: 24px;
+  }
+
+  .form-label-delete {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e6e6e6;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .form-control-delete {
+    background: #1f2329;
+    border: 1px solid #2a2f32;
+    color: #e9ecf3;
+    border-radius: 12px;
+    padding: 12px 16px;
+    width: 100%;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+  }
+
+  .form-control-delete:focus {
+    background: #1f2329;
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    color: #e9ecf3;
+    outline: none;
+  }
+
+  .form-hint {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-top: 6px;
+  }
+
+  .action-buttons-delete {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+  }
+
+  .btn-delete-confirm {
+    flex: 1;
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    color: #fff;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-delete-confirm:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+  }
+
+  .btn-delete-confirm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-cancel-delete {
+    flex: 1;
+    background: transparent;
+    border: 1px solid #2a2a2a;
+    color: #e6e6e6;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel-delete:hover {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+    color: #fff;
+  }
+</style>
+
+<div class="delete-container">
+  
+  <div class="delete-card">
+    <div class="delete-header">
+      <div class="delete-icon">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+      </div>
+      <h1 class="delete-title">Usuń konto</h1>
+      <p class="delete-subtitle">Ta operacja jest nieodwracalna</p>
+    </div>
+
+    <div class="warning-box">
+      <h5>
+        <i class="bi bi-info-circle-fill"></i>
+        Co zostanie usunięte:
+      </h5>
+      <ul class="warning-list">
+        <li>
+          <i class="bi bi-x-circle"></i>
+          Wszystkie Twoje recenzje i oceny
+        </li>
+        <li>
+          <i class="bi bi-x-circle"></i>
+          Wszystkie playlisty i ulubione utwory
+        </li>
+        <li>
+          <i class="bi bi-x-circle"></i>
+          Obserwujący i obserwowani
+        </li>
+        <li>
+          <i class="bi bi-x-circle"></i>
+          Cały postęp i poziom XP
+        </li>
+        <li>
+          <i class="bi bi-x-circle"></i>
+          Zdjęcie profilowe i wszystkie dane osobowe
+        </li>
+      </ul>
+    </div>
+
+    <form method="POST" id="deleteForm">
+      {% csrf_token %}
+
+      <div class="form-group-delete">
+        <label class="form-label-delete">Potwierdź hasło</label>
+        <input 
+          type="password" 
+          class="form-control-delete" 
+          name="password"
+          id="password-input"
+          required
+          placeholder="Wpisz swoje hasło">
+        <div class="form-hint">
+          <i class="bi bi-shield-lock"></i>
+          Wymagane w celu potwierdzenia tożsamości
+        </div>
+      </div>
+
+      <div class="form-group-delete">
+        <label class="form-label-delete">
+          Wpisz: <span style="color: #ef4444; font-family: monospace;">USUŃ KONTO</span>
+        </label>
+        <input 
+          type="text" 
+          class="form-control-delete" 
+          name="confirm_text"
+          id="confirm-input"
+          required
+          placeholder="USUŃ KONTO"
+          autocomplete="off">
+        <div class="form-hint">
+          <i class="bi bi-keyboard"></i>
+          Przepisz dokładnie, wielkość liter ma znaczenie
+        </div>
+      </div>
+
+      <div class="action-buttons-delete">
+        <a href="{% url 'profile_edit' %}" class="btn-cancel-delete">
+          <i class="bi bi-arrow-left"></i>
+          Anuluj
+        </a>
+        <button type="submit" class="btn-delete-confirm" id="deleteBtn" disabled>
+          <i class="bi bi-trash-fill"></i>
+          Usuń konto na zawsze
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  const form = document.getElementById('deleteForm');
+  const passwordInput = document.getElementById('password-input');
+  const confirmInput = document.getElementById('confirm-input');
+  const deleteBtn = document.getElementById('deleteBtn');
+
+  function checkForm() {
+    const password = passwordInput.value;
+    const confirmText = confirmInput.value;
+    
+    // Enable button only if both fields are filled
+    if (password && confirmText === 'USUŃ KONTO') {
+      deleteBtn.disabled = false;
+    } else {
+      deleteBtn.disabled = true;
+    }
+  }
+
+  passwordInput.addEventListener('input', checkForm);
+  confirmInput.addEventListener('input', checkForm);
+
+  form.addEventListener('submit', function(e) {
+    const confirmText = confirmInput.value;
+    
+    if (confirmText !== 'USUŃ KONTO') {
+      e.preventDefault();
+      alert('Musisz wpisać dokładnie: USUŃ KONTO');
+      return;
+    }
+
+    if (!confirm('Czy NA PEWNO chcesz usunąć swoje konto? Tej operacji nie można cofnąć!')) {
+      e.preventDefault();
+      return;
+    }
+  });
+})();
+</script>
+
+{% endblock %}

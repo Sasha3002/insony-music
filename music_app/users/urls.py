@@ -3,7 +3,8 @@ from .views import (
     login_view, logout_view, profile_view, register_view,
     profile_edit, user_search, user_profile_public, follow_toggle,
     block_toggle, followers_list, following_list, unblock_user, 
-    user_playlists_public, user_favorites, user_reviews, user_reviews_public
+    user_playlists_public, user_favorites, user_reviews, user_reviews_public,
+    account_delete
 )
 
 urlpatterns = [
@@ -23,4 +24,5 @@ urlpatterns = [
     path('favorites/', user_favorites, name='user_favorites'),
     path('reviews/', user_reviews, name='user_reviews'),
     path('u/<str:username>/reviews/', user_reviews_public, name='user_reviews_public'),
+    path('profile/delete/', account_delete, name='account_delete'),
 ]

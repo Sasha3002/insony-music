@@ -507,3 +507,33 @@ def user_reviews_public(request, username):
         'profile_user': profile_user,  
         'viewing_other_user': request.user != profile_user, 
     })
+
+
+@login_required
+def account_delete(request):
+    """Delete user account with password confirmation"""
+    user = request.user
+    
+    if request.method == 'POST':
+        password = request.POST.get('password', '')
+        confirm_text = request.POST.get('confirm_text', '').strip()
+        
+        # Check if password is correct
+        if not user.check_password(password):
+            messages.error(request, 'Nieprawidłowe hasło')
+            return render(request, 'users/account_delete.html')
+        
+        # Check if confirmation text matches
+        if confirm_text != 'USUŃ KONTO':
+            messages.error(request, 'Nieprawidłowy tekst potwierdzenia')
+            return render(request, 'users/account_delete.html')
+        
+        # Delete the account
+        username = user.username
+        logout(request)
+        user.delete()
+        
+        messages.success(request, f'Konto {username} zostało usunięte')
+        return redirect('login')
+    
+    return render(request, 'users/account_delete.html')
