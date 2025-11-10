@@ -159,8 +159,6 @@ def profile_edit(request):
     all_genres = Genre.objects.all().order_by('name')
     all_artists = Artist.objects.all().order_by('name')
 
-    blocked_users = UserBlock.objects.filter(blocker=user).select_related('blocked')
-
     # GET – показуємо форму з поточними значеннями
     context = {
         "email": user.email,
@@ -169,7 +167,6 @@ def profile_edit(request):
         "favorite_genres": user.favorite_genres,
         "favorite_artists": user.favorite_artists,
         "bio": user.bio,
-        "blocked_users": blocked_users,
         "all_genres": all_genres,
         "all_artists": all_artists,
     }
@@ -537,3 +534,65 @@ def account_delete(request):
         return redirect('login')
     
     return render(request, 'users/account_delete.html')
+
+
+@login_required
+def account_settings(request):
+    """Account settings page"""
+    user = request.user
+    
+    # Get blocked users count
+    blocked_count = UserBlock.objects.filter(blocker=user).count()
+    
+    return render(request, 'users/account_settings.html', {
+        'blocked_count': blocked_count,
+    })
+
+
+@login_required
+def password_change(request):
+    """Change password"""
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password', '')
+        new_password = request.POST.get('new_password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+        
+        # Check current password
+        if not request.user.check_password(current_password):
+            messages.error(request, 'Nieprawidłowe obecne hasło')
+            return render(request, 'users/password_change.html')
+        
+        # Check new passwords match
+        if new_password != confirm_password:
+            messages.error(request, 'Nowe hasła nie są zgodne')
+            return render(request, 'users/password_change.html')
+        
+        # Check password length
+        if len(new_password) < 8:
+            messages.error(request, 'Hasło musi mieć co najmniej 8 znaków')
+            return render(request, 'users/password_change.html')
+        
+        # Change password
+        request.user.set_password(new_password)
+        request.user.save()
+        
+        # Re-login user
+        from django.contrib.auth import update_session_auth_hash
+        update_session_auth_hash(request, request.user)
+        
+        messages.success(request, 'Hasło zostało zmienione')
+        return redirect('account_settings')
+    
+    return render(request, 'users/password_change.html')
+
+@login_required
+def blocked_users(request):
+    """Manage blocked users"""
+    user = request.user
+    
+    # Get blocked users
+    blocked_users = UserBlock.objects.filter(blocker=user).select_related('blocked')
+    
+    return render(request, 'users/blocked_users.html', {
+        'blocked_users': blocked_users,
+    })

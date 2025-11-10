@@ -1,0 +1,223 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .blocked-header {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 32px;
+    border: 1px solid #2a2a2a;
+  }
+
+  .blocked-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .blocked-subtitle {
+    color: #9aa0a6;
+    font-size: 1rem;
+  }
+
+  .blocked-user-item {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.3s;
+  }
+
+  .blocked-user-item:hover {
+    border-color: #3a3a3a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+
+  .user-avatar-blocked {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid #2a2a2a;
+  }
+
+  .user-avatar-blocked img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .user-info-blocked {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name-blocked {
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin-bottom: 6px;
+  }
+
+  .user-blocked-date {
+    color: #9aa0a6;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-unblock {
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .btn-unblock:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+  }
+
+  .empty-blocked {
+    text-align: center;
+    padding: 80px 20px;
+    color: #6b7280;
+  }
+
+  .empty-blocked i {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+  }
+</style>
+
+<div class="container py-4">
+  
+  <a href="{% url 'account_settings' %}" class="btn btn-outline-light mb-3">
+    <i class="bi bi-arrow-left"></i> Powrót do ustawień
+  </a>
+
+  <div class="blocked-header">
+    <h1 class="blocked-title">
+      <i class="bi bi-slash-circle"></i>
+      Zablokowani użytkownicy
+    </h1>
+    <p class="blocked-subtitle">Zarządzaj listą zablokowanych użytkowników</p>
+  </div>
+
+  {% if blocked_users %}
+    <div id="blockedUsersList">
+      {% for block in blocked_users %}
+        <div class="blocked-user-item" data-username="{{ block.blocked.username }}">
+          <div class="user-avatar-blocked">
+            <img src="{% if block.blocked.profile_picture %}{{ block.blocked.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ block.blocked.username }}&background=2a2a2a&color=fff&size=112{% endif %}" 
+                 alt="{{ block.blocked.username }}">
+          </div>
+          
+          <div class="user-info-blocked">
+            <div class="user-name-blocked">{{ block.blocked.username }}</div>
+            <div class="user-blocked-date">
+              <i class="bi bi-calendar3"></i>
+              Zablokowano {{ block.created_at|date:"d.m.Y" }}
+            </div>
+          </div>
+
+          <button 
+            type="button"
+            class="btn-unblock"
+            onclick="unblockUser('{{ block.blocked.username }}', this)">
+            <i class="bi bi-check-circle"></i>
+            Odblokuj
+          </button>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-blocked">
+      <i class="bi bi-shield-check"></i>
+      <h3 style="color: #9aa0a6; margin-bottom: 12px;">
+        Nie masz zablokowanych użytkowników
+      </h3>
+      <p>Możesz zablokować użytkowników z ich profilu</p>
+    </div>
+  {% endif %}
+
+</div>
+
+<script>
+  function getCookie(name) {
+    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? m.pop() : '';
+  }
+
+  async function unblockUser(username, btn) {
+    if (!confirm(`Czy na pewno chcesz odblokować użytkownika ${username}?`)) {
+      return;
+    }
+    
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Odblokowywanie...';
+    
+    try {
+      const resp = await fetch(`/users/u/${username}/unblock/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      
+      const data = await resp.json();
+      
+      if (data.ok) {
+        const userItem = btn.closest('.blocked-user-item');
+        userItem.style.opacity = '0';
+        userItem.style.transform = 'translateX(-30px)';
+        
+        setTimeout(() => {
+          userItem.remove();
+          
+          const list = document.getElementById('blockedUsersList');
+          if (list && list.children.length === 0) {
+            window.location.reload();
+          }
+        }, 300);
+        
+        alert(data.message);
+      } else {
+        alert(data.message || 'Wystąpił błąd');
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Wystąpił błąd podczas odblokowywania');
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+    }
+  }
+</script>
+
+{% endblock %}

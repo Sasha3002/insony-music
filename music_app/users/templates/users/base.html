@@ -18,9 +18,55 @@
   <style>
     html, body { height: 100%; }
     body { display: flex; flex-direction: column; }
-    /* Усе, крім футера, всередині .main-wrapper */
     .main-wrapper { flex: 1 0 auto; }
     footer { flex-shrink: 0; }
+    
+    /* Profile Dropdown Styles */
+    .profile-dropdown {
+      background: #1a1a1a !important;
+      border: 1px solid #2a2a2a !important;
+      border-radius: 12px !important;
+      padding: 8px !important;
+      min-width: 220px !important;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+      margin-top: 8px !important;
+    }
+  
+    .profile-dropdown .dropdown-item {
+      color: #e6e6e6 !important;
+      padding: 10px 16px !important;
+      border-radius: 8px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+      font-size: 0.95rem !important;
+      transition: all 0.2s !important;
+    }
+  
+    .profile-dropdown .dropdown-item:hover {
+      background: #2a2a2a !important;
+      color: #fff !important;
+    }
+  
+    .profile-dropdown .dropdown-item.text-danger:hover {
+      background: rgba(220, 38, 38, 0.1) !important;
+      color: #ef4444 !important;
+    }
+  
+    .profile-dropdown .dropdown-item i {
+      font-size: 1.1rem;
+      width: 20px;
+      text-align: center;
+    }
+  
+    .profile-dropdown .dropdown-divider {
+      border-color: #2a2a2a !important;
+      margin: 8px 0 !important;
+    }
+  
+    .dropdown-toggle::after {
+      margin-left: 8px !important;
+    }
   </style>
 </head>
 <body>
@@ -49,12 +95,56 @@
 
           <ul class="navbar-nav">
             {% if user.is_authenticated %}
-              <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">Profil</a></li>
-              {% if user.is_staff %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'track_add' %}">Dodaj utwór</a></li>
-                <li class="nav-item"><a class="nav-link" href="/admin/">Panel admina</a></li>
-              {% endif %}
-              <li class="nav-item"><a class="nav-link text-danger" href="{% url 'logout' %}">Wyloguj</a></li>
+              <!-- Profile Dropdown -->
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6;">
+                  {% else %}
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #8b5cf6); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 0.9rem;">
+                      {{ user.username|slice:":1"|upper }}
+                    </div>
+                  {% endif %}
+                  <span>{{ user.username }}</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end profile-dropdown" aria-labelledby="profileDropdown">
+                  <li>
+                    <a class="dropdown-item" href="{% url 'profile' %}">
+                      <i class="bi bi-person-circle"></i>
+                      Profil
+                    </a>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <a class="dropdown-item" href="{% url 'account_settings' %}">
+                      <i class="bi bi-gear"></i>
+                      Ustawienia
+                    </a>
+                  </li>
+                  {% if user.is_staff %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <a class="dropdown-item" href="{% url 'track_add' %}">
+                        <i class="bi bi-plus-circle"></i>
+                        Dodaj utwór
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="/admin/">
+                        <i class="bi bi-shield-lock"></i>
+                        Panel admina
+                      </a>
+                    </li>
+                  {% endif %}
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                      <i class="bi bi-box-arrow-right"></i>
+                      Wyloguj
+                    </a>
+                  </li>
+                </ul>
+              </li>
             {% else %}
               <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Zaloguj się</a></li>
               <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Zarejestruj się</a></li>
