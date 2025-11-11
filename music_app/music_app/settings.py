@@ -123,6 +123,7 @@ INSTALLED_APPS += [
     'users',
     'music',
     'music_app',
+    'chat',
 ]
 
 STATICFILES_DIRS = [ BASE_DIR / 'static' ]

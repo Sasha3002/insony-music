@@ -1,0 +1,88 @@
+from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class Conversation(models.Model):
+    """Chat conversation between users"""
+    TYPE_CHOICES = [
+        ('direct', 'Direct Message'),
+        ('group', 'Group Chat'),  # For future use
+    ]
+    
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='direct')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # For future group functionality
+    group_name = models.CharField(max_length=200, blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-updated_at']
+    
+    def __str__(self):
+        if self.type == 'direct':
+            participants = list(self.participants.all())
+            if len(participants) == 2:
+                return f"Chat: {participants[0].user.username} ↔ {participants[1].user.username}"
+        return f"Conversation {self.id}"
+    
+    @property
+    def last_message(self):
+        return self.messages.last()
+    
+    def get_other_participant(self, user):
+        """Get the other participant in a direct conversation"""
+        if self.type == 'direct':
+            participants = self.participants.exclude(user=user)
+            return participants.first().user if participants.exists() else None
+        return None
+
+
+class ChatParticipant(models.Model):
+    """Users participating in a conversation"""
+    conversation = models.ForeignKey(Conversation, related_name='participants', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    joined_at = models.DateTimeField(auto_now_add=True)
+    last_read_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        unique_together = ('conversation', 'user')
+    
+    def __str__(self):
+        return f"{self.user.username} in {self.conversation}"
+
+
+class Message(models.Model):
+    """Individual message in a conversation"""
+    conversation = models.ForeignKey(Conversation, related_name='messages', on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    edited_at = models.DateTimeField(null=True, blank=True)
+    is_edited = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['created_at']
+    
+    def __str__(self):
+        return f"{self.sender.username}: {self.content[:50]}..."
+    
+    @property
+    def is_read_by_others(self):
+        """Check if message is read by all other participants"""
+        participants = self.conversation.participants.exclude(user=self.sender)
+        for participant in participants:
+            if not participant.last_read_at or participant.last_read_at < self.created_at:
+                return False
+        return True
+
+
+class MessageRead(models.Model):
+    """Track when users read messages"""
+    message = models.ForeignKey(Message, related_name='reads', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    read_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('message', 'user')

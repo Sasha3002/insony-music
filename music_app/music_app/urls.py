@@ -26,6 +26,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
     path('', include('music.urls')),
+    path('chat/', include('chat.urls')),
     path('artists/', lambda r: placeholder(r, "Artyści"), name='artist_list'),
     path('genres/',  lambda r: placeholder(r, "Gatunki"), name='genre_list'),
     path('groups/',  lambda r: placeholder(r, "Grupy"),   name='group_list'),

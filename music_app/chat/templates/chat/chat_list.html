@@ -1,0 +1,257 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .chat-header {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    border: 1px solid #2a2a2a;
+  }
+
+  .chat-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .chat-subtitle {
+    color: #9aa0a6;
+    font-size: 1rem;
+  }
+
+  .conversation-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: all 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .conversation-card:hover {
+    border-color: #3a3a3a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .conversation-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid #2a2a2a;
+  }
+
+  .conversation-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .conversation-avatar .avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.5rem;
+  }
+
+  .conversation-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .conversation-user {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+
+  .conversation-preview {
+    color: #9aa0a6;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .conversation-meta {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .conversation-time {
+    color: #6b7280;
+    font-size: 0.8rem;
+  }
+  
+  .unread-badge {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 12px;
+    min-width: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+  }
+  
+  /* Highlight conversation with unread messages */
+  .conversation-card.has-unread {
+    border-color: #3b82f6;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+  }
+  
+  .conversation-card.has-unread .conversation-user {
+    color: #60a5fa;
+  }
+
+  .empty-chat {
+    text-align: center;
+    padding: 80px 20px;
+    color: #6b7280;
+  }
+
+  .empty-chat i {
+    font-size: 64px;
+    margin-bottom: 24px;
+    opacity: 0.3;
+  }
+</style>
+
+<div class="container py-4">
+  
+  <div class="chat-header">
+    <h1 class="chat-title">
+      <i class="bi bi-chat-dots"></i>
+      Wiadomości
+    </h1>
+    <p class="chat-subtitle">Twoje prywatne rozmowy</p>
+  </div>
+
+  {% if conversations %}
+    {% for conversation in conversations %}
+      <a href="{% url 'conversation_detail' conversation.id %}" class="conversation-card {% if conversation.unread_count > 0 %}has-unread{% endif %}">
+          <div class="conversation-avatar">
+            {% if conversation.other_user.profile_picture %}
+              <img src="{{ conversation.other_user.profile_picture.url }}" alt="{{ conversation.other_user.username }}">
+            {% else %}
+              <div class="avatar-placeholder">
+                {{ conversation.other_user.username|slice:":1"|upper }}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="conversation-info">
+            <div class="conversation-user">{{ conversation.other_user.username }}</div>
+            <div class="conversation-preview">
+              {% if conversation.last_message %}
+                {% if conversation.last_message.sender == request.user %}Ty: {% endif %}
+                {{ conversation.last_message.content|truncatechars:50 }}
+              {% else %}
+                Rozpocznij rozmowę...
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="conversation-meta">
+            {% if conversation.unread_count > 0 %}
+              <div class="unread-badge">{{ conversation.unread_count }}</div>
+            {% endif %}
+            {% if conversation.last_message %}
+              <div class="conversation-time">{{ conversation.last_message.created_at|date:"H:i" }}</div>
+            {% endif %}
+          </div>
+        </a>
+    {% endfor %}
+  {% else %}
+    <div class="empty-chat">
+      <i class="bi bi-chat-dots"></i>
+      <h3 style="color: #9aa0a6; margin-bottom: 12px;">Nie masz jeszcze żadnych rozmów</h3>
+      <p>Odwiedź profil innego użytkownika i rozpocznij rozmowę</p>
+      <a href="{% url 'user_search' %}" class="btn btn-primary">
+        <i class="bi bi-search"></i> Znajdź użytkowników
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+
+<script>
+function updateUnreadCounts() {
+  fetch('{% url "get_unread_counts" %}')
+    .then(response => response.json())
+    .then(data => {
+      if (data.ok) {
+        data.conversations.forEach(conv => {
+          const card = document.querySelector(`a[href*="conversation/${conv.conversation_id}/"]`);
+          if (!card) return;
+          
+          const metaDiv = card.querySelector('.conversation-meta');
+          const previewDiv = card.querySelector('.conversation-preview');
+          const timeDiv = card.querySelector('.conversation-time');
+          
+          // Update unread badge
+          const oldBadge = metaDiv.querySelector('.unread-badge');
+          if (oldBadge) oldBadge.remove();
+          
+          if (conv.unread_count > 0) {
+            const badge = document.createElement('div');
+            badge.className = 'unread-badge';
+            badge.textContent = conv.unread_count;
+            metaDiv.insertBefore(badge, metaDiv.firstChild);
+            card.classList.add('has-unread');
+          } else {
+            card.classList.remove('has-unread');
+          }
+          
+          // Update last message preview
+          if (conv.last_message) {
+            const prefix = conv.last_message.is_own ? 'Ty: ' : '';
+            const truncated = conv.last_message.content.substring(0, 47);
+            const display = truncated.length < conv.last_message.content.length 
+              ? truncated + '...' 
+              : truncated;
+            previewDiv.textContent = prefix + display;
+            
+            // Update time
+            if (timeDiv) {
+              timeDiv.textContent = conv.last_message.time;
+            }
+          }
+        });
+      }
+    })
+    .catch(error => console.error('Polling error:', error));
+}
+
+// Poll every 5 seconds
+setInterval(updateUnreadCounts, 5000);
+</script>
+
+{% endblock %}
