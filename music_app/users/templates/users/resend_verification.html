@@ -1,0 +1,108 @@
+{% extends "users/base.html" %}
+{% block content %}
+
+<style>
+  .resend-container {
+    max-width: 500px;
+    margin: 80px auto;
+  }
+
+  .resend-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .resend-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 2.5rem;
+    color: #fff;
+  }
+
+  .resend-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+
+  .resend-subtitle {
+    color: #9aa0a6;
+    margin-bottom: 32px;
+  }
+
+  .form-control-resend {
+    background: #1f2329;
+    border: 1px solid #2a2f32;
+    color: #e9ecf3;
+    border-radius: 12px;
+    padding: 12px 16px;
+    width: 100%;
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+  }
+
+  .form-control-resend:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+  }
+
+  .btn-resend {
+    width: 100%;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-resend:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+  }
+</style>
+
+<div class="resend-container">
+  <div class="resend-card">
+    <div class="resend-icon">
+      <i class="bi bi-envelope"></i>
+    </div>
+    <h1 class="resend-title">Wyślij link ponownie</h1>
+    <p class="resend-subtitle">Wprowadź swój adres email, aby otrzymać nowy link weryfikacyjny</p>
+    
+    <form method="POST">
+      {% csrf_token %}
+      <input 
+        type="email" 
+        class="form-control-resend" 
+        name="email"
+        placeholder="Twój email"
+        required>
+      <button type="submit" class="btn-resend">
+        <i class="bi bi-send"></i> Wyślij link
+      </button>
+    </form>
+    
+    <div style="margin-top: 20px;">
+      <a href="{% url 'login' %}" style="color: #60a5fa; text-decoration: none;">
+        Powrót do logowania
+      </a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

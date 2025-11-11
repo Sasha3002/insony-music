@@ -1041,6 +1041,13 @@
                 </button>
               </form>
             {% endif %}
+            {% if user.is_authenticated and user != review.user %}
+              <button class="btn btn-outline-danger btn-sm" 
+                      onclick="showQuickReport('review', {{ r.id }})" 
+                      title="Zgłoś recenzję">
+                <i class="bi bi-flag"></i>
+              </button>
+            {% endif %}
           </div>
         </div>
       {% endfor %}
@@ -1359,6 +1366,23 @@
         messageDiv.classList.add('d-none');
       }, 3000);
     }
+  });
+  document.addEventListener('DOMContentLoaded', function() {
+  // Handle report buttons
+    document.querySelectorAll('.report-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const contentType = this.dataset.contentType;
+        const contentId = this.dataset.contentId;
+        
+        console.log('Reporting:', contentType, contentId); // Debug log
+        
+        if (contentType && contentId) {
+          showQuickReport(contentType, contentId);
+        } else {
+          alert('Błąd: brak danych do zgłoszenia');
+        }
+      });
+    });
   });
 
 })();

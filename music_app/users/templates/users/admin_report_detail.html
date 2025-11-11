@@ -1,0 +1,340 @@
+{% extends "users/base.html" %}
+{% block content %}
+
+<style>
+  .report-detail-container {
+    max-width: 900px;
+    margin: 40px auto;
+  }
+
+  .report-detail-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 24px;
+  }
+
+  .report-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #2a2a2a;
+  }
+
+  .report-detail-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+
+  .report-detail-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    color: #9aa0a6;
+    font-size: 0.9rem;
+  }
+
+  .report-detail-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .report-status-badge {
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .status-pending {
+    background: rgba(234, 179, 8, 0.1);
+    border: 1px solid rgba(234, 179, 8, 0.3);
+    color: #fbbf24;
+  }
+
+  .status-in_progress {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
+  }
+
+  .status-resolved {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+  }
+
+  .report-section {
+    margin-bottom: 32px;
+  }
+
+  .report-section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .report-description-box {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 20px;
+    color: #b6bdc6;
+    line-height: 1.7;
+  }
+
+  .report-url-box {
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #60a5fa;
+    font-family: monospace;
+    font-size: 0.9rem;
+    word-break: break-all;
+  }
+
+  .admin-notes-form {
+    margin-bottom: 24px;
+  }
+
+  .admin-notes-textarea {
+    background: #1f2329;
+    border: 1px solid #2a2f32;
+    color: #e9ecf3;
+    border-radius: 12px;
+    padding: 16px;
+    width: 100%;
+    min-height: 120px;
+    font-size: 0.95rem;
+    resize: vertical;
+    transition: all 0.2s;
+  }
+
+  .admin-notes-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+  }
+
+  .action-buttons-admin {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-admin-action {
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-in-progress {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+  }
+
+  .btn-in-progress:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+  }
+
+  .btn-resolved {
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: #fff;
+  }
+
+  .btn-resolved:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+  }
+
+  .btn-reopen {
+    background: transparent;
+    border: 1px solid #eab308;
+    color: #fbbf24;
+  }
+
+  .btn-reopen:hover {
+    background: rgba(234, 179, 8, 0.1);
+  }
+
+  .btn-save-notes {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: #fff;
+  }
+
+  .btn-save-notes:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+  }
+
+  .resolved-info {
+    background: rgba(16, 185, 129, 0.05);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .resolved-info p {
+    color: #b6bdc6;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .resolved-info i {
+    color: #10b981;
+  }
+</style>
+
+<div class="report-detail-container">
+  
+  <a href="{% url 'admin_reports' %}" class="btn btn-outline-light mb-3">
+    <i class="bi bi-arrow-left"></i> Powrót do listy
+  </a>
+
+  <div class="report-detail-card">
+    <div class="report-detail-header">
+      <div style="flex: 1;">
+        <h1 class="report-detail-title">{{ report.title }}</h1>
+        <div class="report-detail-meta">
+          <span>
+            <i class="bi bi-person-circle"></i>
+            <strong>{{ report.user.username }}</strong>
+          </span>
+          <span>
+            <i class="bi bi-calendar3"></i>
+            {{ report.created_at|date:"d.m.Y H:i" }}
+          </span>
+          <span>
+            <i class="bi bi-clock-history"></i>
+            Zaktualizowano: {{ report.updated_at|date:"d.m.Y H:i" }}
+          </span>
+        </div>
+      </div>
+      <span class="report-status-badge status-{{ report.status }}">
+        {% if report.status == 'pending' %}
+          <i class="bi bi-clock"></i> Oczekujący
+        {% elif report.status == 'in_progress' %}
+          <i class="bi bi-gear"></i> W trakcie
+        {% else %}
+          <i class="bi bi-check-circle"></i> Rozwiązany
+        {% endif %}
+      </span>
+    </div>
+
+    {% if report.status == 'resolved' and report.resolved_by %}
+      <div class="resolved-info">
+        <p>
+          <i class="bi bi-check-circle-fill"></i>
+          <strong>Rozwiązane przez {{ report.resolved_by.username }}</strong> dnia {{ report.resolved_at|date:"d.m.Y H:i" }}
+        </p>
+      </div>
+    {% endif %}
+
+    <!-- Description -->
+    <div class="report-section">
+      <div class="report-section-title">
+        <i class="bi bi-file-text"></i>
+        Opis problemu
+      </div>
+      <div class="report-description-box">
+        {{ report.description|linebreaks }}
+      </div>
+    </div>
+
+    <!-- URL -->
+    {% if report.page_url %}
+      <div class="report-section">
+        <div class="report-section-title">
+          <i class="bi bi-link-45deg"></i>
+          Adres strony
+        </div>
+        <div class="report-url-box">
+          <a href="{{ report.page_url }}" target="_blank" style="color: inherit;">
+            {{ report.page_url }}
+          </a>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Admin Notes -->
+    <div class="report-section">
+      <div class="report-section-title">
+        <i class="bi bi-chat-left-text"></i>
+        Notatki administratora
+      </div>
+      <form method="POST" class="admin-notes-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_notes">
+        <textarea 
+          class="admin-notes-textarea" 
+          name="admin_notes" 
+          placeholder="Dodaj notatki dla użytkownika...">{{ report.admin_notes }}</textarea>
+        <button type="submit" class="btn-admin-action btn-save-notes" style="margin-top: 12px;">
+          <i class="bi bi-save"></i>
+          Zapisz notatki
+        </button>
+      </form>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons-admin">
+      {% if report.status == 'pending' %}
+        <form method="POST" style="display: inline;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="mark_in_progress">
+          <button type="submit" class="btn-admin-action btn-in-progress">
+            <i class="bi bi-gear"></i>
+            Oznacz jako "W trakcie"
+          </button>
+        </form>
+      {% endif %}
+
+      {% if report.status != 'resolved' %}
+        <form method="POST" style="display: inline;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="mark_resolved">
+          <button type="submit" class="btn-admin-action btn-resolved">
+            <i class="bi bi-check-circle"></i>
+            Oznacz jako rozwiązane
+          </button>
+        </form>
+      {% endif %}
+
+      {% if report.status == 'resolved' %}
+        <form method="POST" style="display: inline;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="reopen">
+          <button type="submit" class="btn-admin-action btn-reopen">
+            <i class="bi bi-arrow-counterclockwise"></i>
+            Otwórz ponownie
+          </button>
+        </form>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

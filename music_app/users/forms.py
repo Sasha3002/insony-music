@@ -97,6 +97,7 @@ class RegisterForm(forms.ModelForm):
         user = super().save(commit=False)
         user.email = self.cleaned_data["email"].strip()
         user.set_password(self.cleaned_data["password1"])
+        user.is_active = False  # Aktywacja przez email
         if commit:
             user.save()
         return user

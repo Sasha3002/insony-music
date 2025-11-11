@@ -65,11 +65,18 @@
             <input class="form-check-input" type="checkbox" id="rememberMe" name="remember_me" checked>
             <label class="form-check-label" for="rememberMe">Zapamiętaj mnie</label>
           </div>
-          <a class="small auth-link" href="#" tabindex="-1">Nie pamiętasz hasła?</a>
+          <a class="small auth-link" href="{% url 'password_reset_request' %}" tabindex="-1">Nie pamiętasz hasła?</a>
         </div>
 
         <button class="btn btn-primary w-100" type="submit">Zaloguj się</button>
       </form>
+
+
+      <div style="text-align: center; margin-top: 16px;">
+        <a href="{% url 'resend_verification' %}" style="color: #60a5fa; text-decoration: none; font-size: 0.9rem;">
+          <i class="bi bi-envelope"></i> Nie otrzymałeś linku weryfikacyjnego?
+        </a>
+      </div>
 
       <hr class="my-4">
       <p class="mb-0 text-center auth-sub">

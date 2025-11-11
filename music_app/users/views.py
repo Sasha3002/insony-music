@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils.http import url_has_allowed_host_and_scheme
-from .models import User, UserFollow, UserBlock
+from .models import User, UserFollow, UserBlock, ErrorReport
 from .forms import RegisterForm
 #from music.models import Review
 from music.utils.xp import level_from_xp, level_progress, badge_for_level, badge_progress, badge_name
@@ -11,6 +11,17 @@ from music.models import Review, Favorite, Genre, Artist, Playlist
 from django.db.models import Avg, F, FloatField, Q, Count
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
+import secrets
+from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.auth.tokens import default_token_generator
+from django.shortcuts import get_object_or_404
+from django.core.paginator import Paginator
+
 
 
 def login_view(request):
@@ -87,6 +98,7 @@ def profile_view(request):
     favorite_artists_list = [a.strip() for a in user.favorite_artists.split(',') if a.strip()] if user.favorite_artists else []
 
     favorites_count = Favorite.objects.filter(user=user).count()
+    pending_reports_count = ErrorReport.objects.filter(status='pending').count() if request.user.is_staff else 0
 
     ctx = {
         "user": user,
@@ -103,6 +115,7 @@ def profile_view(request):
         "favorites_count": favorites_count,
         "favorite_artists_list": favorite_artists_list,
         "followers_count": followers_count,
+        'pending_reports_count': pending_reports_count,
         "following_count": following_count,
         "badge": b,                               # dict: slug/name/min/max
         "badge_slug": badge_slug,                 # 'bronze' / 'silver' / 'gold' / 'diamond'
@@ -117,18 +130,65 @@ def profile_view(request):
 
 
 def register_view(request):
-    if request.method == "POST":
+    """User registration with email verification"""
+    if request.user.is_authenticated:
+        return redirect('profile')
+    
+    if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, "Konto utworzono. Witaj w Insony!")
-            return redirect("profile")
-        # якщо не валідно – упадемо до render із помилками
+            try:
+                # Save user (is_active=False set in form)
+                user = form.save()
+                
+                # Generate verification token
+                token = secrets.token_urlsafe(32)
+                user.email_verification_token = token
+                user.email_verification_sent_at = timezone.now()
+                user.save()
+                
+                # Send verification email
+                current_site = get_current_site(request)
+                verification_url = f"http://{current_site.domain}/users/verify-email/{token}/"
+                
+                subject = 'Potwierdź swój adres email - Insony'
+                message = f"""
+Witaj {user.username}!
+
+Dziękujemy za rejestrację w Insony!
+
+Aby aktywować swoje konto, kliknij w poniższy link:
+{verification_url}
+
+Link jest ważny przez 24 godziny.
+
+Jeśli to nie Ty się zarejestrowałeś, zignoruj tę wiadomość.
+
+Pozdrawiamy,
+Zespół Insony
+                """
+                
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email],
+                    fail_silently=False,
+                )
+                
+                messages.success(
+                    request, 
+                    f'Konto utworzone! Sprawdź swoją skrzynkę email ({user.email}) i kliknij w link weryfikacyjny.'
+                )
+                return redirect('login')
+                
+            except Exception as e:
+                messages.error(request, f'Błąd podczas rejestracji: {str(e)}')
+                return render(request, 'users/register.html', {'form': form})
     else:
         form = RegisterForm()
-
-    return render(request, "users/register.html", {"form": form})
+    
+    return render(request, 'users/register.html', {'form': form})
 
 @login_required
 def profile_edit(request):
@@ -595,4 +655,452 @@ def blocked_users(request):
     
     return render(request, 'users/blocked_users.html', {
         'blocked_users': blocked_users,
+    })
+
+
+def verify_email(request, token):
+    """Verify email address"""
+    try:
+        user = User.objects.get(email_verification_token=token)
+        
+        # Check if token is expired (24 hours)
+        if user.email_verification_sent_at:
+            time_diff = timezone.now() - user.email_verification_sent_at
+            if time_diff.total_seconds() > 86400:  # 24 hours
+                messages.error(request, 'Link weryfikacyjny wygasł. Zarejestruj się ponownie.')
+                user.delete()  # Remove unverified user
+                return redirect('register')
+        
+        # Activate user
+        user.is_active = True
+        user.is_email_verified = True
+        user.email_verification_token = None
+        user.save()
+        
+        messages.success(request, 'Email zweryfikowany! Możesz się teraz zalogować.')
+        return redirect('login')
+        
+    except User.DoesNotExist:
+        messages.error(request, 'Nieprawidłowy link weryfikacyjny.')
+        return redirect('register')
+
+
+def resend_verification(request):
+    """Resend verification email"""
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip().lower()
+        
+        try:
+            user = User.objects.get(email=email, is_active=False, is_email_verified=False)
+            
+            # Check if we can resend (wait at least 5 minutes)
+            if user.email_verification_sent_at:
+                time_diff = timezone.now() - user.email_verification_sent_at
+                if time_diff.total_seconds() < 300:  # 5 minutes
+                    messages.warning(request, 'Poczekaj 5 minut przed ponownym wysłaniem.')
+                    return render(request, 'users/resend_verification.html')
+            
+            # Generate new token
+            token = secrets.token_urlsafe(32)
+            user.email_verification_token = token
+            user.email_verification_sent_at = timezone.now()
+            user.save()
+            
+            # Send email
+            current_site = get_current_site(request)
+            verification_url = f"http://{current_site.domain}/users/verify-email/{token}/"
+            
+            subject = 'Potwierdź swój adres email - Insony'
+            message = f"""
+Witaj {user.username}!
+
+Oto nowy link weryfikacyjny:
+{verification_url}
+
+Link jest ważny przez 24 godziny.
+
+Pozdrawiamy,
+Zespół Insony
+            """
+            
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+            )
+            
+            messages.success(request, 'Link weryfikacyjny został wysłany ponownie!')
+            return redirect('login')
+            
+        except User.DoesNotExist:
+            messages.error(request, 'Nie znaleziono użytkownika z tym adresem email lub konto jest już aktywne.')
+    
+    return render(request, 'users/resend_verification.html')
+
+def password_reset_request(request):
+    """Request password reset - send email with reset link"""
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip().lower()
+        
+        try:
+            user = User.objects.get(email=email)
+            
+            # Generate token
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            
+            # Send reset email
+            current_site = get_current_site(request)
+            protocol = 'https' if request.is_secure() else 'http'
+            reset_url = f"{protocol}://{current_site.domain}/users/reset-password/{uid}/{token}/"
+            
+            subject = 'Reset hasła - Insony'
+            message = f"""
+Witaj {user.username}!
+
+Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta.
+
+Aby ustawić nowe hasło, kliknij w poniższy link:
+{reset_url}
+
+Link jest ważny przez 24 godziny.
+
+Jeśli to nie Ty wysłałeś tę prośbę, zignoruj tę wiadomość.
+
+Pozdrawiamy,
+Zespół Insony
+            """
+            
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+            )
+            
+            messages.success(
+                request,
+                f'Link do resetowania hasła został wysłany na adres {email}'
+            )
+            return redirect('login')
+            
+        except User.DoesNotExist:
+            # Don't reveal that email doesn't exist (security)
+            messages.success(
+                request,
+                'Jeśli podany email istnieje w systemie, otrzymasz link do resetowania hasła.'
+            )
+            return redirect('login')
+    
+    return render(request, 'users/password_reset_request.html')
+
+
+def password_reset_confirm(request, uidb64, token):
+    """Confirm password reset and set new password"""
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == 'POST':
+            password = request.POST.get('password', '')
+            password2 = request.POST.get('password2', '')
+            
+            if not password or not password2:
+                messages.error(request, 'Wszystkie pola są wymagane')
+                return render(request, 'users/password_reset_confirm.html')
+            
+            if password != password2:
+                messages.error(request, 'Hasła nie są zgodne')
+                return render(request, 'users/password_reset_confirm.html')
+            
+            if len(password) < 8:
+                messages.error(request, 'Hasło musi mieć co najmniej 8 znaków')
+                return render(request, 'users/password_reset_confirm.html')
+            
+            # Set new password
+            user.set_password(password)
+            user.save()
+            
+            # Re-authenticate user
+            from django.contrib.auth import update_session_auth_hash
+            update_session_auth_hash(request, user)
+            
+            messages.success(request, 'Hasło zostało zmienione! Możesz się teraz zalogować.')
+            return redirect('login')
+        
+        return render(request, 'users/password_reset_confirm.html', {
+            'validlink': True,
+            'uidb64': uidb64,
+            'token': token,
+        })
+    else:
+        messages.error(request, 'Link resetowania hasła jest nieprawidłowy lub wygasł.')
+        return redirect('password_reset_request')
+    
+
+@login_required
+def report_error(request):
+    """Submit error report"""
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        page_url = request.POST.get('page_url', '').strip()
+        
+        if not title or not description:
+            messages.error(request, 'Tytuł i opis są wymagane')
+            return render(request, 'users/report_error.html')
+        
+        # Create report
+        ErrorReport.objects.create(
+            user=request.user,
+            title=title,
+            description=description,
+            page_url=page_url
+        )
+        
+        messages.success(request, 'Dziękujemy za zgłoszenie! Nasz zespół zajmie się problemem.')
+        return redirect('profile')
+    
+    # Get current page URL from referer
+    referer = request.META.get('HTTP_REFERER', '')
+    
+    return render(request, 'users/report_error.html', {
+        'current_url': referer
+    })
+
+
+@login_required
+def my_reports(request):
+    """View user's own reports"""
+    reports = ErrorReport.objects.filter(user=request.user)
+    
+    return render(request, 'users/my_reports.html', {
+        'reports': reports
+    })
+
+
+@login_required
+def admin_reports(request):
+    """Admin view of all error reports"""
+    if not request.user.is_staff:
+        messages.error(request, 'Brak uprawnień')
+        return redirect('profile')
+    
+    # Filter by status
+    status_filter = request.GET.get('status', 'all')
+    
+    if status_filter == 'all':
+        reports = ErrorReport.objects.all()
+    else:
+        reports = ErrorReport.objects.filter(status=status_filter)
+    
+    # Pagination
+    paginator = Paginator(reports, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Count by status
+    pending_count = ErrorReport.objects.filter(status='pending').count()
+    in_progress_count = ErrorReport.objects.filter(status='in_progress').count()
+    resolved_count = ErrorReport.objects.filter(status='resolved').count()
+    
+    return render(request, 'users/admin_reports.html', {
+        'page_obj': page_obj,
+        'status_filter': status_filter,
+        'pending_count': pending_count,
+        'in_progress_count': in_progress_count,
+        'resolved_count': resolved_count,
+    })
+
+
+@login_required
+def admin_report_detail(request, report_id):
+    """Admin view single report with actions"""
+    if not request.user.is_staff:
+        messages.error(request, 'Brak uprawnień')
+        return redirect('profile')
+    
+    report = get_object_or_404(ErrorReport, id=report_id)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'mark_in_progress':
+            report.status = 'in_progress'
+            report.save()
+            messages.success(request, 'Status zmieniony na: W trakcie')
+        
+        elif action == 'mark_resolved':
+            report.status = 'resolved'
+            report.resolved_at = timezone.now()
+            report.resolved_by = request.user
+            report.save()
+            messages.success(request, 'Zgłoszenie oznaczone jako rozwiązane')
+        
+        elif action == 'reopen':
+            report.status = 'pending'
+            report.resolved_at = None
+            report.resolved_by = None
+            report.save()
+            messages.success(request, 'Zgłoszenie ponownie otwarte')
+        
+        elif action == 'update_notes':
+            admin_notes = request.POST.get('admin_notes', '').strip()
+            report.admin_notes = admin_notes
+            report.save()
+            messages.success(request, 'Notatki zaktualizowane')
+        
+        return redirect('admin_report_detail', report_id=report.id)
+    
+    return render(request, 'users/admin_report_detail.html', {
+        'report': report
+    })
+
+
+@require_POST
+@login_required
+def report_content(request):
+    """AJAX endpoint for reporting specific content"""
+    content_type = request.POST.get('content_type', '').strip()
+    content_id_str = request.POST.get('content_id', '').strip()
+    reason = request.POST.get('reason', '').strip()
+    description = request.POST.get('description', '').strip()
+    
+    # Validation
+    if not all([content_type, content_id_str, reason]):
+        return JsonResponse({'ok': False, 'message': 'Brakujące dane'})
+    
+    # Validate content_id is numeric
+    try:
+        content_id = int(content_id_str)
+    except (ValueError, TypeError):
+        return JsonResponse({'ok': False, 'message': 'Nieprawidłowy ID treści'})
+    
+    # Check if user already reported this content
+    existing = ErrorReport.objects.filter(
+        user=request.user,
+        content_type=content_type,
+        content_id=content_id,
+        status__in=['pending', 'in_progress']
+    ).exists()
+    
+    if existing:
+        return JsonResponse({'ok': False, 'message': 'Już zgłosiłeś tę treść'})
+    
+    # Get content object for title
+    content_obj = None
+    title = f"Zgłoszenie: {content_type} #{content_id}"
+    
+    if content_type == 'review':
+        from music.models import Review
+        try:
+            content_obj = Review.objects.get(id=content_id)
+            title = f"Nieodpowiednia recenzja: {content_obj.track.title}"
+        except Review.DoesNotExist:
+            return JsonResponse({'ok': False, 'message': 'Nie znaleziono recenzji'})
+    
+    elif content_type == 'profile':
+        try:
+            content_obj = User.objects.get(id=content_id)
+            title = f"Nieodpowiedni profil: {content_obj.username}"
+        except User.DoesNotExist:
+            return JsonResponse({'ok': False, 'message': 'Nie znaleziono profilu'})
+    
+    # Create report
+    if not description:
+        reason_label = dict(ErrorReport.REASON_CHOICES).get(reason, reason)
+        description = f"Zgłoszenie treści jako: {reason_label}"
+    
+    ErrorReport.objects.create(
+        user=request.user,
+        title=title,
+        description=description,
+        content_type=content_type,
+        content_id=content_id,
+        report_reason=reason,
+        page_url=request.META.get('HTTP_REFERER', '')
+    )
+    
+    return JsonResponse({'ok': True, 'message': 'Dziękujemy za zgłoszenie!'})
+
+
+@login_required  
+def report_content_form(request, content_type, content_id):
+    """Full form for reporting content with custom description"""
+    # Get content object
+    content_obj = None
+    content_title = ""
+    
+    if content_type == 'review':
+        try:
+            content_obj = Review.objects.get(id=content_id)
+            content_title = f"Recenzja utworu: {content_obj.track.title}"
+        except Review.DoesNotExist:
+            messages.error(request, 'Nie znaleziono recenzji')
+            return redirect('track_list')
+    
+    elif content_type == 'profile':
+        try:
+            content_obj = User.objects.get(id=content_id)
+            content_title = f"Profil użytkownika: {content_obj.username}"
+        except User.DoesNotExist:
+            messages.error(request, 'Nie znaleziono profilu')
+            return redirect('user_search')
+    
+    if request.method == 'POST':
+        reason = request.POST.get('reason')
+        description = request.POST.get('description', '').strip()
+        
+        if not reason:
+            messages.error(request, 'Wybierz powód zgłoszenia')
+            return render(request, 'users/report_content_form.html', {
+                'content_type': content_type,
+                'content_id': content_id,
+                'content_title': content_title,
+                'content_obj': content_obj,
+                'reasons': ErrorReport.REASON_CHOICES,
+            })
+        
+        # Check if user already reported this content
+        existing = ErrorReport.objects.filter(
+            user=request.user,
+            content_type=content_type,
+            content_id=content_id,
+            status__in=['pending', 'in_progress']
+        ).exists()
+        
+        if existing:
+            messages.warning(request, 'Już zgłosiłeś tę treść')
+            return redirect('my_reports')
+        
+        # Create report
+        title = f"Zgłoszenie: {content_title}"
+        if not description:
+            description = f"Zgłoszenie treści jako: {dict(ErrorReport.REASON_CHOICES).get(reason, reason)}"
+        
+        ErrorReport.objects.create(
+            user=request.user,
+            title=title,
+            description=description,
+            content_type=content_type,
+            content_id=int(content_id),
+            report_reason=reason,
+            page_url=request.META.get('HTTP_REFERER', '')
+        )
+        
+        messages.success(request, 'Dziękujemy za zgłoszenie!')
+        return redirect('my_reports')
+    
+    return render(request, 'users/report_content_form.html', {
+        'content_type': content_type,
+        'content_id': content_id,
+        'content_title': content_title,
+        'content_obj': content_obj,
+        'reasons': ErrorReport.REASON_CHOICES,
     })

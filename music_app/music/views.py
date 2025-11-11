@@ -121,6 +121,8 @@ def track_detail(request, track_id):
 
     reviews_qs = track.reviews.select_related('user').annotate(likes_count=Count('likes')).order_by(order_by)
 
+    #reviews_qs = Review.objects.filter(track=track).select_related('user').annotate(likes_count=Count('likes')).order_by(order_by)
+
     # --- пагінація ---
     page_number = request.GET.get('page') or 1
     paginator = Paginator(reviews_qs, 5)

@@ -4,7 +4,10 @@ from .views import (
     profile_edit, user_search, user_profile_public, follow_toggle,
     block_toggle, followers_list, following_list, unblock_user, 
     user_playlists_public, user_favorites, user_reviews, user_reviews_public,
-    account_delete, account_settings, password_change, blocked_users,
+    account_delete, account_settings, password_change, blocked_users, verify_email,
+    resend_verification, password_reset_request, password_reset_confirm,
+    report_error, my_reports, admin_reports, admin_report_detail,
+    report_content, report_content_form,
 )
 
 urlpatterns = [
@@ -28,4 +31,14 @@ urlpatterns = [
     path('settings/', account_settings, name='account_settings'),  
     path('settings/password/', password_change, name='password_change'),
     path('settings/blocked/', blocked_users, name='blocked_users'),
+    path('verify-email/<str:token>/', verify_email, name='verify_email'),  
+    path('resend-verification/', resend_verification, name='resend_verification'),
+    path('reset-password/', password_reset_request, name='password_reset_request'),  
+    path('reset-password/<str:uidb64>/<str:token>/', password_reset_confirm, name='password_reset_confirm'),  
+    path('report-error/', report_error, name='report_error'),
+    path('my-reports/', my_reports, name='my_reports'),
+    path('admin/reports/', admin_reports, name='admin_reports'),
+    path('admin/reports/<int:report_id>/', admin_report_detail, name='admin_report_detail'),
+    path('report-content/', report_content, name='report_content'),
+    path('report/<str:content_type>/<int:content_id>/', report_content_form, name='report_content_form'),
 ]

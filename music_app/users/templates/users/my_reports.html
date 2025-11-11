@@ -1,0 +1,189 @@
+{% extends "users/base.html" %}
+{% block content %}
+
+<style>
+  .my-reports-header {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    border: 1px solid #2a2a2a;
+  }
+
+  .my-reports-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .my-reports-subtitle {
+    color: #9aa0a6;
+  }
+
+  .report-card-item {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: all 0.2s;
+  }
+
+  .report-card-item:hover {
+    border-color: #3a3a3a;
+    transform: translateY(-2px);
+  }
+
+  .report-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 16px;
+  }
+
+  .report-card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .report-status-badge {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .status-pending {
+    background: rgba(234, 179, 8, 0.1);
+    border: 1px solid rgba(234, 179, 8, 0.3);
+    color: #fbbf24;
+  }
+
+  .status-in_progress {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
+  }
+
+  .status-resolved {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+  }
+
+  .report-card-description {
+    color: #b6bdc6;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .report-card-meta {
+    display: flex;
+    gap: 20px;
+    color: #6b7280;
+    font-size: 0.85rem;
+  }
+
+  .report-card-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .empty-reports {
+    text-align: center;
+    padding: 80px 20px;
+    color: #6b7280;
+  }
+
+  .empty-reports i {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+  }
+</style>
+
+<div class="container py-4">
+  
+  <div class="my-reports-header">
+    <h1 class="my-reports-title">
+      <i class="bi bi-list-ul"></i>
+      Moje zgłoszenia
+    </h1>
+    <p class="my-reports-subtitle">Śledź status swoich zgłoszeń</p>
+  </div>
+
+  {% if reports %}
+    {% for report in reports %}
+      <div class="report-card-item">
+        <div class="report-card-header">
+          <div style="flex: 1;">
+            <div class="report-card-title">{{ report.title }}</div>
+          </div>
+          <span class="report-status-badge status-{{ report.status }}">
+            {% if report.status == 'pending' %}
+              <i class="bi bi-clock"></i> Oczekujący
+            {% elif report.status == 'in_progress' %}
+              <i class="bi bi-gear"></i> W trakcie
+            {% else %}
+              <i class="bi bi-check-circle"></i> Rozwiązany
+            {% endif %}
+          </span>
+        </div>
+
+        <div class="report-card-description">
+          {{ report.description|truncatewords:50 }}
+        </div>
+
+        <div class="report-card-meta">
+          <span>
+            <i class="bi bi-calendar3"></i>
+            {{ report.created_at|date:"d.m.Y H:i" }}
+          </span>
+          {% if report.page_url %}
+            <span>
+              <i class="bi bi-link"></i>
+              Strona: {{ report.page_url|truncatechars:40 }}
+            </span>
+          {% endif %}
+          {% if report.resolved_at %}
+            <span>
+              <i class="bi bi-check2"></i>
+              Rozwiązano: {{ report.resolved_at|date:"d.m.Y" }}
+            </span>
+          {% endif %}
+        </div>
+
+        {% if report.admin_notes %}
+          <div style="margin-top: 16px; padding: 12px; background: rgba(59, 130, 246, 0.05); border-left: 3px solid #3b82f6; border-radius: 8px;">
+            <div style="color: #60a5fa; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px;">
+              <i class="bi bi-chat-left-text"></i> Notatka admina:
+            </div>
+            <div style="color: #b6bdc6; font-size: 0.9rem;">
+              {{ report.admin_notes }}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-reports">
+      <i class="bi bi-inbox"></i>
+      <h3 style="color: #9aa0a6; margin-bottom: 12px;">Nie masz jeszcze zgłoszeń</h3>
+      <p>Jeśli napotkasz jakiś problem, daj nam znać!</p>
+      <a href="{% url 'report_error' %}" class="btn btn-primary">
+        <i class="bi bi-exclamation-triangle"></i> Zgłoś problem
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

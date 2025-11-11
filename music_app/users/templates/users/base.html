@@ -87,10 +87,13 @@
             <li class="nav-item"><a class="nav-link" href="{% url 'track_list' %}">Utwory</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'playlist_list' %}"><i class="bi bi-music-note-list"></i> Playlisty</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'user_search' %}"><i class="bi bi-search"></i> Użytkownicy</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'artist_list' %}">Artyści</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'genre_list' %}">Gatunki</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'group_list' %}">Grupy</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'event_list' %}">Wydarzenia</a></li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'report_error' %}" title="Zgłoś problem">
+                <i class="bi bi-exclamation-triangle"></i>
+              </a>
+            </li>
           </ul>
 
           <ul class="navbar-nav">
@@ -127,6 +130,12 @@
                       <a class="dropdown-item" href="{% url 'track_add' %}">
                         <i class="bi bi-plus-circle"></i>
                         Dodaj utwór
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="{% url 'admin_reports' %}">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Zgłoszenia                 
                       </a>
                     </li>
                     <li>
@@ -174,36 +183,172 @@
     <p class="mb-0">© {% now "Y" %} Insony — społeczność muzyczna</p>
   </footer>
 
+  <div class="modal fade" id="quickReportModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content" style="background: #1a1a1a; border: 1px solid #2a2a2a;">
+        <div class="modal-header" style="border-bottom: 1px solid #2a2a2a;">
+          <h5 class="modal-title" style="color: #fff;">
+            <i class="bi bi-flag"></i> Zgłoś treść
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);"></button>
+        </div>
+        <div class="modal-body">
+          <div id="reportReasons">
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="quickReason" value="spam" id="quick-spam">
+              <label class="form-check-label" for="quick-spam" style="color: #e6e6e6;">Spam</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="quickReason" value="inappropriate" id="quick-inappropriate">
+              <label class="form-check-label" for="quick-inappropriate" style="color: #e6e6e6;">Treść nieodpowiednia</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="quickReason" value="harassment" id="quick-harassment">
+              <label class="form-check-label" for="quick-harassment" style="color: #e6e6e6;">Molestowanie/Nękanie</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="quickReason" value="hate_speech" id="quick-hate">
+              <label class="form-check-label" for="quick-hate" style="color: #e6e6e6;">Mowa nienawiści</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="quickReason" value="other" id="quick-other">
+              <label class="form-check-label" for="quick-other" style="color: #e6e6e6;">Inne</label>
+            </div>
+          </div>
+          <div class="mt-3">
+            <a href="#" id="detailedReportLink" style="color: #60a5fa; font-size: 0.9rem;">
+              <i class="bi bi-pencil"></i> Dodaj szczegółowy opis
+            </a>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-top: 1px solid #2a2a2a;">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+          <button type="button" class="btn btn-danger" onclick="submitQuickReport()">
+            <i class="bi bi-flag"></i> Zgłoś
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <script>
-  // Uniwersalny toggler hasła
-  // Użycie: onclick="togglePassword(this, '#selector')" albo onclick="togglePassword(this)"
-  // Jeśli nie podasz selektora, spróbuje znaleźć input w najbliższym .input-group.
-  function togglePassword(btn, selector) {
-    let input = null;
+// Uniwersalny toggler hasła
+function togglePassword(btn, selector) {
+  let input = null;
 
-    if (selector) {
-      input = document.querySelector(selector);
-    } else if (btn && btn.closest) {
-      input = btn.closest('.input-group')?.querySelector('input[type="password"], input[type="text"]');
-    }
-
-    if (!input) return;
-
-    const makeVisible = input.type === 'password';
-    input.type = makeVisible ? 'text' : 'password';
-
-    // ikona (Bootstrap Icons)
-    const icon = btn.querySelector('i');
-    if (icon) {
-      icon.classList.toggle('bi-eye', !makeVisible);
-      icon.classList.toggle('bi-eye-slash', makeVisible);
-    }
-
-    // a11y
-    btn.setAttribute('aria-pressed', makeVisible ? 'true' : 'false');
-    btn.setAttribute('title', makeVisible ? 'Ukryj hasło' : 'Pokaż hasło');
+  if (selector) {
+    input = document.querySelector(selector);
+  } else if (btn && btn.closest) {
+    input = btn.closest('.input-group')?.querySelector('input[type="password"], input[type="text"]');
   }
+
+  if (!input) return;
+
+  const makeVisible = input.type === 'password';
+  input.type = makeVisible ? 'text' : 'password';
+
+  // ikona (Bootstrap Icons)
+  const icon = btn.querySelector('i');
+  if (icon) {
+    icon.classList.toggle('bi-eye', !makeVisible);
+    icon.classList.toggle('bi-eye-slash', makeVisible);
+  }
+
+  // a11y
+  btn.setAttribute('aria-pressed', makeVisible ? 'true' : 'false');
+  btn.setAttribute('title', makeVisible ? 'Ukryj hasło' : 'Pokaż hasło');
+}
+
+// Quick Report System
+let currentContentType = '';
+let currentContentId = '';
+
+function showQuickReport(contentType, contentId) {
+  // Debug logging
+  console.log('Content Type:', contentType, 'Content ID:', contentId);
+  
+  // Validate inputs
+  if (!contentType || !contentId || contentId === 'undefined') {
+    alert('Błąd: nieprawidłowe dane treści');
+    return;
+  }
+  
+  currentContentType = contentType;
+  currentContentId = contentId;
+  
+  // Update detailed report link
+  document.getElementById('detailedReportLink').href = 
+    `/users/report/${contentType}/${contentId}/`;
+  
+  // Clear previous selection
+  document.querySelectorAll('input[name="quickReason"]').forEach(input => {
+    input.checked = false;
+  });
+  
+  // Show modal
+  new bootstrap.Modal(document.getElementById('quickReportModal')).show();
+}
+
+async function submitQuickReport() {
+  const reason = document.querySelector('input[name="quickReason"]:checked');
+  
+  if (!reason) {
+    alert('Wybierz powód zgłoszenia');
+    return;
+  }
+  
+  // Validate data before sending
+  if (!currentContentType || !currentContentId || currentContentId === 'undefined') {
+    alert('Błąd: brak danych do zgłoszenia');
+    return;
+  }
+  
+  try {
+    const formData = new FormData();
+    formData.append('content_type', currentContentType);
+    formData.append('content_id', String(currentContentId)); 
+    formData.append('reason', reason.value);
+    formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+    
+    console.log('Sending data:', {
+      content_type: currentContentType,
+      content_id: currentContentId,
+      reason: reason.value
+    });
+    
+    const response = await fetch('/users/report-content/', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
+    
+    console.log('Response status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log('Response data:', data);
+    
+    if (data.ok) {
+      alert(data.message);
+      bootstrap.Modal.getInstance(document.getElementById('quickReportModal')).hide();
+    } else {
+      alert(data.message || 'Wystąpił błąd');
+    }
+  } catch (e) {
+    console.error('Report error:', e);
+    alert('Wystąpił błąd podczas zgłaszania: ' + e.message);
+  }
+}
+
+function getCookie(name) {
+  const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return m ? m.pop() : '';
+}
 </script>
 
 
