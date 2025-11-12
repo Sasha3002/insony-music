@@ -1,0 +1,588 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .group-detail-header {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid #2a2a2a;
+    margin-bottom: 32px;
+  }
+
+  .group-cover-section {
+    position: relative;
+    height: 300px;
+    overflow: hidden;
+  }
+
+  .group-cover-large {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .group-cover-placeholder-large {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    color: rgba(255,255,255,0.3);
+  }
+
+  .group-info-section {
+    padding: 32px;
+  }
+
+  .group-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 20px;
+  }
+
+  .group-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+
+  .group-location-detail {
+    color: #60a5fa;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .group-admin-info {
+    color: #9aa0a6;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .group-admin-info a {
+    color: #60a5fa;
+    text-decoration: none;
+  }
+
+  .group-admin-info a:hover {
+    text-decoration: underline;
+  }
+
+  .group-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-join {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-join:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    color: #fff;
+  }
+
+  .btn-leave {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-leave:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+  }
+
+  .btn-edit {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+
+  .btn-edit:hover {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    text-decoration: none;
+  }
+
+  .btn-pending {
+    background: rgba(251, 146, 60, 0.1);
+    color: #fb923c;
+    border: 1px solid rgba(251, 146, 60, 0.3);
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    cursor: not-allowed;
+  }
+
+  .group-genres-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .genre-badge {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    padding: 6px 16px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    font-weight: 500;
+  }
+
+  .group-description-section {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .group-description-text {
+    color: #e6e6e6;
+    line-height: 1.6;
+    font-size: 1rem;
+  }
+
+  .group-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #3b82f6;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    color: #9aa0a6;
+    font-size: 0.9rem;
+  }
+
+  .members-section {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .member-card {
+    background: #0f0f0f;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s;
+  }
+
+  .member-card:hover {
+    border-color: #3b82f6;
+    transform: translateX(4px);
+  }
+
+  .member-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid #2a2a2a;
+    flex-shrink: 0;
+  }
+
+  .member-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .member-avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.2rem;
+  }
+
+  .member-info {
+    flex: 1;
+  }
+
+  .member-name {
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .member-name a {
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .member-name a:hover {
+    color: #60a5fa;
+  }
+
+  .member-role {
+    color: #9aa0a6;
+    font-size: 0.85rem;
+  }
+
+  .admin-badge {
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .pending-section {
+    background: rgba(251, 146, 60, 0.1);
+    border: 1px solid rgba(251, 146, 60, 0.3);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .pending-card {
+    background: #1a1a1a;
+    border: 1px solid rgba(251, 146, 60, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .pending-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-approve {
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-approve:hover {
+    transform: scale(1.05);
+  }
+
+  .btn-reject {
+    background: rgba(220, 38, 38, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-reject:hover {
+    background: rgba(220, 38, 38, 0.2);
+  }
+
+  @media (max-width: 768px) {
+    .group-title-row {
+      flex-direction: column;
+    }
+    
+    .group-title {
+      font-size: 1.8rem;
+    }
+    
+    .group-cover-section {
+      height: 200px;
+    }
+  }
+</style>
+
+<div class="container py-4">
+  
+  <a href="{% url 'group_list' %}" class="btn btn-outline-light mb-3">
+    <i class="bi bi-arrow-left"></i> Powrót do grup
+  </a>
+
+  <div class="group-detail-header">
+    <div class="group-cover-section">
+      {% if group.cover_image %}
+        <img src="{{ group.cover_image.url }}" alt="{{ group.name }}" class="group-cover-large">
+      {% else %}
+        <div class="group-cover-placeholder-large">
+          <i class="bi bi-people"></i>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="group-info-section">
+      <div class="group-title-row">
+        <div>
+          <h1 class="group-title">{{ group.name }}</h1>
+          <div class="group-location-detail">
+            <i class="bi bi-geo-alt-fill"></i>
+            {{ group.location }}
+          </div>
+          <div class="group-admin-info">
+            <i class="bi bi-person-badge"></i>
+            Administrator: 
+            <a href="{% url 'user_profile_public' group.admin.username %}">{{ group.admin.username }}</a>
+            {% if is_admin %}<span style="color: #f59e0b;">(Ty)</span>{% endif %}
+          </div>
+        </div>
+
+        <div class="group-actions">
+          {% if is_admin %}
+            <a href="{% url 'group_edit' group.slug %}" class="btn-edit">
+              <i class="bi bi-pencil"></i> Edytuj grupę
+            </a>
+            <a href="{% url 'group_delete' group.slug %}" class="btn-leave">
+              <i class="bi bi-trash"></i> Usuń grupę
+            </a>
+          {% elif is_member %}
+            <form method="post" action="{% url 'group_leave' group.slug %}" style="display: inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn-leave" onclick="return confirm('Czy na pewno chcesz opuścić grupę?')">
+                <i class="bi bi-box-arrow-right"></i> Opuść grupę
+              </button>
+            </form>
+          {% elif has_pending_request %}
+            <button class="btn-pending" disabled>
+              <i class="bi bi-clock"></i> Oczekuje na akceptację
+            </button>
+          {% else %}
+            <form method="post" action="{% url 'group_join' group.slug %}" style="display: inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn-join">
+                <i class="bi bi-plus-circle"></i> 
+                {% if group.type == 'public' %}Dołącz{% else %}Poproś o dołączenie{% endif %}
+              </button>
+            </form>
+          {% endif %}
+          
+          {% if is_member %}
+            <a href="{% url 'group_invite' group.slug %}" class="btn-edit">
+              <i class="bi bi-person-plus"></i> Zaproś
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if group.genres.all %}
+        <div class="group-genres-section">
+          {% for genre in group.genres.all %}
+            <span class="genre-badge">
+              <i class="bi bi-music-note"></i> {{ genre.name }}
+            </span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="group-stats">
+    <div class="stat-card">
+      <div class="stat-value">{{ members|length }}</div>
+      <div class="stat-label">Członków</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">
+        {% if group.type == 'public' %}
+          <i class="bi bi-unlock" style="color: #22c55e;"></i>
+        {% else %}
+          <i class="bi bi-lock" style="color: #fb923c;"></i>
+        {% endif %}
+      </div>
+      <div class="stat-label">
+        {% if group.type == 'public' %}Grupa publiczna{% else %}Grupa prywatna{% endif %}
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ group.created_at|date:"d.m.Y" }}</div>
+      <div class="stat-label">Data utworzenia</div>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <div class="group-description-section">
+    <h2 class="section-title">
+      <i class="bi bi-info-circle"></i>
+      O grupie
+    </h2>
+    <p class="group-description-text">{{ group.description|linebreaks }}</p>
+  </div>
+
+  <!-- Pending Requests (Admin Only) -->
+  {% if is_admin and pending_requests %}
+    <div class="pending-section">
+      <h2 class="section-title">
+        <i class="bi bi-clock-history"></i>
+        Oczekujące prośby ({{ pending_requests|length }})
+      </h2>
+      {% for membership in pending_requests %}
+        <div class="pending-card">
+          <div class="member-avatar">
+            {% if membership.user.profile_picture %}
+              <img src="{{ membership.user.profile_picture.url }}" alt="{{ membership.user.username }}">
+            {% else %}
+              <div class="member-avatar-placeholder">
+                {{ membership.user.username|slice:":1"|upper }}
+              </div>
+            {% endif %}
+          </div>
+          
+          <div class="member-info">
+            <div class="member-name">
+              <a href="{% url 'user_profile_public' membership.user.username %}">
+                {{ membership.user.username }}
+              </a>
+            </div>
+            <div class="member-role">
+              Prośba wysłana: {{ membership.joined_at|date:"d.m.Y H:i" }}
+            </div>
+          </div>
+
+          <div class="pending-actions">
+            <form method="post" action="{% url 'approve_member' group.slug membership.id %}" style="display: inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn-approve">
+                <i class="bi bi-check-circle"></i> Akceptuj
+              </button>
+            </form>
+            <form method="post" action="{% url 'reject_member' group.slug membership.id %}" style="display: inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn-reject">
+                <i class="bi bi-x-circle"></i> Odrzuć
+              </button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Members -->
+  <div class="members-section">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="section-title mb-0">
+        <i class="bi bi-people"></i>
+        Członkowie ({{ members|length }})
+      </h2>
+      <a href="{% url 'group_members' group.slug %}" class="btn-edit">
+        <i class="bi bi-eye"></i> Zobacz wszystkich
+      </a>
+    </div>
+
+    {% for membership in members %}
+      <div class="member-card">
+        <div class="member-avatar">
+          {% if membership.user.profile_picture %}
+            <img src="{{ membership.user.profile_picture.url }}" alt="{{ membership.user.username }}">
+          {% else %}
+            <div class="member-avatar-placeholder">
+              {{ membership.user.username|slice:":1"|upper }}
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="member-info">
+          <div class="member-name">
+            <a href="{% url 'user_profile_public' membership.user.username %}">
+              {{ membership.user.username }}
+            </a>
+          </div>
+          <div class="member-role">
+            Dołączył: {{ membership.joined_at|date:"d.m.Y" }}
+          </div>
+        </div>
+
+        {% if membership.user == group.admin %}
+          <span class="admin-badge">
+            <i class="bi bi-star-fill"></i> Administrator
+          </span>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p style="color: #9aa0a6; text-align: center; padding: 20px;">
+        Brak członków w grupie
+      </p>
+    {% endfor %}
+  </div>
+
+</div>
+
+{% endblock %}

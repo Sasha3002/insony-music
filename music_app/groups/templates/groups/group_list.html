@@ -1,0 +1,410 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .groups-header {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    border: 1px solid #2a2a2a;
+  }
+
+  .groups-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .groups-subtitle {
+    color: #9aa0a6;
+    font-size: 1rem;
+  }
+
+  .search-filters {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 32px;
+  }
+
+  .filter-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 16px;
+    align-items: end;
+  }
+
+  .filter-group label {
+    color: #9aa0a6;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .filter-input {
+    background: #1f2329;
+    border: 1px solid #2a2f32;
+    color: #e9ecf3;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    width: 100%;
+    transition: all 0.2s;
+  }
+
+  .filter-input:focus {
+    background: #1f2329;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    color: #e9ecf3;
+    outline: none;
+  }
+
+  .filter-select {
+    background: #1f2329;
+    border: 1px solid #2a2f32;
+    color: #e9ecf3;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    width: 100%;
+    cursor: pointer;
+  }
+
+  .filter-select option {
+    background: #1a1a1a;
+    color: #e9ecf3;
+  }
+
+  .btn-filter {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-filter:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  }
+
+  .group-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: all 0.2s;
+    display: flex;
+    gap: 20px;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .group-card:hover {
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .group-cover {
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid #2a2a2a;
+  }
+
+  .group-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .group-cover-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 2.5rem;
+  }
+
+  .group-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .group-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .group-location {
+    color: #60a5fa;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .group-description {
+    color: #9aa0a6;
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .group-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .genre-tag {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+
+  .group-meta {
+    display: flex;
+    gap: 20px;
+    color: #6b7280;
+    font-size: 0.9rem;
+  }
+
+  .group-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .group-type-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .group-type-public {
+    background: rgba(34, 197, 94, 0.1);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+
+  .group-type-private {
+    background: rgba(251, 146, 60, 0.1);
+    color: #fb923c;
+    border: 1px solid rgba(251, 146, 60, 0.2);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: #6b7280;
+  }
+
+  .empty-state i {
+    font-size: 64px;
+    margin-bottom: 24px;
+    opacity: 0.3;
+  }
+
+  .btn-create-group {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+
+  .btn-create-group:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    color: #fff;
+    text-decoration: none;
+  }
+
+  @media (max-width: 768px) {
+    .filter-row {
+      grid-template-columns: 1fr;
+    }
+    
+    .group-card {
+      flex-direction: column;
+    }
+    
+    .group-cover {
+      width: 100%;
+      height: 200px;
+    }
+  }
+</style>
+
+<div class="container py-4">
+  
+  <div class="groups-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h1 class="groups-title">
+          <i class="bi bi-people"></i>
+          Grupy muzyczne
+        </h1>
+        <p class="groups-subtitle">Znajdź i dołącz do społeczności muzycznych</p>
+      </div>
+      <a href="{% url 'group_create' %}" class="btn-create-group">
+        <i class="bi bi-plus-circle"></i>
+        Utwórz grupę
+      </a>
+    </div>
+  </div>
+
+  <!-- Search & Filters -->
+  <div class="search-filters">
+    <form method="get">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label for="search">Szukaj grupy</label>
+          <input 
+            type="text" 
+            id="search" 
+            name="q" 
+            class="filter-input" 
+            placeholder="Wpisz nazwę grupy..."
+            value="{{ query }}">
+        </div>
+        
+        <div class="filter-group">
+          <label for="location">Lokalizacja</label>
+          <input 
+            type="text" 
+            id="location" 
+            name="location" 
+            class="filter-input" 
+            placeholder="Miasto..."
+            value="{{ location }}">
+        </div>
+        
+        <div class="filter-group">
+          <label for="genre">Gatunek</label>
+          <select id="genre" name="genre" class="filter-select">
+            <option value="">Wszystkie</option>
+            {% for genre in all_genres %}
+              <option value="{{ genre.id }}" {% if selected_genre == genre.id|stringformat:"s" %}selected{% endif %}>
+                {{ genre.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <button type="submit" class="btn-filter">
+            <i class="bi bi-search"></i> Szukaj
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Groups List -->
+  {% if groups %}
+    {% for group in groups %}
+      <a href="{% url 'group_detail' group.slug %}" class="group-card">
+        <div class="group-cover">
+          {% if group.cover_image %}
+            <img src="{{ group.cover_image.url }}" alt="{{ group.name }}">
+          {% else %}
+            <div class="group-cover-placeholder">
+              <i class="bi bi-people"></i>
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="group-info">
+          <h3 class="group-name">{{ group.name }}</h3>
+          
+          <div class="group-location">
+            <i class="bi bi-geo-alt"></i>
+            {{ group.location }}
+          </div>
+          
+          <p class="group-description">{{ group.description }}</p>
+          
+          {% if group.genres.all %}
+            <div class="group-genres">
+              {% for genre in group.genres.all %}
+                <span class="genre-tag">{{ genre.name }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+          
+          <div class="group-meta">
+            <div class="group-meta-item">
+              <i class="bi bi-person"></i>
+              <span>{{ group.members_count }} członków</span>
+            </div>
+            
+            <div class="group-meta-item">
+              <i class="bi bi-person-badge"></i>
+              <span>Admin: {{ group.admin.username }}</span>
+            </div>
+            
+            <span class="group-type-badge {% if group.type == 'public' %}group-type-public{% else %}group-type-private{% endif %}">
+              {% if group.type == 'public' %}
+                <i class="bi bi-unlock"></i> Publiczna
+              {% else %}
+                <i class="bi bi-lock"></i> Prywatna
+              {% endif %}
+            </span>
+          </div>
+        </div>
+      </a>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <i class="bi bi-people"></i>
+      <h3 style="color: #9aa0a6; margin-bottom: 12px;">Nie znaleziono grup</h3>
+      <p>Spróbuj zmienić kryteria wyszukiwania lub utwórz nową grupę!</p>
+      <a href="{% url 'group_create' %}" class="btn-create-group mt-3">
+        <i class="bi bi-plus-circle"></i> Utwórz pierwszą grupę
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

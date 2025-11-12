@@ -1,0 +1,214 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .members-header {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    border: 1px solid #2a2a2a;
+  }
+
+  .members-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .members-subtitle {
+    color: #9aa0a6;
+    font-size: 1rem;
+  }
+
+  .members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  .member-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .member-card:hover {
+    border-color: #3b82f6;
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .member-avatar-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #2a2a2a;
+    margin-bottom: 16px;
+  }
+
+  .member-avatar-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .member-avatar-placeholder-large {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 2.5rem;
+  }
+
+  .member-username {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .member-username a {
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .member-username a:hover {
+    color: #60a5fa;
+  }
+
+  .member-joined {
+    color: #9aa0a6;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+  }
+
+  .admin-badge-large {
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .member-stats {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #2a2a2a;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .member-stat {
+    text-align: center;
+  }
+
+  .member-stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #3b82f6;
+  }
+
+  .member-stat-label {
+    font-size: 0.8rem;
+    color: #9aa0a6;
+    margin-top: 4px;
+  }
+
+  @media (max-width: 768px) {
+    .members-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="container py-4">
+  
+  <a href="{% url 'group_detail' group.slug %}" class="btn btn-outline-light mb-3">
+    <i class="bi bi-arrow-left"></i> Powrót do grupy
+  </a>
+
+  <div class="members-header">
+    <h1 class="members-title">
+      <i class="bi bi-people"></i>
+      Członkowie grupy
+    </h1>
+    <p class="members-subtitle">{{ group.name }} • {{ members|length }} członków</p>
+  </div>
+
+  <div class="members-grid">
+    {% for membership in members %}
+      <div class="member-card">
+        <div class="member-avatar-large">
+          {% if membership.user.profile_picture %}
+            <img src="{{ membership.user.profile_picture.url }}" alt="{{ membership.user.username }}">
+          {% else %}
+            <div class="member-avatar-placeholder-large">
+              {{ membership.user.username|slice:":1"|upper }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="member-username">
+          <a href="{% url 'user_profile_public' membership.user.username %}">
+            {{ membership.user.username }}
+          </a>
+        </div>
+
+        {% if membership.user == group.admin %}
+          <span class="admin-badge-large">
+            <i class="bi bi-star-fill"></i> Administrator
+          </span>
+        {% endif %}
+
+        <div class="member-joined">
+          <i class="bi bi-calendar-check"></i>
+          Dołączył: {{ membership.joined_at|date:"d.m.Y" }}
+        </div>
+
+        {% if membership.user.total_xp %}
+          <div class="member-stats">
+            <div class="member-stat">
+              <div class="member-stat-value">{{ membership.user.total_xp }}</div>
+              <div class="member-stat-label">XP</div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    {% empty %}
+      <div style="grid-column: 1/-1; text-align: center; padding: 80px 20px; color: #6b7280;">
+        <i class="bi bi-people" style="font-size: 64px; margin-bottom: 24px; opacity: 0.3;"></i>
+        <h3 style="color: #9aa0a6; margin-bottom: 12px;">Brak członków w grupie</h3>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+{% endblock %}

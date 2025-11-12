@@ -84,15 +84,15 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item"><a class="nav-link" href="{% url 'track_list' %}">Utwory</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'track_list' %}"><i class="bi bi-music-note-beamed"></i> Utwory</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'playlist_list' %}"><i class="bi bi-music-note-list"></i> Playlisty</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'user_search' %}"><i class="bi bi-search"></i> Użytkownicy</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'chat_list' %}"><i class="bi bi-chat-dots"></i> Wiadomości</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'group_list' %}">Grupy</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'event_list' %}">Wydarzenia</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'group_list' %}"><i class="bi bi-people-fill"></i> Grupy</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'event_list' %}"><i class="bi bi-calendar4-event"></i> Wydarzenia</a></li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'report_error' %}" title="Zgłoś problem">
-                <i class="bi bi-exclamation-triangle"></i>
+              <a class="nav-link" href="{% url 'report_error' %}">
+                <i class="bi bi-exclamation-triangle"></i> Zgłoś problem
               </a>
             </li>
           </ul>
