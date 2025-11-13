@@ -113,6 +113,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    margin-bottom: 12px;  
   }
 
   .member-stats {
@@ -146,6 +147,27 @@
       grid-template-columns: 1fr;
     }
   }
+
+  .btn-remove-member {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-remove-member:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.02);
+}
 </style>
 
 <div class="container py-4">
@@ -192,13 +214,22 @@
           Dołączył: {{ membership.joined_at|date:"d.m.Y" }}
         </div>
 
-        {% if membership.user.total_xp %}
+        {% if membership.user.xp %}
           <div class="member-stats">
             <div class="member-stat">
-              <div class="member-stat-value">{{ membership.user.total_xp }}</div>
+              <div class="member-stat-value">{{ membership.user.xp }}</div>
               <div class="member-stat-label">XP</div>
             </div>
           </div>
+        {% endif %}
+
+        {% if is_admin and membership.user != group.admin %}
+          <form method="post" action="{% url 'remove_member' group.slug membership.user.id %}" style="margin-top: 16px;">
+            {% csrf_token %}
+            <button type="submit" class="btn-remove-member" onclick="return confirm('Czy na pewno chcesz usunąć {{ membership.user.username }} z grupy?')">
+              <i class="bi bi-x-circle"></i> Usuń z grupy
+            </button>
+          </form>
         {% endif %}
       </div>
     {% empty %}

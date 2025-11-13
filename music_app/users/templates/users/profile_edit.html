@@ -460,6 +460,23 @@
           Używany do logowania i powiadomień
         </div>
       </div>
+
+      <div class="form-group form-grid-full">
+        <label class="form-label-modern">
+          <i class="bi bi-geo-alt"></i> Miasto
+        </label>
+        <input 
+          type="text" 
+          class="form-control-modern" 
+          name="city" 
+          value="{{ city|default:'' }}"
+          placeholder="np. Warszawa, Kraków, Online..."
+          maxlength="200">
+        <div class="form-text-modern">
+          <i class="bi bi-info-circle"></i>
+          Twoje miasto zamieszkania (opcjonalne)
+        </div>
+      </div>
     </div>
 
     <!-- Music Preferences Section -->
@@ -523,6 +540,8 @@
       <i class="bi bi-chat-quote"></i>
       O mnie
     </div>
+
+    
 
     <div class="form-group">
       <label class="form-label-modern">Bio</label>

@@ -21,7 +21,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
-
+from groups.views import validate_city
 
 
 def login_view(request):
@@ -194,18 +194,40 @@ Zespół Insony
 def profile_edit(request):
     user = request.user
     if request.method == "POST":
-        if request.method == "POST":
-            # Handle picture removal
-            if request.POST.get('remove_picture') == 'true':
-                if user.profile_picture:
-                    user.profile_picture.delete()
-                    user.profile_picture = None
-            # Handle new picture upload
-            elif 'profile_picture' in request.FILES:
-                # Delete old picture if exists
-                if user.profile_picture:
-                    user.profile_picture.delete()
-                user.profile_picture = request.FILES['profile_picture']
+        # Handle picture removal
+        if request.POST.get('remove_picture') == 'true':
+            if user.profile_picture:
+                user.profile_picture.delete()
+                user.profile_picture = None
+        # Handle new picture upload
+        elif 'profile_picture' in request.FILES:
+            # Delete old picture if exists
+            if user.profile_picture:
+                user.profile_picture.delete()
+            user.profile_picture = request.FILES['profile_picture']
+        
+        # Get city and validate
+        city = request.POST.get("city")
+        
+        # Only validate if city is not empty
+        if city and not validate_city(city):
+            messages.error(request, f'Lokalizacja "{city}" nie istnieje w Polsce. Sprawdź pisownię lub pozostaw puste.')
+            all_genres = Genre.objects.all().order_by('name')
+            all_artists = Artist.objects.all().order_by('name')
+            return render(request, "users/profile_edit.html", {
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "favorite_genres": user.favorite_genres,
+                "favorite_artists": user.favorite_artists,
+                "bio": user.bio,
+                "city": city,  # Return the submitted city
+                "all_genres": all_genres,
+                "all_artists": all_artists,
+            })
+        
+        # Update user fields
+        user.city = city if city else None  # Set to None if empty
         user.email = request.POST.get("email", user.email)
         user.first_name = request.POST.get("first_name", user.first_name)
         user.last_name  = request.POST.get("last_name", user.last_name)
@@ -213,13 +235,14 @@ def profile_edit(request):
         user.favorite_artists = request.POST.get("favorite_artists", user.favorite_artists)
         user.bio = request.POST.get("bio", user.bio)
         user.save()
+        
         messages.success(request, "Profil zaktualizowano.")
         return redirect("profile")
     
     all_genres = Genre.objects.all().order_by('name')
     all_artists = Artist.objects.all().order_by('name')
 
-    # GET – показуємо форму з поточними значеннями
+    # GET – pokazujemy formularz z aktualnymi wartościami
     context = {
         "email": user.email,
         "first_name": user.first_name,
@@ -227,6 +250,7 @@ def profile_edit(request):
         "favorite_genres": user.favorite_genres,
         "favorite_artists": user.favorite_artists,
         "bio": user.bio,
+        "city": user.city,
         "all_genres": all_genres,
         "all_artists": all_artists,
     }

@@ -406,6 +406,9 @@
 
         <div class="group-actions">
           {% if is_admin %}
+            <a href="{% url 'group_chat' group.slug %}" class="btn-edit">
+              <i class="bi bi-chat-dots"></i> Czat grupy
+            </a>
             <a href="{% url 'group_edit' group.slug %}" class="btn-edit">
               <i class="bi bi-pencil"></i> Edytuj grupę
             </a>
@@ -413,6 +416,9 @@
               <i class="bi bi-trash"></i> Usuń grupę
             </a>
           {% elif is_member %}
+            <a href="{% url 'group_chat' group.slug %}" class="btn-edit">
+              <i class="bi bi-chat-dots"></i> Czat grupy
+            </a>
             <form method="post" action="{% url 'group_leave' group.slug %}" style="display: inline;">
               {% csrf_token %}
               <button type="submit" class="btn-leave" onclick="return confirm('Czy na pewno chcesz opuścić grupę?')">
@@ -574,6 +580,13 @@
           <span class="admin-badge">
             <i class="bi bi-star-fill"></i> Administrator
           </span>
+        {% elif is_admin %}
+          <form method="post" action="{% url 'remove_member' group.slug membership.user.id %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn-reject" onclick="return confirm('Czy na pewno chcesz usunąć {{ membership.user.username }} z grupy?')" title="Usuń z grupy">
+              <i class="bi bi-x-circle"></i>
+            </button>
+          </form>
         {% endif %}
       </div>
     {% empty %}

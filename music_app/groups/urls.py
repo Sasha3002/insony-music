@@ -4,6 +4,9 @@ from . import views
 urlpatterns = [
     path('', views.group_list, name='group_list'),
     path('create/', views.group_create, name='group_create'),
+    path('my-invitations/', views.my_invitations, name='my_invitations'),
+    path('invitation/<int:invitation_id>/accept/', views.accept_invitation, name='accept_invitation'),
+    path('invitation/<int:invitation_id>/decline/', views.decline_invitation, name='decline_invitation'),
     path('<slug:slug>/', views.group_detail, name='group_detail'),
     path('<slug:slug>/edit/', views.group_edit, name='group_edit'),
     path('<slug:slug>/delete/', views.group_delete, name='group_delete'),
@@ -13,4 +16,5 @@ urlpatterns = [
     path('<slug:slug>/members/', views.group_members, name='group_members'),
     path('<slug:slug>/approve/<int:membership_id>/', views.approve_member, name='approve_member'),
     path('<slug:slug>/reject/<int:membership_id>/', views.reject_member, name='reject_member'),
+    path('<slug:slug>/remove/<int:user_id>/', views.remove_member, name='remove_member'),
 ]

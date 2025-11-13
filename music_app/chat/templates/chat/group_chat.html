@@ -26,30 +26,24 @@
     gap: 16px;
   }
 
-  .chat-page-container .chat-header-avatar {
+  .chat-page-container .chat-header-icon {
     width: 50px;
     height: 50px;
     border-radius: 50%;
     overflow: hidden;
     border: 2px solid #2a2a2a;
-  }
-
-  .chat-page-container .chat-header-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .chat-page-container .chat-header-avatar .avatar-placeholder {
-    width: 100%;
-    height: 100%;
     background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 1.5rem;
     color: #fff;
-    font-weight: 700;
-    font-size: 1.2rem;
+  }
+
+  .chat-page-container .chat-header-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .chat-page-container .chat-header-info {
@@ -61,6 +55,11 @@
     font-weight: 700;
     color: #fff;
     margin: 0;
+  }
+
+  .chat-page-container .chat-header-subtitle {
+    color: #9aa0a6;
+    font-size: 0.9rem;
   }
 
   .chat-page-container .chat-messages {
@@ -115,14 +114,31 @@
     font-size: 1rem;
   }
 
-  .chat-page-container .message-content {
+  .chat-page-container .message-content-wrapper {
     max-width: 60%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chat-page-container .message-sender-name {
+    font-size: 0.85rem;
+    color: #9aa0a6;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  .chat-page-container .message.own .message-sender-name {
+    text-align: right;
+  }
+
+  .chat-page-container .message-content {
     background: #1a1a1a;
     border: 1px solid #2a2a2a;
     border-radius: 16px;
     padding: 12px 16px;
     color: #e6e6e6;
     line-height: 1.5;
+    position: relative;
   }
 
   .chat-page-container .message.own .message-content {
@@ -135,6 +151,33 @@
     font-size: 0.75rem;
     color: #6b7280;
     margin-top: 4px;
+  }
+
+  .chat-page-container .message-delete-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    transition: all 0.2s;
+  }
+
+  .chat-page-container .message-content:hover .message-delete-btn {
+    display: flex;
+  }
+
+  .chat-page-container .message-delete-btn:hover {
+    background: #dc2626;
+    transform: scale(1.1);
   }
 
   .chat-page-container .chat-input {
@@ -194,31 +237,59 @@
     transform: none;
     cursor: not-allowed;
   }
+
+  .date-divider {
+    text-align: center;
+    margin: 24px 0;
+    position: relative;
+  }
+
+  .date-divider::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: #2a2a2a;
+  }
+
+  .date-divider-text {
+    display: inline-block;
+    background: #0a0a0a;
+    padding: 4px 16px;
+    border-radius: 12px;
+    color: #9aa0a6;
+    font-size: 0.85rem;
+    position: relative;
+    z-index: 1;
+  }
 </style>
 
 <div class="container py-4 chat-page-container">
   
-  <a href="{% url 'chat_list' %}" class="btn btn-outline-light mb-3">
-    <i class="bi bi-arrow-left"></i> Powrót do wiadomości
+  <a href="{% url 'group_detail' group.slug %}" class="btn btn-outline-light mb-3">
+    <i class="bi bi-arrow-left"></i> Powrót do grupy
   </a>
 
   <div class="chat-container">
     <!-- Chat Header -->
     <div class="chat-header-detail">
-      <div class="chat-header-avatar">
-        {% if other_user.profile_picture %}
-          <img src="{{ other_user.profile_picture.url }}" alt="{{ other_user.username }}">
+      <div class="chat-header-icon">
+        {% if group.cover_image %}
+          <img src="{{ group.cover_image.url }}" alt="{{ group.name }}">
         {% else %}
-          <div class="avatar-placeholder">
-            {{ other_user.username|slice:":1"|upper }}
-          </div>
+          <i class="bi bi-people"></i>
         {% endif %}
       </div>
       <div class="chat-header-info">
-        <h1 class="chat-header-name">{{ other_user.username }}</h1>
+        <h1 class="chat-header-name">{{ group.name }}</h1>
+        <p class="chat-header-subtitle">
+          <i class="bi bi-people"></i> {{ group.member_count }} członków
+        </p>
       </div>
-      <a href="{% url 'user_profile_public' other_user.username %}" class="btn btn-outline-primary btn-sm">
-        <i class="bi bi-person"></i> Zobacz profil
+      <a href="{% url 'group_detail' group.slug %}" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-info-circle"></i> Informacje
       </a>
     </div>
 
@@ -235,15 +306,25 @@
               </div>
             {% endif %}
           </div>
-          <div class="message-content">
-            {{ message.content|linebreaks }}
-            <div class="message-time">{{ message.created_at|date:"H:i" }}</div>
+          <div class="message-content-wrapper">
+            {% if message.sender != request.user %}
+              <div class="message-sender-name">{{ message.sender.username }}</div>
+            {% endif %}
+            <div class="message-content">
+              {{ message.content|linebreaks }}
+              {% if is_admin or message.sender == request.user %}
+                <button class="message-delete-btn" onclick="deleteMessage({{ message.id }})" title="Usuń wiadomość">
+                  <i class="bi bi-x"></i>
+                </button>
+              {% endif %}
+              <div class="message-time">{{ message.created_at|date:"H:i" }}</div>
+            </div>
           </div>
         </div>
       {% empty %}
         <div style="text-align: center; color: #6b7280; padding: 40px;">
           <i class="bi bi-chat" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3;"></i>
-          <p>Rozpocznij rozmowę z {{ other_user.username }}!</p>
+          <p>Rozpocznij rozmowę w grupie!</p>
         </div>
       {% endfor %}
     </div>
@@ -252,7 +333,7 @@
     <div class="chat-input">
       <form id="messageForm" class="input-group-chat">
         {% csrf_token %}
-        <input type="hidden" name="conversation_id" value="{{ conversation.id }}">
+        <input type="hidden" name="group_id" value="{{ group.id }}">
         <input 
           type="text" 
           class="message-input" 
@@ -304,7 +385,7 @@
 
     try {
       const formData = new FormData();
-      formData.append('conversation_id', {{ conversation.id }});
+      formData.append('group_id', {{ group.id }});
       formData.append('content', content);
       formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
 
@@ -329,21 +410,24 @@
                 <div class="avatar-placeholder">{{ request.user.username|slice:":1"|upper }}</div>
               {% endif %}
             </div>
-            <div class="message-content">
-              ${data.message.content.replace(/\n/g, '<br>')}
-              <div class="message-time">${data.message.created_at}</div>
+            <div class="message-content-wrapper">
+              <div class="message-content">
+                ${data.message.content.replace(/\n/g, '<br>')}
+                <button class="message-delete-btn" onclick="deleteMessage(${data.message.id})" title="Usuń wiadomość">
+                  <i class="bi bi-x"></i>
+                </button>
+                <div class="message-time">${data.message.created_at}</div>
+              </div>
             </div>
           </div>
         `;
         
-        // Insert into the messages container
         messagesContainer.insertAdjacentHTML('beforeend', messageHTML);
-        
-        // Clear input
         messageInput.value = '';
-        
-        // Scroll to bottom
         scrollToBottom();
+        
+        // Update last message ID
+        lastMessageId = data.message.id;
       } else {
         alert(data.message || 'Błąd podczas wysyłania wiadomości');
       }
@@ -351,27 +435,55 @@
       console.error('Error sending message:', error);
       alert('Błąd podczas wysyłania wiadomości');
     } finally {
-      // Re-enable form
       sendBtn.disabled = false;
       messageInput.disabled = false;
       messageInput.focus();
     }
   });
 
-  // Focus input
-  messageInput.focus();
+  // Delete message
+  async function deleteMessage(messageId) {
+    if (!confirm('Czy na pewno chcesz usunąć tę wiadomość?')) return;
+    
+    try {
+      const formData = new FormData();
+      formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+      
+      const response = await fetch(`/chat/group/message/${messageId}/delete/`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (data.ok) {
+        // Remove message from UI
+        const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+        if (messageElement) {
+          messageElement.remove();
+        }
+      } else {
+        alert(data.message || 'Błąd podczas usuwania wiadomości');
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      alert('Błąd podczas usuwania wiadomości');
+    }
+  }
 
   // Poll for new messages every 3 seconds
   let lastMessageId = {{ messages.last.id|default:0 }};
   let pollInterval;
-  
+
   function pollNewMessages() {
-    fetch(`/chat/conversation/{{ conversation.id }}/new/?last_message_id=${lastMessageId}`)
+    fetch(`/chat/group/{{ group.id }}/new/?last_message_id=${lastMessageId}`)
       .then(response => response.json())
       .then(data => {
         if (data.ok && data.messages.length > 0) {
           data.messages.forEach(msg => {
-            // Add new message to UI
             const messageHTML = `
               <div class="message" data-message-id="${msg.id}">
                 <div class="message-avatar">
@@ -380,9 +492,12 @@
                     : `<div class="avatar-placeholder">${msg.sender.charAt(0).toUpperCase()}</div>`
                   }
                 </div>
-                <div class="message-content">
-                  ${msg.content.replace(/\n/g, '<br>')}
-                  <div class="message-time">${msg.created_at}</div>
+                <div class="message-content-wrapper">
+                  <div class="message-sender-name">${msg.sender}</div>
+                  <div class="message-content">
+                    ${msg.content.replace(/\n/g, '<br>')}
+                    <div class="message-time">${msg.created_at}</div>
+                  </div>
                 </div>
               </div>
             `;
@@ -396,14 +511,17 @@
       })
       .catch(error => console.error('Polling error:', error));
   }
-  
-  // Start polling when page loads
-  pollInterval = setInterval(pollNewMessages, 3000); // Check every 3 seconds
-  
-  // Stop polling when user leaves page
+
+  // Start polling
+  pollInterval = setInterval(pollNewMessages, 3000);
+
+  // Stop polling when leaving page
   window.addEventListener('beforeunload', () => {
     clearInterval(pollInterval);
   });
+
+  // Focus input
+  messageInput.focus();
 </script>
 
 {% endblock %}

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from groups.models import Group
 
 User = get_user_model()
 
@@ -86,3 +87,32 @@ class MessageRead(models.Model):
     
     class Meta:
         unique_together = ('message', 'user')
+
+
+class GroupChatMessage(models.Model):
+    """Message in group chat"""
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='chat_messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    edited_at = models.DateTimeField(null=True, blank=True)
+    is_edited = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['created_at']
+    
+    def __str__(self):
+        return f"{self.sender.username} in {self.group.name}: {self.content[:50]}..."
+
+
+class GroupChatRead(models.Model):
+    """Track when users last read group chat"""
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='chat_reads')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    last_read_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('group', 'user')
+    
+    def __str__(self):
+        return f"{self.user.username} read {self.group.name} at {self.last_read_at}"

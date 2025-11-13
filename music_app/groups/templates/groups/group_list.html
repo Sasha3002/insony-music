@@ -286,10 +286,21 @@
         </h1>
         <p class="groups-subtitle">Znajdź i dołącz do społeczności muzycznych</p>
       </div>
-      <a href="{% url 'group_create' %}" class="btn-create-group">
-        <i class="bi bi-plus-circle"></i>
-        Utwórz grupę
-      </a>
+      <div class="d-flex gap-3">
+        <a href="{% url 'my_invitations' %}" class="btn-create-group" style="background: rgba(251, 146, 60, 0.1); border: 1px solid rgba(251, 146, 60, 0.3); color: #fb923c; position: relative;">
+          <i class="bi bi-envelope"></i>
+          Zaproszenia
+          {% if invitation_count > 0 %}
+            <span style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: #fff; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; border: 2px solid #1a1a1a;">
+              {{ invitation_count }}
+            </span>
+          {% endif %}
+        </a>
+        <a href="{% url 'group_create' %}" class="btn-create-group">
+          <i class="bi bi-plus-circle"></i>
+          Utwórz grupę
+        </a>
+      </div>
     </div>
   </div>
 

@@ -6,7 +6,8 @@ from django.views.decorators.http import require_POST
 from django.db.models import Q, Count, Max
 from django.utils import timezone
 from django.contrib import messages
-from .models import Conversation, ChatParticipant, Message, MessageRead
+from .models import Conversation, ChatParticipant, Message, MessageRead, GroupChatMessage, GroupChatRead
+from groups.models import Group, GroupMembership
 
 User = get_user_model()
 
@@ -213,3 +214,123 @@ def get_unread_counts(request):
         'ok': True,
         'conversations': data_list
     })
+
+
+@login_required
+def group_chat(request, group_slug):
+    """View group chat"""
+    group = get_object_or_404(Group, slug=group_slug)
+    
+    # Check if user is a member
+    from groups.models import GroupMembership
+    if not GroupMembership.objects.filter(group=group, user=request.user, status='accepted').exists():
+        messages.error(request, 'Tylko członkowie mogą przeglądać czat grupy')
+        return redirect('group_detail', slug=group_slug)
+    
+    # Get messages
+    chat_messages = group.chat_messages.select_related('sender').order_by('created_at')
+    
+    # Mark as read
+    chat_read, created = GroupChatRead.objects.get_or_create(
+        group=group,
+        user=request.user
+    )
+    chat_read.save()  # Updates last_read_at
+    
+    is_admin = group.admin == request.user
+    
+    return render(request, 'chat/group_chat.html', {
+        'group': group,
+        'messages': chat_messages,
+        'is_admin': is_admin,
+    })
+
+
+@require_POST
+@login_required
+def send_group_message(request):
+    """Send a message to group chat via AJAX"""
+    group_id = request.POST.get('group_id')
+    content = request.POST.get('content', '').strip()
+    
+    if not content:
+        return JsonResponse({'ok': False, 'message': 'Wiadomość nie może być pusta'})
+    
+    group = get_object_or_404(Group, id=group_id)
+    
+    # Check if user is a member
+    from groups.models import GroupMembership
+    if not GroupMembership.objects.filter(group=group, user=request.user, status='accepted').exists():
+        return JsonResponse({'ok': False, 'message': 'Nie jesteś członkiem grupy'})
+    
+    # Create message
+    message = GroupChatMessage.objects.create(
+        group=group,
+        sender=request.user,
+        content=content
+    )
+    
+    return JsonResponse({
+        'ok': True,
+        'message': {
+            'id': message.id,
+            'content': message.content,
+            'sender': message.sender.username,
+            'sender_picture': message.sender.profile_picture.url if message.sender.profile_picture else None,
+            'created_at': message.created_at.strftime('%H:%M'),
+            'is_own': message.sender == request.user
+        }
+    })
+
+
+@login_required
+def get_new_group_messages(request, group_id):
+    """Get new group messages via AJAX"""
+    group = get_object_or_404(Group, id=group_id)
+    
+    # Check if user is a member
+    from groups.models import GroupMembership
+    if not GroupMembership.objects.filter(group=group, user=request.user, status='accepted').exists():
+        return JsonResponse({'ok': False, 'message': 'Brak dostępu'})
+    
+    # Get last message ID from request
+    last_message_id = request.GET.get('last_message_id', 0)
+    
+    # Get messages newer than last_message_id
+    new_messages = group.chat_messages.filter(
+        id__gt=last_message_id
+    ).exclude(
+        sender=request.user
+    ).select_related('sender').order_by('created_at')
+    
+    messages_data = []
+    for msg in new_messages:
+        messages_data.append({
+            'id': msg.id,
+            'content': msg.content,
+            'sender': msg.sender.username,
+            'sender_picture': msg.sender.profile_picture.url if msg.sender.profile_picture else None,
+            'created_at': msg.created_at.strftime('%H:%M'),
+            'is_own': False
+        })
+    
+    return JsonResponse({
+        'ok': True,
+        'messages': messages_data
+    })
+
+
+@require_POST
+@login_required
+def delete_group_message(request, message_id):
+    """Delete a group message (admin only or message sender)"""
+    message = get_object_or_404(GroupChatMessage, id=message_id)
+    group = message.group
+    
+    # Only admin or message sender can delete
+    if message.sender != request.user and group.admin != request.user:
+        return JsonResponse({'ok': False, 'message': 'Brak uprawnień'})
+    
+    message.delete()
+    return JsonResponse({'ok': True})
+
