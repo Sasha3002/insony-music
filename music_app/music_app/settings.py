@@ -101,7 +101,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Warsaw'
 
 USE_I18N = True
 
@@ -125,6 +126,7 @@ INSTALLED_APPS += [
     'music_app',
     'chat',
     'groups',
+    'events',
 ]
 
 STATICFILES_DIRS = [ BASE_DIR / 'static' ]
@@ -152,3 +154,5 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')     #'your-app-password'  Ap
 
 # DEFAULT_FROM_EMAIL = 'noreply@insony.com'
 EMAIL_VERIFICATION_REQUIRED = True
+
+

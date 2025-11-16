@@ -9,6 +9,7 @@ from music.models import Genre
 from django.contrib.auth import get_user_model
 import requests
 from time import sleep
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -71,6 +72,21 @@ def group_detail(request, slug):
     pending_requests = []
     if is_admin:
         pending_requests = group.members.filter(status='pending').select_related('user')
+
+    now = timezone.now()
+    
+    upcoming_events = []
+    past_events = []
+    
+    for event in group.events.all().select_related('creator').prefetch_related('attendees'):
+        if event.is_past:
+            past_events.append(event)
+        else:
+            upcoming_events.append(event)
+    
+    # Sort events
+    upcoming_events.sort(key=lambda x: x.event_date)
+    past_events.sort(key=lambda x: x.event_date, reverse=True)
     
     return render(request, 'groups/group_detail.html', {
         'group': group,
@@ -79,6 +95,8 @@ def group_detail(request, slug):
         'has_pending_request': has_pending_request,
         'members': members,
         'pending_requests': pending_requests,
+        'upcoming_events': upcoming_events,
+        'past_events': past_events,
     })
 
 def validate_city(city_name):
@@ -195,8 +213,10 @@ def group_edit(request, slug):
         group.description = request.POST.get('description')
         group.type = request.POST.get('type', 'public')
         
-        if request.FILES.get('cover_image'):
-            group.cover_image = request.FILES.get('cover_image')
+        if 'cover_image' in request.FILES:
+            if group.cover_image:
+                group.cover_image.delete()  # Delete old image
+            group.cover_image = request.FILES['cover_image']
         
         genre_ids = request.POST.getlist('genres')
         

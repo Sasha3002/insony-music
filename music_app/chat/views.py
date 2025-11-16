@@ -222,7 +222,6 @@ def group_chat(request, group_slug):
     group = get_object_or_404(Group, slug=group_slug)
     
     # Check if user is a member
-    from groups.models import GroupMembership
     if not GroupMembership.objects.filter(group=group, user=request.user, status='accepted').exists():
         messages.error(request, 'Tylko członkowie mogą przeglądać czat grupy')
         return redirect('group_detail', slug=group_slug)

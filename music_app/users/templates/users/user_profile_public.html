@@ -16,6 +16,11 @@
       <h1 class="profile-username">{{ profile_user.username }}</h1>
       <div class="profile-meta">
         <i class="bi bi-calendar3"></i> Zarejestrowany: {{ profile_user.date_joined|date:"d.m.Y" }}
+        {% if profile_user.city %}
+          <span style="margin-left: 16px;">
+            <i class="bi bi-geo-alt-fill"></i> {{ profile_user.city }}
+          </span>
+        {% endif %}
       </div>
       
       {% if request.user.is_authenticated and request.user != profile_user %}

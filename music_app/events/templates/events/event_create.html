@@ -1,0 +1,315 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .create-event-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .create-header {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    border: 1px solid #2a2a2a;
+  }
+
+  .create-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .create-subtitle {
+    color: #9aa0a6;
+    font-size: 1rem;
+  }
+
+  .create-form {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .form-group {
+    margin-bottom: 24px;
+  }
+
+  .form-label {
+    color: #e6e6e6;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+    font-size: 0.95rem;
+  }
+
+  .form-label-required::after {
+    content: " *";
+    color: #ef4444;
+  }
+
+  .form-input,
+  .form-textarea {
+    background: #1f2329;
+    border: 1px solid #2a2f32;
+    color: #e9ecf3;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    width: 100%;
+    transition: all 0.2s;
+  }
+
+  .form-input:focus,
+  .form-textarea:focus {
+    background: #1f2329;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    color: #e9ecf3;
+    outline: none;
+  }
+
+  .form-textarea {
+    min-height: 120px;
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  .form-help {
+    color: #9aa0a6;
+    font-size: 0.85rem;
+    margin-top: 6px;
+  }
+
+  .file-input-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    width: 100%;
+  }
+
+  .file-input-button {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    padding: 12px 20px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .file-input-button:hover {
+    background: rgba(59, 130, 246, 0.2);
+  }
+
+  .file-input-wrapper input[type=file] {
+    position: absolute;
+    left: -9999px;
+  }
+
+  .file-name {
+    color: #9aa0a6;
+    margin-top: 8px;
+    font-size: 0.9rem;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #2a2a2a;
+  }
+
+  .btn-submit {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 32px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+  }
+
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  }
+
+  .btn-cancel {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    padding: 14px 32px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-cancel:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    text-decoration: none;
+  }
+</style>
+
+<div class="container py-4">
+  <div class="create-event-container">
+    
+    <a href="{% url 'group_detail' group.slug %}" class="btn btn-outline-light mb-3">
+      <i class="bi bi-arrow-left"></i> Powrót do grupy
+    </a>
+
+    <div class="create-header">
+      <h1 class="create-title">
+        <i class="bi bi-calendar-plus"></i>
+        Utwórz wydarzenie
+      </h1>
+      <p class="create-subtitle">{{ group.name }}</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="create-form">
+      {% csrf_token %}
+
+      <!-- Event Title -->
+      <div class="form-group">
+        <label for="title" class="form-label form-label-required">Tytuł wydarzenia</label>
+        <input 
+          type="text" 
+          id="title" 
+          name="title" 
+          class="form-input" 
+          placeholder="np. Koncert jazzowy w centrum"
+          required
+          maxlength="200">
+        <p class="form-help">Wybierz chwytliwy i opisowy tytuł</p>
+      </div>
+
+      <!-- Location -->
+      <div class="form-group">
+        <label for="location" class="form-label form-label-required">Dokładne miejsce</label>
+        <input 
+          type="text" 
+          id="location" 
+          name="location" 
+          class="form-input" 
+          placeholder="np. Jazz Club Blue Note, ul. Nowy Świat 25"
+          required
+          maxlength="200">
+        <p class="form-help">
+          <i class="bi bi-geo-alt"></i> 
+          Miasto: <strong>{{ group.location }}</strong> (z ustawień grupy)
+        </p>
+      </div>
+
+      <!-- Event Date -->
+      <div class="form-group">
+        <label for="event_date" class="form-label form-label-required">Data i godzina</label>
+        <input 
+          type="datetime-local" 
+          id="event_date" 
+          name="event_date" 
+          class="form-input" 
+          required>
+        <p class="form-help">Kiedy odbędzie się wydarzenie?</p>
+      </div>
+
+      <!-- End Date -->
+      <div class="form-group">
+        <label for="end_date" class="form-label">Data i godzina zakończenia</label>
+        <input 
+          type="datetime-local" 
+          id="end_date" 
+          name="end_date" 
+          class="form-input">
+        <p class="form-help">Opcjonalnie - kiedy zakończy się wydarzenie</p>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label for="description" class="form-label form-label-required">Opis wydarzenia</label>
+        <textarea 
+          id="description" 
+          name="description" 
+          class="form-textarea" 
+          placeholder="Opisz co czeka uczestników, jakie będzie wydarzenie, kto wystąpi..."
+          required></textarea>
+        <p class="form-help">Minimum 20 znaków</p>
+      </div>
+
+      <!-- Event Image -->
+      <div class="form-group">
+        <label class="form-label">Zdjęcie wydarzenia</label>
+        <div class="file-input-wrapper">
+          <label for="event_image" class="file-input-button">
+            <i class="bi bi-image"></i>
+            Wybierz zdjęcie
+          </label>
+          <input 
+            type="file" 
+            id="event_image" 
+            name="event_image" 
+            accept="image/*"
+            onchange="updateFileName(this)">
+        </div>
+        <p class="file-name" id="file-name">Nie wybrano pliku</p>
+        <p class="form-help">Rekomendowany rozmiar: 1200x600px (opcjonalne)</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">
+          <i class="bi bi-check-circle"></i> Utwórz wydarzenie
+        </button>
+        <a href="{% url 'group_detail' group.slug %}" class="btn-cancel">
+          Anuluj
+        </a>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+  function updateFileName(input) {
+    const fileName = document.getElementById('file-name');
+    if (input.files && input.files[0]) {
+      fileName.textContent = input.files[0].name;
+    } else {
+      fileName.textContent = 'Nie wybrano pliku';
+    }
+  }
+
+  // Set minimum date to today
+  const dateInput = document.getElementById('event_date');
+  const endDateInput = document.getElementById('end_date');
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  dateInput.min = now.toISOString().slice(0, 16);
+
+  // Set end date minimum to start date
+  function setMinEndDate() {
+    const startDate = dateInput.value;
+    if (startDate) {
+      endDateInput.min = startDate;
+    }
+  }
+</script>
+
+{% endblock %}

@@ -406,6 +406,9 @@
 
         <div class="group-actions">
           {% if is_admin %}
+            <a href="{% url 'event_create' group.slug %}" class="btn-edit">
+              <i class="bi bi-calendar-plus"></i> Utwórz wydarzenie
+            </a>
             <a href="{% url 'group_chat' group.slug %}" class="btn-edit">
               <i class="bi bi-chat-dots"></i> Czat grupy
             </a>
@@ -538,6 +541,119 @@
           </div>
         </div>
       {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Upcoming Events -->
+  <div class="members-section">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="section-title mb-0">
+        <i class="bi bi-calendar-event"></i>
+        Nadchodzące wydarzenia
+      </h2>
+    </div>
+
+    {% if upcoming_events %}
+      {% for event in upcoming_events|slice:":3" %}
+        <a href="{% url 'event_detail' event.slug %}" class="member-card" style="text-decoration: none; color: inherit;">
+          <div class="member-avatar">
+            {% if event.event_image %}
+              <img src="{{ event.event_image.url }}" alt="{{ event.title }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+            {% else %}
+              <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #2563eb, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border-radius: 8px;">
+                <i class="bi bi-calendar-event"></i>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="member-info">
+            <div class="member-name">{{ event.title }}</div>
+            <div class="member-role">
+              <i class="bi bi-clock"></i>
+              {{ event.event_date|date:"d.m.Y, H:i" }}
+              {% if event.end_date %}
+                - {{ event.end_date|date:"H:i" }}
+              {% endif %}
+            </div>
+            <div class="member-role">
+              <i class="bi bi-geo-alt"></i>
+              {{ event.location }}
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; color: #10b981; font-weight: 600;">
+            <i class="bi bi-people-fill"></i>
+            {{ event.attendee_count }}
+          </div>
+        </a>
+      {% endfor %}
+      
+      {% if upcoming_events|length > 3 %}
+        <div style="text-align: center; margin-top: 16px;">
+          <a href="{% url 'event_list' %}?filter=my" class="btn btn-outline-light">
+            Zobacz wszystkie ({{ upcoming_events|length }})
+          </a>
+        </div>
+      {% endif %}
+    {% else %}
+      <p style="color: #9aa0a6; text-align: center; padding: 20px;">
+        <i class="bi bi-calendar-x"></i>
+        Brak nadchodzących wydarzeń
+      </p>
+    {% endif %}
+  </div>
+
+  <!-- Past Events -->
+  {% if past_events %}
+    <div class="members-section" style="margin-top: 32px;">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="section-title mb-0">
+          <i class="bi bi-clock-history"></i>
+          Archiwum wydarzeń
+        </h2>
+      </div>
+
+      {% for event in past_events|slice:":3" %}
+        <a href="{% url 'event_detail' event.slug %}" class="member-card" style="text-decoration: none; color: inherit; opacity: 0.7; transition: opacity 0.2s;">
+          <div class="member-avatar">
+            {% if event.event_image %}
+              <img src="{{ event.event_image.url }}" alt="{{ event.title }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; filter: grayscale(50%);">
+            {% else %}
+              <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #6b7280, #9ca3af); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border-radius: 8px;">
+                <i class="bi bi-calendar-check"></i>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="member-info">
+            <div class="member-name">{{ event.title }}</div>
+            <div class="member-role">
+              <i class="bi bi-clock"></i>
+              {{ event.event_date|date:"d.m.Y, H:i" }}
+              {% if event.end_date %}
+                - {{ event.end_date|date:"H:i" }}
+              {% endif %}
+            </div>
+            <div class="member-role">
+              <i class="bi bi-geo-alt"></i>
+              {{ event.location }}
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; color: #6b7280; font-weight: 600;">
+            <i class="bi bi-check-circle"></i>
+            Zakończone
+          </div>
+        </a>
+      {% endfor %}
+      
+      {% if past_events|length > 3 %}
+        <div style="text-align: center; margin-top: 16px;">
+          <a href="{% url 'event_list' %}?filter=past" class="btn btn-outline-light">
+            Zobacz archiwum ({{ past_events|length }})
+          </a>
+        </div>
+      {% endif %}
     </div>
   {% endif %}
 

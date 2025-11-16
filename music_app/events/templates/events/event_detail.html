@@ -1,0 +1,638 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .event-header {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid #2a2a2a;
+    margin-bottom: 32px;
+  }
+
+  .event-cover {
+    height: 400px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #2a2a2a, #1f1f1f);
+  }
+
+  .event-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .event-cover-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 6rem;
+    color: rgba(255,255,255,0.2);
+  }
+
+  .event-cover-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%);
+  }
+
+  .event-header-content {
+    padding: 32px;
+  }
+
+  .event-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #60a5fa;
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+  }
+
+  .event-breadcrumb a {
+    color: #60a5fa;
+    text-decoration: none;
+  }
+
+  .event-breadcrumb a:hover {
+    text-decoration: underline;
+  }
+
+  .event-title-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .event-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+  }
+
+  .event-actions {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .btn-attend {
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-attend:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+  }
+
+  .btn-attend.active {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+  }
+
+  .btn-maybe {
+    background: rgba(251, 146, 60, 0.1);
+    color: #fb923c;
+    border: 1px solid rgba(251, 146, 60, 0.3);
+  }
+
+  .btn-maybe:hover {
+    background: rgba(251, 146, 60, 0.2);
+  }
+
+  .btn-edit {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-edit:hover {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    text-decoration: none;
+  }
+
+  .event-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .event-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .event-meta-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(59, 130, 246, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: #60a5fa;
+  }
+
+  .event-meta-content {
+    flex: 1;
+  }
+
+  .event-meta-label {
+    font-size: 0.8rem;
+    color: #9aa0a6;
+    margin-bottom: 2px;
+  }
+
+  .event-meta-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .event-section {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .event-description {
+    color: #e6e6e6;
+    line-height: 1.8;
+    font-size: 1rem;
+  }
+
+  .attendees-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .attendee-card {
+    background: #0f0f0f;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s;
+  }
+
+  .attendee-card:hover {
+    border-color: #3b82f6;
+  }
+
+  .attendee-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid #2a2a2a;
+    flex-shrink: 0;
+  }
+
+  .attendee-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .attendee-avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.2rem;
+  }
+
+  .attendee-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .attendee-name {
+    color: #fff;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .attendee-name a {
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .attendee-name a:hover {
+    color: #60a5fa;
+  }
+
+  .past-event-banner {
+    background: rgba(107, 114, 128, 0.2);
+    border: 1px solid rgba(107, 114, 128, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #9aa0a6;
+  }
+
+  @media (max-width: 768px) {
+    .event-cover {
+      height: 250px;
+    }
+
+    .event-title {
+      font-size: 1.8rem;
+    }
+
+    .event-title-section {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<div class="container py-4">
+  
+  <a href="{% url 'event_list' %}" class="btn btn-outline-light mb-3">
+    <i class="bi bi-arrow-left"></i> Powrót do wydarzeń
+  </a>
+
+  <!-- Event Header -->
+  <div class="event-header">
+    {% if event.is_past %}
+      <div class="past-event-banner" style="margin: 24px 24px;">
+        <i class="bi bi-clock-history" style="font-size: 1.5rem;"></i>
+        <div>
+          <strong>To wydarzenie już się odbyło</strong>
+          <div style="font-size: 0.85rem;">
+            {{ event.event_date|date:"d.m.Y, H:i" }}
+            {% if event.end_date %}
+              - {{ event.end_date|date:"H:i" }}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="event-cover">
+      {% if event.event_image %}
+        <img src="{{ event.event_image.url }}" alt="{{ event.title }}">
+      {% else %}
+        <div class="event-cover-placeholder">
+          <i class="bi bi-calendar-event"></i>
+        </div>
+      {% endif %}
+      <div class="event-cover-overlay"></div>
+    </div>
+
+    <div class="event-header-content">
+      <div class="event-breadcrumb">
+        <a href="{% url 'group_detail' event.group.slug %}">
+          <i class="bi bi-people"></i> {{ event.group.name }}
+        </a>
+        <i class="bi bi-chevron-right"></i>
+        <span>{{ event.title }}</span>
+      </div>
+
+      <div class="event-title-section">
+        <h1 class="event-title">{{ event.title }}</h1>
+
+        <div class="event-actions">
+          {% if is_creator or is_admin %}
+            <a href="{% url 'event_edit' event.slug %}" class="btn-edit">
+              <i class="bi bi-pencil"></i> Edytuj
+            </a>
+            <a href="{% url 'event_delete' event.slug %}" class="btn-edit" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1);">
+              <i class="bi bi-trash"></i> Usuń
+            </a>
+          {% elif is_member and not event.is_past %}
+            <form method="post" action="{% url 'event_attend' event.slug %}" style="display: flex; gap: 12px;">
+              {% csrf_token %}
+              <button type="submit" name="status" value="going" class="btn-attend {% if user_attendance and user_attendance.status == 'going' %}active{% endif %}">
+                <i class="bi bi-check-circle"></i>
+                {% if user_attendance and user_attendance.status == 'going' %}Idę!{% else %}Wezmę udział{% endif %}
+              </button>
+              <button type="submit" name="status" value="maybe" class="btn-attend btn-maybe {% if user_attendance and user_attendance.status == 'maybe' %}active{% endif %}">
+                <i class="bi bi-question-circle"></i> Może
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="event-meta-grid">
+        <div class="event-meta-item">
+          <div class="event-meta-icon">
+            <i class="bi bi-calendar-event"></i>
+          </div>
+          <div class="event-meta-content">
+            <div class="event-meta-label">Data</div>
+            <div class="event-meta-value">{{ event.event_date|date:"d.m.Y" }}</div>
+          </div>
+        </div>
+
+        <div class="event-meta-item">
+          <div class="event-meta-icon">
+            <i class="bi bi-clock"></i>
+          </div>
+          <div class="event-meta-content">
+            <div class="event-meta-label">Czas</div>
+            <div class="event-meta-value">
+              {{ event.event_date|date:"H:i" }}
+              {% if event.end_date %}
+                - {{ event.end_date|date:"H:i" }}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="event-meta-item">
+          <div class="event-meta-icon">
+            <i class="bi bi-geo-alt"></i>
+          </div>
+          <div class="event-meta-content">
+            <div class="event-meta-label">Lokalizacja</div>
+            <div class="event-meta-value">{{ event.full_location }}</div>
+          </div>
+        </div>
+
+        <div class="event-meta-item">
+          <div class="event-meta-icon">
+            <i class="bi bi-people"></i>
+          </div>
+          <div class="event-meta-content">
+            <div class="event-meta-label">Uczestników</div>
+            <div class="event-meta-value">{{ attendees|length }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <div class="event-section">
+    <h2 class="section-title">
+      <i class="bi bi-info-circle"></i>
+      O wydarzeniu
+    </h2>
+    <div class="event-description">{{ event.description|linebreaks }}</div>
+  </div>
+
+  <!-- Attendees -->
+  <div class="event-section">
+    <h2 class="section-title">
+      <i class="bi bi-people-fill"></i>
+      Uczestnicy ({{ attendees|length }})
+    </h2>
+
+    {% if attendees %}
+      <div class="attendees-grid">
+        {% for attendee in attendees %}
+          <div class="attendee-card">
+            <div class="attendee-avatar">
+              {% if attendee.user.profile_picture %}
+                <img src="{{ attendee.user.profile_picture.url }}" alt="{{ attendee.user.username }}">
+              {% else %}
+                <div class="attendee-avatar-placeholder">
+                  {{ attendee.user.username|slice:":1"|upper }}
+                </div>
+              {% endif %}
+            </div>
+            <div class="attendee-info">
+              <div class="attendee-name">
+                <a href="{% url 'user_profile_public' attendee.user.username %}">
+                  {{ attendee.user.username }}
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p style="color: #9aa0a6; text-align: center; padding: 40px;">
+        Brak uczestników. Bądź pierwszy!
+      </p>
+    {% endif %}
+  </div>
+
+  <!-- Ratings Section (for past events) -->
+  {% if event.is_past %}
+    <div class="event-section">
+      <h2 class="section-title">
+        <i class="bi bi-star-fill"></i>
+        Oceny wydarzenia
+        {% if event.rating_count > 0 %}
+          <span style="color: #9aa0a6; font-size: 1rem; font-weight: 400;">
+            ({{ event.average_rating|floatformat:1 }}★ z {{ event.rating_count }} ocen)
+          </span>
+        {% endif %}
+      </h2>
+    
+      <!-- Rating Form (if user can rate) -->
+      {% if can_rate %}
+        <div style="background: #0f0f0f; border: 1px solid #2a2a2a; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+          <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 16px;">
+            {% if user_rating %}
+              Edytuj swoją ocenę
+            {% else %}
+              Oceń wydarzenie
+            {% endif %}
+          </h3>
+          
+          <form method="post" action="{% url 'rate_event' event.slug %}">
+            {% csrf_token %}
+            
+            <!-- Star Rating -->
+            <div style="margin-bottom: 20px;">
+              <div class="star-rating" style="display: flex; gap: 8px; font-size: 2rem; flex-direction: row;">
+                {% for i in "12345" %}
+                  <input type="radio" name="rating" value="{{ forloop.counter }}" id="star{{ forloop.counter }}" 
+                         {% if user_rating and user_rating.rating == forloop.counter %}checked{% endif %}
+                         style="display: none;">
+                  <label for="star{{ forloop.counter }}" class="star-label" 
+                         style="cursor: pointer; color: #6b7280; transition: all 0.2s;" 
+                         data-rating="{{ forloop.counter }}">
+                    ★
+                  </label>
+                {% endfor %}
+              </div>
+            </div>
+          
+            <!-- Comment -->
+            <div style="margin-bottom: 20px;">
+              <label style="color: #e6e6e6; font-weight: 600; margin-bottom: 8px; display: block;">
+                Komentarz (opcjonalnie)
+              </label>
+              <textarea 
+                name="comment" 
+                rows="3" 
+                placeholder="Podziel się swoimi wrażeniami..."
+                style="background: #1f2329; border: 1px solid #2a2f32; color: #e9ecf3; border-radius: 12px; padding: 12px; width: 100%; resize: vertical;">{{ user_rating.comment|default:'' }}</textarea>
+            </div>
+          
+            <!-- Buttons -->
+            <div style="display: flex; gap: 12px;">
+              <button type="submit" style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; border: none; border-radius: 12px; padding: 12px 24px; font-weight: 600; cursor: pointer;">
+                <i class="bi bi-check-circle"></i>
+                {% if user_rating %}Zaktualizuj{% else %}Wyślij{% endif %} ocenę
+              </button>
+              
+              {% if user_rating %}
+                <form method="post" action="{% url 'delete_rating' event.slug %}" style="display: inline;">
+                  {% csrf_token %}
+                  <button type="submit" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 12px 24px; font-weight: 600; cursor: pointer;">
+                    <i class="bi bi-trash"></i> Usuń ocenę
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+      {% endif %}
+      
+      <!-- Display Ratings -->
+      {% if ratings %}
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          {% for rating in ratings %}
+            <div style="background: #0f0f0f; border: 1px solid #2a2a2a; border-radius: 12px; padding: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                    {% if rating.user.profile_picture %}
+                      <img src="{{ rating.user.profile_picture.url }}" alt="{{ rating.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                      <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700;">
+                        {{ rating.user.username|slice:":1"|upper }}
+                      </div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <a href="{% url 'user_profile_public' rating.user.username %}" style="color: #fff; font-weight: 600; text-decoration: none;">
+                      {{ rating.user.username }}
+                    </a>
+                    <div style="color: #9aa0a6; font-size: 0.85rem;">
+                      {{ rating.created_at|date:"d.m.Y, H:i" }}
+                    </div>
+                  </div>
+                </div>
+                
+                <div style="color: #fbbf24; font-size: 1.2rem;">
+                  {% for i in "12345" %}
+                    {% if i|add:0 <= rating.rating %}★{% else %}☆{% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+              
+              {% if rating.comment %}
+                <p style="color: #e6e6e6; margin: 0; line-height: 1.6;">
+                  {{ rating.comment }}
+                </p>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p style="color: #9aa0a6; text-align: center; padding: 40px;">
+          Brak ocen. Bądź pierwszy!
+        </p>
+      {% endif %}
+    </div>
+  {% endif %}
+  
+  <script>
+  // Star rating interaction
+  document.addEventListener('DOMContentLoaded', function() {
+    const stars = document.querySelectorAll('.star-label');
+    const radios = document.querySelectorAll('input[name="rating"]');
+
+    // Highlight stars on hover
+    stars.forEach((star, index) => {
+      star.addEventListener('mouseenter', function() {
+        highlightStars(index + 1);
+      });
+    });
+
+    // Reset on mouse leave
+    document.querySelector('.star-rating')?.addEventListener('mouseleave', function() {
+      const checkedRadio = document.querySelector('input[name="rating"]:checked');
+      if (checkedRadio) {
+        const rating = parseInt(checkedRadio.value);
+        highlightStars(rating);
+      } else {
+        highlightStars(0);
+      }
+    });
+
+    // Update on click
+    radios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        highlightStars(parseInt(this.value));
+      });
+    });
+
+    // Initial highlight if rating exists
+    const checkedRadio = document.querySelector('input[name="rating"]:checked');
+    if (checkedRadio) {
+      highlightStars(parseInt(checkedRadio.value));
+    }
+
+    function highlightStars(rating) {
+      stars.forEach((star, index) => {
+        if (index < rating) {
+          star.style.color = '#fbbf24';
+        } else {
+          star.style.color = '#6b7280';
+        }
+      });
+    }
+  });
+  </script>
+
+</div>
+
+{% endblock %}
