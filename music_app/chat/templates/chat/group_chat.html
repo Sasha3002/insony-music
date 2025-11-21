@@ -1,272 +1,16 @@
 {% extends "users/base.html" %}
 {% load static %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+{% endblock %}
+
 {% block content %}
 {% block global_messages %}
   {# Disable Django messages on chat page #}
 {% endblock %}
 
-<style>
-  .chat-page-container .chat-container {
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    background: #0a0a0a; 
-    border-radius: 20px; 
-    overflow: hidden;
-  }
-
-  .chat-page-container .chat-header-detail {
-    background: linear-gradient(135deg, #1a1a1a, #151515);
-    border-radius: 20px 20px 0 0;
-    padding: 20px 32px;
-    border: 1px solid #2a2a2a;
-    border-bottom: none;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .chat-page-container .chat-header-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 2px solid #2a2a2a;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: #fff;
-  }
-
-  .chat-page-container .chat-header-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .chat-page-container .chat-header-info {
-    flex: 1;
-  }
-
-  .chat-page-container .chat-header-name {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #fff;
-    margin: 0;
-  }
-
-  .chat-page-container .chat-header-subtitle {
-    color: #9aa0a6;
-    font-size: 0.9rem;
-  }
-
-  .chat-page-container .chat-messages {
-    background: #0a0a0a;
-    border: 1px solid #2a2a2a;
-    border-top: none;
-    border-bottom: none;
-    padding: 20px;
-    flex: 1;
-    overflow-y: auto;
-    max-height: 400px;
-    min-height: 300px;
-    position: relative;
-  }
-
-  .chat-page-container .message {
-    margin-bottom: 16px;
-    display: flex;
-    gap: 12px;
-    width: 100%;
-    clear: both;
-  }
-
-  .chat-page-container .message.own {
-    flex-direction: row-reverse;
-  }
-
-  .chat-page-container .message-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    overflow: hidden;
-    flex-shrink: 0;
-    border: 1px solid #2a2a2a;
-  }
-
-  .chat-page-container .message-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .chat-page-container .message-avatar .avatar-placeholder {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: 700;
-    font-size: 1rem;
-  }
-
-  .chat-page-container .message-content-wrapper {
-    max-width: 60%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .chat-page-container .message-sender-name {
-    font-size: 0.85rem;
-    color: #9aa0a6;
-    margin-bottom: 4px;
-    font-weight: 600;
-  }
-
-  .chat-page-container .message.own .message-sender-name {
-    text-align: right;
-  }
-
-  .chat-page-container .message-content {
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    border-radius: 16px;
-    padding: 12px 16px;
-    color: #e6e6e6;
-    line-height: 1.5;
-    position: relative;
-  }
-
-  .chat-page-container .message.own .message-content {
-    background: linear-gradient(135deg, #2563eb, #3b82f6);
-    color: #fff;
-    border-color: #3b82f6;
-  }
-
-  .chat-page-container .message-time {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-top: 4px;
-  }
-
-  .chat-page-container .message-delete-btn {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: #ef4444;
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    transition: all 0.2s;
-  }
-
-  .chat-page-container .message-content:hover .message-delete-btn {
-    display: flex;
-  }
-
-  .chat-page-container .message-delete-btn:hover {
-    background: #dc2626;
-    transform: scale(1.1);
-  }
-
-  .chat-page-container .chat-input {
-    background: linear-gradient(135deg, #1a1a1a, #151515);
-    border: 1px solid #2a2a2a;
-    border-radius: 0 0 20px 20px;
-    padding: 20px;
-    border-top: none;
-  }
-
-  .chat-page-container .input-group-chat {
-    display: flex;
-    gap: 12px;
-  }
-
-  .chat-page-container .message-input {
-    flex: 1;
-    background: #1f2329;
-    border: 1px solid #2a2f32;
-    color: #e9ecf3;
-    border-radius: 25px;
-    padding: 12px 20px;
-    font-size: 0.95rem;
-    transition: all 0.2s;
-  }
-
-  .chat-page-container .message-input:focus {
-    background: #1f2329;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    color: #e9ecf3;
-    outline: none;
-  }
-
-  .chat-page-container .send-btn {
-    background: linear-gradient(135deg, #2563eb, #3b82f6);
-    color: #fff;
-    border: none;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-  }
-
-  .chat-page-container .send-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
-  }
-
-  .chat-page-container .send-btn:disabled {
-    opacity: 0.5;
-    transform: none;
-    cursor: not-allowed;
-  }
-
-  .date-divider {
-    text-align: center;
-    margin: 24px 0;
-    position: relative;
-  }
-
-  .date-divider::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    height: 1px;
-    background: #2a2a2a;
-  }
-
-  .date-divider-text {
-    display: inline-block;
-    background: #0a0a0a;
-    padding: 4px 16px;
-    border-radius: 12px;
-    color: #9aa0a6;
-    font-size: 0.85rem;
-    position: relative;
-    z-index: 1;
-  }
-</style>
-
-<div class="container py-4 chat-page-container">
+<div class="container py-4">
   
   <a href="{% url 'group_detail' group.slug %}" class="btn btn-outline-light mb-3">
     <i class="bi bi-arrow-left"></i> Powrót do grupy
@@ -274,7 +18,7 @@
 
   <div class="chat-container">
     <!-- Chat Header -->
-    <div class="chat-header-detail">
+    <div class="chat-header">
       <div class="chat-header-icon">
         {% if group.cover_image %}
           <img src="{{ group.cover_image.url }}" alt="{{ group.name }}">
@@ -322,8 +66,8 @@
           </div>
         </div>
       {% empty %}
-        <div style="text-align: center; color: #6b7280; padding: 40px;">
-          <i class="bi bi-chat" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3;"></i>
+        <div class="chat-empty-state">
+          <i class="bi bi-chat chat-empty-state-icon"></i>
           <p>Rozpocznij rozmowę w grupie!</p>
         </div>
       {% endfor %}
@@ -331,18 +75,18 @@
 
     <!-- Message Input -->
     <div class="chat-input">
-      <form id="messageForm" class="input-group-chat">
+      <form id="messageForm" class="chat-input-group">
         {% csrf_token %}
         <input type="hidden" name="group_id" value="{{ group.id }}">
         <input 
           type="text" 
-          class="message-input" 
+          class="chat-input-field" 
           name="content"
           id="messageInput"
           placeholder="Napisz wiadomość..." 
           required
           autocomplete="off">
-        <button type="submit" class="send-btn" id="sendBtn">
+        <button type="submit" class="chat-send-btn" id="sendBtn">
           <i class="bi bi-send"></i>
         </button>
       </form>
@@ -358,28 +102,23 @@
   const messageInput = document.getElementById('messageInput');
   const sendBtn = document.getElementById('sendBtn');
 
-  // Auto scroll to bottom
   function scrollToBottom() {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
-  // Initial scroll
   scrollToBottom();
 
-  // CSRF token helper
   function getCookie(name) {
     const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
     return m ? m.pop() : '';
   }
 
-  // Send message
   messageForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const content = messageInput.value.trim();
     if (!content) return;
 
-    // Disable form
     sendBtn.disabled = true;
     messageInput.disabled = true;
 
@@ -392,15 +131,12 @@
       const response = await fetch('/chat/group/send/', {
         method: 'POST',
         body: formData,
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
 
       const data = await response.json();
       
       if (data.ok) {
-        // Add message to UI
         const messageHTML = `
           <div class="message own" data-message-id="${data.message.id}">
             <div class="message-avatar">
@@ -425,14 +161,12 @@
         messagesContainer.insertAdjacentHTML('beforeend', messageHTML);
         messageInput.value = '';
         scrollToBottom();
-        
-        // Update last message ID
         lastMessageId = data.message.id;
       } else {
         alert(data.message || 'Błąd podczas wysyłania wiadomości');
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('Error:', error);
       alert('Błąd podczas wysyłania wiadomości');
     } finally {
       sendBtn.disabled = false;
@@ -441,7 +175,6 @@
     }
   });
 
-  // Delete message
   async function deleteMessage(messageId) {
     if (!confirm('Czy na pewno chcesz usunąć tę wiadomość?')) return;
     
@@ -452,29 +185,22 @@
       const response = await fetch(`/chat/group/message/${messageId}/delete/`, {
         method: 'POST',
         body: formData,
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
       
       const data = await response.json();
       
       if (data.ok) {
-        // Remove message from UI
-        const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
-        if (messageElement) {
-          messageElement.remove();
-        }
+        document.querySelector(`[data-message-id="${messageId}"]`)?.remove();
       } else {
         alert(data.message || 'Błąd podczas usuwania wiadomości');
       }
     } catch (error) {
-      console.error('Error deleting message:', error);
+      console.error('Error:', error);
       alert('Błąd podczas usuwania wiadomości');
     }
   }
 
-  // Poll for new messages every 3 seconds
   let lastMessageId = {{ messages.last.id|default:0 }};
   let pollInterval;
 
@@ -512,15 +238,8 @@
       .catch(error => console.error('Polling error:', error));
   }
 
-  // Start polling
   pollInterval = setInterval(pollNewMessages, 3000);
-
-  // Stop polling when leaving page
-  window.addEventListener('beforeunload', () => {
-    clearInterval(pollInterval);
-  });
-
-  // Focus input
+  window.addEventListener('beforeunload', () => clearInterval(pollInterval));
   messageInput.focus();
 </script>
 
