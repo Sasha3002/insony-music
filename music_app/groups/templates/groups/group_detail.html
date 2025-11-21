@@ -422,6 +422,9 @@
             <a href="{% url 'group_chat' group.slug %}" class="btn-edit">
               <i class="bi bi-chat-dots"></i> Czat grupy
             </a>
+            <a href="{% url 'event_create' group.slug %}" class="btn-edit">
+              <i class="bi bi-calendar-plus"></i> Utwórz wydarzenie
+            </a>
             <form method="post" action="{% url 'group_leave' group.slug %}" style="display: inline;">
               {% csrf_token %}
               <button type="submit" class="btn-leave" onclick="return confirm('Czy na pewno chcesz opuścić grupę?')">
@@ -590,7 +593,7 @@
       
       {% if upcoming_events|length > 3 %}
         <div style="text-align: center; margin-top: 16px;">
-          <a href="{% url 'event_list' %}?filter=my" class="btn btn-outline-light">
+          <a href="{% url 'event_list' %}?filter=upcoming&group={{ group.slug }}" class="btn btn-outline-light">
             Zobacz wszystkie ({{ upcoming_events|length }})
           </a>
         </div>
@@ -649,7 +652,7 @@
       
       {% if past_events|length > 3 %}
         <div style="text-align: center; margin-top: 16px;">
-          <a href="{% url 'event_list' %}?filter=past" class="btn btn-outline-light">
+          <a href="{% url 'event_list' %}?filter=past&group={{ group.slug }}" class="btn btn-outline-light">
             Zobacz archiwum ({{ past_events|length }})
           </a>
         </div>

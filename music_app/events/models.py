@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 from groups.models import Group
 from django.utils import timezone
+from music.models import Playlist
 
 User = get_user_model()
 
@@ -22,6 +23,9 @@ class Event(models.Model):
     
     # Optional image
     event_image = models.ImageField(upload_to='event_images/', blank=True, null=True)
+
+    # Event playlist
+    playlist = models.ForeignKey(Playlist, on_delete=models.SET_NULL, null=True, blank=True, related_name='event')
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -70,12 +74,12 @@ class Event(models.Model):
         if not ratings:
             return 0
         return sum(r.rating for r in ratings) / len(ratings)
-    
+
     @property
     def rating_count(self):
         """Get total number of ratings"""
         return self.ratings.count()
-    
+
     def get_user_rating(self, user):
         """Get rating by specific user"""
         return self.ratings.filter(user=user).first()
@@ -115,3 +119,74 @@ class EventRating(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.event.title}: {self.rating}★"
+    
+
+class EventPoll(models.Model):
+    """Poll for event changes"""
+    POLL_TYPES = [
+        ('time', 'Zmiana czasu'),
+        ('location', 'Zmiana miejsca'),
+        ('date', 'Zmiana daty'),
+        ('other', 'Inne'),
+    ]
+    
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='polls')
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_polls')
+    
+    poll_type = models.CharField(max_length=20, choices=POLL_TYPES)
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    
+    # Proposed changes
+    proposed_date = models.DateTimeField(blank=True, null=True, help_text="Proponowana nowa data rozpoczęcia")
+    proposed_end_date = models.DateTimeField(blank=True, null=True, help_text="Proponowana nowa data zakończenia")
+    proposed_location = models.CharField(max_length=200, blank=True, help_text="Proponowane nowe miejsce")
+    
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    closes_at = models.DateTimeField(help_text="Kiedy głosowanie się kończy")
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.title} - {self.event.title}"
+    
+    @property
+    def is_closed(self):
+        return timezone.now() > self.closes_at or not self.is_active
+    
+    @property
+    def votes_for(self):
+        return self.votes.filter(vote=True).count()
+    
+    @property
+    def votes_against(self):
+        return self.votes.filter(vote=False).count()
+    
+    @property
+    def total_votes(self):
+        return self.votes.count()
+    
+    @property
+    def approval_percentage(self):
+        total = self.total_votes
+        if total == 0:
+            return 0
+        return (self.votes_for / total) * 100
+
+
+class PollVote(models.Model):
+    """Individual vote on a poll"""
+    poll = models.ForeignKey(EventPoll, on_delete=models.CASCADE, related_name='votes')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    vote = models.BooleanField(help_text="True = Za, False = Przeciw")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('poll', 'user')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        vote_text = "Za" if self.vote else "Przeciw"
+        return f"{self.user.username} - {vote_text}"

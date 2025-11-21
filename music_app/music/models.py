@@ -46,8 +46,8 @@ class Track(models.Model):
     )
     
     cover_image = models.URLField(
-        "Обкладинка треку", max_length=500, null=True, blank=True,
-        help_text="URL зображення обкладинки з Cover Art Archive"
+        "Track cover", max_length=500, null=True, blank=True,
+        help_text="URL of the cover image from Cover Art Archive"
     )
 
     #favorited_by = models.ManyToManyField(
@@ -181,6 +181,7 @@ class Playlist(models.Model):
     cover_image = models.ImageField(upload_to='playlist_covers/', blank=True, null=True)
     is_favorite = models.BooleanField(default=False)  # Special flag for favorites playlist
     is_public = models.BooleanField(default=False)
+    is_event_playlist = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

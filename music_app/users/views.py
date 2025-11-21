@@ -22,6 +22,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
 from groups.views import validate_city
+from .recommendations import RecommendationEngine
 
 
 def login_view(request):
@@ -530,7 +531,7 @@ def user_playlists_public(request, username):
         # Redirect to their own playlist page
         return redirect('playlist_list')
     else:
-        playlists = Playlist.objects.filter(user=profile_user, is_favorite=False, is_public=True).order_by('-created_at')
+        playlists = Playlist.objects.filter(user=profile_user, is_favorite=False, is_public=True, is_event_playlist = False).order_by('-created_at')
     
     return render(request, 'music/playlist_list.html', {  
         'playlists': playlists,
@@ -1127,4 +1128,26 @@ def report_content_form(request, content_type, content_id):
         'content_title': content_title,
         'content_obj': content_obj,
         'reasons': ErrorReport.REASON_CHOICES,
+    })
+
+
+@login_required
+def recommendations(request):
+    """Show personalized recommendations"""
+    
+    engine = RecommendationEngine(request.user)
+    
+    # Get recommendations
+    track_recommendations = engine.recommend_tracks(limit=20)
+    group_recommendations = engine.recommend_groups(limit=10)
+    event_recommendations = engine.recommend_events(limit=10)
+    
+    # Get stats for display
+    stats = engine.get_recommendation_stats()
+    
+    return render(request, 'users/recommendations.html', {
+        'tracks': track_recommendations,
+        'groups': group_recommendations,
+        'events': event_recommendations,
+        'stats': stats,
     })

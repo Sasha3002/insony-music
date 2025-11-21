@@ -294,6 +294,11 @@
       flex-direction: column;
     }
   }
+
+  .vote-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
 </style>
 
 <div class="container py-4">
@@ -350,7 +355,8 @@
             <a href="{% url 'event_delete' event.slug %}" class="btn-edit" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1);">
               <i class="bi bi-trash"></i> Usuń
             </a>
-          {% elif is_member and not event.is_past %}
+          {% endif %}
+          {% if is_member and not event.is_past %}
             <form method="post" action="{% url 'event_attend' event.slug %}" style="display: flex; gap: 12px;">
               {% csrf_token %}
               <button type="submit" name="status" value="going" class="btn-attend {% if user_attendance and user_attendance.status == 'going' %}active{% endif %}">
@@ -423,6 +429,73 @@
     <div class="event-description">{{ event.description|linebreaks }}</div>
   </div>
 
+  <!-- Event Playlist -->
+  {% if event.playlist %}
+    <div class="event-section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h2 class="section-title" style="margin: 0;">
+          <i class="bi bi-music-note-list"></i>
+          Playlista wydarzenia ({{ event.playlist.track_count }})
+        </h2>
+        {% if is_creator %}
+          <a href="{% url 'event_playlist_add_track' event.slug %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Dodaj utwór
+          </a>
+        {% endif %}
+      </div>
+
+      {% if event.playlist.playlist_tracks.all %}
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          {% for playlist_track in event.playlist.playlist_tracks.all %}
+            <div style="background: #0f0f0f; border: 1px solid #2a2a2a; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 16px; position: relative; cursor: pointer; transition: all 0.2s;" 
+                 onmouseover="this.style.borderColor='#3b82f6'; this.style.transform='translateY(-2px)'"
+                 onmouseout="this.style.borderColor='#2a2a2a'; this.style.transform='translateY(0)'"
+                 onclick="window.location.href='{% url 'track_detail' playlist_track.track.id %}'">
+
+              <div style="width: 50px; height: 50px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                {% if playlist_track.track.cover_image %}
+                  <img src="{{ playlist_track.track.cover_image }}" alt="{{ playlist_track.track.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                  <img src="{% static 'img/Insony.jpg' %}" alt="{{ playlist_track.track.title }}">
+                {% endif %}
+              </div>
+
+              <div style="flex: 1; min-width: 0;">
+                <div style="color: #fff; font-weight: 600; margin-bottom: 4px;">
+                  {{ playlist_track.track.title }}
+                </div>
+                <div style="color: #9aa0a6; font-size: 0.9rem;">
+                  {{ playlist_track.track.artist.name }}
+                </div>
+              </div>
+
+              {% if is_creator %}
+                <form method="post" action="{% url 'event_playlist_remove_track' event.slug playlist_track.track.id %}" style="display: inline; z-index: 2; position: relative;">
+                  {% csrf_token %}
+                  <button type="submit" 
+                          onclick="event.stopPropagation(); return confirm('Usunąć ten utwór z playlisty?')"
+                          style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 8px 16px; cursor: pointer; transition: all 0.2s;"
+                          onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'"
+                          onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p style="color: #9aa0a6; text-align: center; padding: 40px;">
+          <i class="bi bi-music-note-list"></i><br>
+          Playlista jest pusta
+          {% if is_creator %}
+            <br><small>Dodaj utwory, które będą grane podczas wydarzenia</small>
+          {% endif %}
+        </p>
+      {% endif %}
+    </div>
+  {% endif %}
+
   <!-- Attendees -->
   <div class="event-section">
     <h2 class="section-title">
@@ -459,6 +532,219 @@
       </p>
     {% endif %}
   </div>
+
+  <!-- Polls Section (for upcoming events) -->
+  {% if not event.is_past and is_member %}
+    <div class="event-section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h2 class="section-title" style="margin: 0;">
+          <i class="bi bi-bar-chart"></i>
+          Głosowania
+        </h2>
+        {% if is_attending %}
+          <a href="{% url 'create_poll' event.slug %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Utwórz głosowanie
+          </a>
+        {% endif %}
+      </div>
+
+      {% if polls %}
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          {% for poll in polls %}
+            <div style="background: #0f0f0f; border: 1px solid #2a2a2a; border-radius: 16px; padding: 24px;">
+
+              <!-- Poll Header -->
+              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                <div style="flex: 1;">
+                  <div style="display: inline-block; background: rgba(59, 130, 246, 0.1); color: #60a5fa; padding: 4px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; margin-bottom: 8px;">
+                    {{ poll.get_poll_type_display }}
+                  </div>
+                  <h3 style="color: #fff; font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">
+                    {{ poll.title }}
+                  </h3>
+                  <div style="color: #9aa0a6; font-size: 0.85rem; margin-bottom: 12px;">
+                    Utworzone przez <strong>{{ poll.creator.username }}</strong> • 
+                    Kończy się: {{ poll.closes_at|date:"d.m.Y, H:i" }}
+                  </div>
+                </div>
+
+                <!-- Poll creator (for creator) -->
+                {% if is_creator %}
+                  <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <!-- Apply Changes Button (show if poll passed, regardless of status) -->
+                    {% if poll.approval_percentage >= 50 and poll.total_votes > 0 %}
+                      <form method="post" action="{% url 'apply_poll_changes' poll.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" 
+                                onclick="return confirm('Czy na pewno chcesz zastosować te zmiany do wydarzenia?')"
+                                style="background: linear-gradient(135deg, #16a34a, #22c55e); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 600; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                          <i class="bi bi-check2-circle"></i> 
+                          Zastosuj zmiany ({{ poll.approval_percentage|floatformat:0 }}%)
+                        </button>
+                      </form>
+                    {% elif poll.total_votes == 0 %}
+                      <button disabled style="background: rgba(107, 114, 128, 0.2); color: #9aa0a6; border: 1px solid rgba(107, 114, 128, 0.3); border-radius: 8px; padding: 8px 16px; font-weight: 600; font-size: 0.85rem; cursor: not-allowed;">
+                        <i class="bi bi-x-circle"></i> Brak głosów
+                      </button>
+                    {% else %}
+                      <button disabled style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 8px 16px; font-weight: 600; font-size: 0.85rem; cursor: not-allowed;">
+                        <i class="bi bi-x-circle"></i> Nie przeszło ({{ poll.approval_percentage|floatformat:0 }}%)
+                      </button>
+                    {% endif %}
+                    
+                    <!-- Close Poll Button (only if still active) -->
+                    {% if not poll.is_closed %}
+                      <form method="post" action="{% url 'close_poll' poll.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" 
+                                onclick="return confirm('Czy na pewno chcesz zamknąć to głosowanie?')"
+                                style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 8px 16px; font-weight: 600; cursor: pointer; font-size: 0.85rem;">
+                          <i class="bi bi-x-circle"></i> Zamknij głosowanie
+                        </button>
+                      </form>
+                    {% endif %}
+                  </div>
+                {% elif poll.creator == request.user and not poll.is_closed %}
+                  <!-- Poll Creator (non-admin) can only close their own poll -->
+                  <form method="post" action="{% url 'close_poll' poll.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            onclick="return confirm('Czy na pewno chcesz zamknąć to głosowanie?')"
+                            style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 8px 16px; font-weight: 600; cursor: pointer; font-size: 0.85rem;">
+                      <i class="bi bi-x-circle"></i> Zamknij
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+
+              <!-- Poll Description -->
+              <p style="color: #e6e6e6; line-height: 1.6; margin-bottom: 16px;">
+                {{ poll.description }}
+              </p>
+
+              <!-- Proposed Changes -->
+              <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <div style="color: #60a5fa; font-weight: 600; margin-bottom: 12px; font-size: 0.9rem;">
+                  <i class="bi bi-arrow-right-circle"></i> Proponowane zmiany:
+                </div>
+
+                {% if poll.proposed_date %}
+                  <div style="color: #e6e6e6; margin-bottom: 8px;">
+                    <strong>Nowa data:</strong> {{ poll.proposed_date|date:"d.m.Y, H:i" }}
+                    {% if poll.proposed_end_date %}
+                      - {{ poll.proposed_end_date|date:"H:i" }}
+                    {% endif %}
+                  </div>
+                {% endif %}
+                
+                {% if poll.proposed_location %}
+                  <div style="color: #e6e6e6; margin-bottom: 8px;">
+                    <strong>Nowe miejsce:</strong> {{ poll.proposed_location }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Vote Progress -->
+              <div style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                  <span style="color: #10b981; font-weight: 600;">
+                    <i class="bi bi-hand-thumbs-up-fill"></i> Za: {{ poll.votes_for }}
+                  </span>
+                  <span style="color: #9aa0a6;">
+                    Łącznie głosów: {{ poll.total_votes }}
+                  </span>
+                  <span style="color: #ef4444; font-weight: 600;">
+                    <i class="bi bi-hand-thumbs-down-fill"></i> Przeciw: {{ poll.votes_against }}
+                  </span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div style="background: #1f2329; border-radius: 999px; height: 12px; overflow: hidden; position: relative;">
+                  {% if poll.total_votes > 0 %}
+                    {% widthratio poll.votes_for poll.total_votes 100 as for_percent %}
+                    {% widthratio poll.votes_against poll.total_votes 100 as against_percent %}
+
+                    <!-- Green bar from left -->
+                    <div style="position: absolute; left: 0; top: 0; height: 100%; background: linear-gradient(90deg, #10b981, #22c55e); width: {{ for_percent }}%; transition: width 0.3s;"></div>
+
+                    <!-- Red bar from right -->
+                    <div style="position: absolute; right: 0; top: 0; height: 100%; background: linear-gradient(90deg, #dc2626, #ef4444); width: {{ against_percent }}%; transition: width 0.3s;"></div>
+                  {% endif %}
+                </div>
+
+                <div style="text-align: center; color: #9aa0a6; font-size: 0.85rem; margin-top: 6px;">
+                  {% if poll.total_votes > 0 %}
+                    {% widthratio poll.votes_for poll.total_votes 100 as for_percent %}
+                    {{ for_percent }}% poparcia
+                  {% else %}
+                    Brak głosów
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Vote Buttons -->
+              {% if not poll.is_closed %}
+                {% if is_attending %}
+                  <form method="post" action="{% url 'vote_on_poll' poll.id %}" style="display: flex; gap: 12px;">
+                    {% csrf_token %}
+                    <button type="submit" name="vote" value="yes" 
+                            class="vote-btn vote-yes {% if poll.user_vote and poll.user_vote.vote %}active{% endif %}"
+                            style="flex: 1; background: {% if poll.user_vote and poll.user_vote.vote %}linear-gradient(135deg, #16a34a, #22c55e){% else %}rgba(16, 185, 129, 0.1){% endif %}; color: {% if poll.user_vote and poll.user_vote.vote %}#fff{% else %}#10b981{% endif %}; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                      <i class="bi bi-hand-thumbs-up-fill"></i> Za
+                    </button>
+                    <button type="submit" name="vote" value="no"
+                            class="vote-btn vote-no {% if poll.user_vote and not poll.user_vote.vote %}active{% endif %}"
+                            style="flex: 1; background: {% if poll.user_vote and not poll.user_vote.vote %}linear-gradient(135deg, #dc2626, #ef4444){% else %}rgba(239, 68, 68, 0.1){% endif %}; color: {% if poll.user_vote and not poll.user_vote.vote %}#fff{% else %}#ef4444{% endif %}; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                      <i class="bi bi-hand-thumbs-down-fill"></i> Przeciw
+                    </button>
+                  </form>
+
+                  {% if poll.user_vote %}
+                    <p style="text-align: center; color: #9aa0a6; font-size: 0.85rem; margin-top: 12px;">
+                      Głosowałeś: 
+                      {% if poll.user_vote.vote %}
+                        <span style="color: #10b981; font-weight: 600;">Za</span>
+                      {% else %}
+                        <span style="color: #ef4444; font-weight: 600;">Przeciw</span>
+                      {% endif %}
+                    </p>
+                  {% endif %}
+                {% else %}
+                  <div style="background: rgba(251, 146, 60, 0.1); border: 1px solid rgba(251, 146, 60, 0.3); border-radius: 12px; padding: 16px; text-align: center; color: #fb923c;">
+                    <i class="bi bi-exclamation-circle"></i> 
+                    Tylko uczestnicy wydarzenia mogą głosować
+                  </div>
+                {% endif %}
+              {% else %}
+                <div style="background: {% if poll.approval_percentage >= 50 and poll.total_votes > 0 %}rgba(16, 185, 129, 0.1){% else %}rgba(107, 114, 128, 0.2){% endif %}; border: 1px solid {% if poll.approval_percentage >= 50 and poll.total_votes > 0 %}rgba(16, 185, 129, 0.3){% else %}rgba(107, 114, 128, 0.3){% endif %}; border-radius: 12px; padding: 16px; text-align: center;">
+                  <div style="color: {% if poll.approval_percentage >= 50 and poll.total_votes > 0 %}#10b981{% else %}#9aa0a6{% endif %}; font-weight: 600; margin-bottom: 4px;">
+                    <i class="bi bi-lock"></i> Głosowanie zakończone
+                  </div>
+                  {% if poll.approval_percentage >= 50 and poll.total_votes > 0 %}
+                    <div style="color: #10b981; font-size: 0.85rem;">
+                      ✓ Głosowanie przeszło ({{ poll.approval_percentage|floatformat:0 }}%)
+                      {% if is_creator %}
+                        <br><small style="color: #9aa0a6;">Twórca wydarzenia może zastosować zmiany</small>
+                      {% endif %}
+                    </div>
+                  {% else %}
+                    <div style="color: #9aa0a6; font-size: 0.85rem;">
+                      Głosowanie nie uzyskało wymaganych 50%
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p style="color: #9aa0a6; text-align: center; padding: 40px;">
+          <i class="bi bi-bar-chart"></i><br>
+          Brak aktywnych głosowań. Utwórz pierwsze głosowanie!
+        </p>
+      {% endif %}
+    </div>
+  {% endif %}
 
   <!-- Ratings Section (for past events) -->
   {% if event.is_past %}

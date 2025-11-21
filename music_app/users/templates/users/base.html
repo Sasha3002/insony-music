@@ -4,95 +4,501 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Insony</title>
+  <title>Insony - Społeczność Muzyczna</title>
 
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Twój CSS -->
+  <!-- Custom CSS -->
   <link rel="stylesheet" href="{% static 'css/insony.css' %}">
 
-  <!-- Sticky footer layout -->
   <style>
-    html, body { height: 100%; }
-    body { display: flex; flex-direction: column; }
-    .main-wrapper { flex: 1 0 auto; }
-    footer { flex-shrink: 0; }
-    
-    /* Profile Dropdown Styles */
-    .profile-dropdown {
-      background: #1a1a1a !important;
-      border: 1px solid #2a2a2a !important;
-      border-radius: 12px !important;
-      padding: 8px !important;
-      min-width: 220px !important;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
-      margin-top: 8px !important;
+    /* Root Variables */
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --bg-tertiary: #2a2a2a;
+      --text-primary: #ffffff;
+      --text-secondary: #9aa0a6;
+      --accent-blue: #3b82f6;
+      --accent-blue-hover: #2563eb;
+      --border-color: #2a2a2a;
+      --success: #22c55e;
+      --error: #ef4444;
+      --warning: #fb923c;
     }
-  
+
+    /* Base Layout */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .main-wrapper {
+      flex: 1 0 auto;
+    }
+
+    footer {
+      flex-shrink: 0;
+    }
+
+    /* Modern Navbar */
+    .modern-navbar {
+      background: linear-gradient(135deg, var(--bg-secondary), #151515);
+      border-bottom: 1px solid var(--border-color);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-blue), #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+      transition: all 0.3s;
+    }
+
+    .navbar-brand:hover {
+      transform: scale(1.05);
+    }
+
+    .nav-link {
+      color: var(--text-secondary) !important;
+      font-weight: 500;
+      padding: 8px 16px !important;
+      border-radius: 8px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary) !important;
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    .nav-link.active {
+      color: var(--accent-blue) !important;
+      background: rgba(59, 130, 246, 0.15);
+    }
+
+    .nav-link i {
+      font-size: 1.1rem;
+    }
+
+    /* Profile Dropdown */
+    .profile-btn {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .profile-btn:hover {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: var(--accent-blue);
+      transform: translateY(-1px);
+    }
+
+    .profile-avatar-base {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--accent-blue);
+    }
+
+    .profile-avatar-base-placeholder {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-blue), #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .profile-dropdown {
+      background: var(--bg-secondary) !important;
+      border: 1px solid var(--border-color) !important;
+      border-radius: 16px !important;
+      padding: 8px !important;
+      min-width: 240px !important;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+      margin-top: 12px !important;
+    }
+
     .profile-dropdown .dropdown-item {
-      color: #e6e6e6 !important;
-      padding: 10px 16px !important;
-      border-radius: 8px !important;
+      color: var(--text-primary) !important;
+      padding: 12px 16px !important;
+      border-radius: 10px !important;
       display: flex !important;
       align-items: center !important;
       gap: 12px !important;
       font-size: 0.95rem !important;
       transition: all 0.2s !important;
+      font-weight: 500;
     }
-  
+
     .profile-dropdown .dropdown-item:hover {
-      background: #2a2a2a !important;
+      background: var(--bg-tertiary) !important;
       color: #fff !important;
+      transform: translateX(4px);
     }
-  
+
+    .profile-dropdown .dropdown-item.text-danger {
+      color: var(--error) !important;
+    }
+
     .profile-dropdown .dropdown-item.text-danger:hover {
-      background: rgba(220, 38, 38, 0.1) !important;
-      color: #ef4444 !important;
+      background: rgba(239, 68, 68, 0.1) !important;
+      color: var(--error) !important;
     }
-  
+
     .profile-dropdown .dropdown-item i {
-      font-size: 1.1rem;
-      width: 20px;
+      font-size: 1.2rem;
+      width: 24px;
       text-align: center;
     }
-  
+
     .profile-dropdown .dropdown-divider {
-      border-color: #2a2a2a !important;
+      border-color: var(--border-color) !important;
       margin: 8px 0 !important;
     }
-  
+
     .dropdown-toggle::after {
       margin-left: 8px !important;
+    }
+
+    /* Auth Buttons */
+    .btn-auth {
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--accent-blue);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 10px;
+      padding: 8px 20px;
+      font-weight: 600;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-auth:hover {
+      background: var(--accent-blue);
+      color: #fff;
+      border-color: var(--accent-blue);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-auth-primary {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-hover));
+      color: #fff;
+      border: none;
+    }
+
+    .btn-auth-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+    }
+
+    /* Messages/Alerts */
+    .custom-alert {
+      border-radius: 16px;
+      padding: 18px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-weight: 500;
+      border: 1px solid;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .alert-success {
+      background: rgba(34, 197, 94, 0.1);
+      border-color: rgba(34, 197, 94, 0.3);
+      color: var(--success);
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: var(--error);
+    }
+
+    .alert-warning {
+      background: rgba(251, 146, 60, 0.1);
+      border-color: rgba(251, 146, 60, 0.3);
+      color: var(--warning);
+    }
+
+    .alert-info {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: rgba(59, 130, 246, 0.3);
+      color: var(--accent-blue);
+    }
+
+    .custom-alert i {
+      font-size: 1.5rem;
+    }
+
+    .btn-close-custom {
+      background: none;
+      border: none;
+      color: inherit;
+      opacity: 0.5;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 0;
+      margin-left: auto;
+      transition: opacity 0.2s;
+    }
+
+    .btn-close-custom:hover {
+      opacity: 1;
+    }
+
+    /* Footer */
+    .modern-footer {
+      background: linear-gradient(135deg, var(--bg-secondary), #0f0f0f);
+      border-top: 1px solid var(--border-color);
+      padding: 32px 0;
+      margin-top: 80px;
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .footer-brand {
+      font-size: 1.3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-blue), #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .footer-link:hover {
+      color: var(--accent-blue);
+    }
+
+    .footer-copyright {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    /* Report Modal */
+    .modal-custom .modal-content {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    }
+
+    .modal-custom .modal-header {
+      border-bottom: 1px solid var(--border-color);
+      padding: 24px;
+    }
+
+    .modal-custom .modal-title {
+      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 1.3rem;
+    }
+
+    .modal-custom .modal-body {
+      padding: 24px;
+    }
+
+    .modal-custom .modal-footer {
+      border-top: 1px solid var(--border-color);
+      padding: 20px 24px;
+    }
+
+    .form-check-custom {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .form-check-custom:hover {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: var(--accent-blue);
+    }
+
+    .form-check-custom input:checked ~ label {
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+
+    .form-check-label {
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 991px) {
+      .navbar-collapse {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 16px;
+        margin-top: 16px;
+      }
+
+      .nav-link {
+        margin: 4px 0;
+      }
+
+      .footer-content {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .footer-links {
+        justify-content: center;
+      }
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg-tertiary);
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-blue);
     }
   </style>
 </head>
 <body>
 
-  <!-- ВСЕ, крім футера, кладемо у .main-wrapper -->
   <div class="main-wrapper">
-
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <!-- Modern Navbar -->
+    <nav class="navbar navbar-expand-lg modern-navbar">
       <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="/">Insony</a>
+        <a class="navbar-brand" href="/">
+          Insony
+        </a>
+        
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                style="border-color: var(--border-color);">
           <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item"><a class="nav-link" href="{% url 'track_list' %}"><i class="bi bi-music-note-beamed"></i> Utwory</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'playlist_list' %}"><i class="bi bi-music-note-list"></i> Playlisty</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'user_search' %}"><i class="bi bi-search"></i> Użytkownicy</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'chat_list' %}"><i class="bi bi-chat-dots"></i> Wiadomości</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'group_list' %}"><i class="bi bi-people-fill"></i> Grupy</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'event_list' %}"><i class="bi bi-calendar4-event"></i> Wydarzenia</a></li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'report_error' %}">
-                <i class="bi bi-exclamation-triangle"></i> Zgłoś problem
+              <a class="nav-link" href="{% url 'track_list' %}">
+                <i class="bi bi-music-note-beamed"></i> Utwory
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'playlist_list' %}">
+                <i class="bi bi-music-note-list"></i> Playlisty
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'group_list' %}">
+                <i class="bi bi-people-fill"></i> Grupy
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'event_list' %}">
+                <i class="bi bi-calendar-event"></i> Wydarzenia
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'user_search' %}">
+                <i class="bi bi-search"></i> Użytkownicy
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'chat_list' %}">
+                <i class="bi bi-chat-dots"></i> Wiadomości
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'recommendations' %}">
+                <i class="bi bi-stars"></i> Rekomendacje
               </a>
             </li>
           </ul>
@@ -101,88 +507,91 @@
             {% if user.is_authenticated %}
               <!-- Profile Dropdown -->
               <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <a class="nav-link profile-btn dropdown-toggle" href="#" id="profileDropdown" role="button" 
+                   data-bs-toggle="dropdown" aria-expanded="false">
                   {% if user.profile_picture %}
-                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6;">
+                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-avatar-base">
                   {% else %}
-                    <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #8b5cf6); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 0.9rem;">
+                    <div class="profile-avatar-base-placeholder">
                       {{ user.username|slice:":1"|upper }}
                     </div>
                   {% endif %}
-                  <span>{{ user.username }}</span>
+                  <span style="color: var(--text-primary); font-weight: 600;">{{ user.username }}</span>
                 </a>
+                
                 <ul class="dropdown-menu dropdown-menu-end profile-dropdown" aria-labelledby="profileDropdown">
                   <li>
                     <a class="dropdown-item" href="{% url 'profile' %}">
-                      <i class="bi bi-person-circle"></i>
-                      Profil
+                      <i class="bi bi-person-circle"></i> Mój Profil
                     </a>
                   </li>
                   <li><hr class="dropdown-divider"></li>
                   <li>
                     <a class="dropdown-item" href="{% url 'account_settings' %}">
-                      <i class="bi bi-gear"></i>
-                      Ustawienia
+                      <i class="bi bi-gear"></i> Ustawienia
                     </a>
                   </li>
+                  <li>
+                    <a class="dropdown-item" href="{% url 'report_error' %}">
+                      <i class="bi bi-bug"></i> Zgłoś problem
+                    </a>
+                  </li>
+                  
                   {% if user.is_staff %}
                     <li><hr class="dropdown-divider"></li>
                     <li>
                       <a class="dropdown-item" href="{% url 'track_add' %}">
-                        <i class="bi bi-plus-circle"></i>
-                        Dodaj utwór
+                        <i class="bi bi-plus-circle"></i> Dodaj utwór
                       </a>
                     </li>
                     <li>
                       <a class="dropdown-item" href="{% url 'admin_reports' %}">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        Zgłoszenia                 
+                        <i class="bi bi-exclamation-triangle"></i> Zgłoszenia
                       </a>
                     </li>
                     <li>
                       <a class="dropdown-item" href="/admin/">
-                        <i class="bi bi-shield-lock"></i>
-                        Panel admina
+                        <i class="bi bi-shield-lock"></i> Panel admina
                       </a>
                     </li>
                   {% endif %}
+                  
                   <li><hr class="dropdown-divider"></li>
                   <li>
                     <a class="dropdown-item text-danger" href="{% url 'logout' %}">
-                      <i class="bi bi-box-arrow-right"></i>
-                      Wyloguj
+                      <i class="bi bi-box-arrow-right"></i> Wyloguj
                     </a>
                   </li>
                 </ul>
               </li>
             {% else %}
-              <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Zaloguj się</a></li>
-              <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Zarejestruj się</a></li>
+              <li class="nav-item">
+                <a class="btn-auth" href="{% url 'login' %}" style="margin-right: 8px;">
+                  <i class="bi bi-box-arrow-in-right"></i> Zaloguj
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="btn-auth btn-auth-primary" href="{% url 'register' %}">
+                  <i class="bi bi-person-plus"></i> Rejestracja
+                </a>
+              </li>
             {% endif %}
           </ul>
         </div>
       </div>
     </nav>
 
+    <!-- Messages -->
     <div class="container mt-4">
       {% block global_messages %}
         {% if messages %}
           {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="
-              background: {% if message.tags == 'error' %}rgba(239, 68, 68, 0.1){% elif message.tags == 'success' %}rgba(34, 197, 94, 0.1){% elif message.tags == 'warning' %}rgba(251, 146, 60, 0.1){% else %}rgba(59, 130, 246, 0.1){% endif %};
-              border: 1px solid {% if message.tags == 'error' %}rgba(239, 68, 68, 0.3){% elif message.tags == 'success' %}rgba(34, 197, 94, 0.3){% elif message.tags == 'warning' %}rgba(251, 146, 60, 0.3){% else %}rgba(59, 130, 246, 0.3){% endif %};
-              border-radius: 12px;
-              color: {% if message.tags == 'error' %}#ef4444{% elif message.tags == 'success' %}#22c55e{% elif message.tags == 'warning' %}#fb923c{% else %}#60a5fa{% endif %};
-              padding: 16px 20px;
-              margin-bottom: 20px;
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              font-weight: 500;
-            ">
-              <i class="bi bi-{% if message.tags == 'error' %}exclamation-circle{% elif message.tags == 'success' %}check-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}" style="font-size: 1.3rem;"></i>
-              <span style="flex: 1;">{{ message }}</span>
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="filter: brightness(0) invert(1); opacity: 0.5;"></button>
+            <div class="custom-alert alert-{{ message.tags|default:'info' }}" role="alert">
+              <i class="bi bi-{% if message.tags == 'error' %}exclamation-circle{% elif message.tags == 'success' %}check-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+              <span style="flex: 1;">{{ message|safe }}</span>
+              <button class="btn-close-custom" onclick="this.parentElement.remove()">
+                <i class="bi bi-x-lg"></i>
+              </button>
             </div>
           {% endfor %}
         {% endif %}
@@ -190,55 +599,71 @@
       
       {% block content %}{% endblock %}
     </div>
-  </div> <!-- /.main-wrapper -->
+  </div>
 
-  <!-- ФУТЕР завжди знизу (sticky) -->
-  <footer class="bg-dark text-white text-center py-3">
-    <p class="mb-0">© {% now "Y" %} Insony — społeczność muzyczna</p>
+  <!-- Modern Footer -->
+  <footer class="modern-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          Insony
+        </div>
+        <div class="footer-links">
+          <a href="{% url 'track_list' %}" class="footer-link">Utwory</a>
+          <a href="{% url 'group_list' %}" class="footer-link">Grupy</a>
+          <a href="{% url 'event_list' %}" class="footer-link">Wydarzenia</a>
+          <a href="{% url 'report_error' %}" class="footer-link">Kontakt</a>
+        </div>
+      </div>
+      <div class="footer-copyright">
+        © {% now "Y" %} Insony - Społeczność Muzyczna. Wszystkie prawa zastrzeżone.
+      </div>
+    </div>
   </footer>
 
-  <div class="modal fade" id="quickReportModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content" style="background: #1a1a1a; border: 1px solid #2a2a2a;">
-        <div class="modal-header" style="border-bottom: 1px solid #2a2a2a;">
-          <h5 class="modal-title" style="color: #fff;">
-            <i class="bi bi-flag"></i> Zgłoś treść
+  <!-- Report Modal -->
+  <div class="modal fade modal-custom" id="quickReportModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-flag-fill"></i> Zgłoś treść
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);"></button>
         </div>
         <div class="modal-body">
           <div id="reportReasons">
-            <div class="form-check mb-2">
+            <div class="form-check form-check-custom">
               <input class="form-check-input" type="radio" name="quickReason" value="spam" id="quick-spam">
-              <label class="form-check-label" for="quick-spam" style="color: #e6e6e6;">Spam</label>
+              <label class="form-check-label" for="quick-spam">Spam lub reklama</label>
             </div>
-            <div class="form-check mb-2">
+            <div class="form-check form-check-custom">
               <input class="form-check-input" type="radio" name="quickReason" value="inappropriate" id="quick-inappropriate">
-              <label class="form-check-label" for="quick-inappropriate" style="color: #e6e6e6;">Treść nieodpowiednia</label>
+              <label class="form-check-label" for="quick-inappropriate">Treść nieodpowiednia</label>
             </div>
-            <div class="form-check mb-2">
+            <div class="form-check form-check-custom">
               <input class="form-check-input" type="radio" name="quickReason" value="harassment" id="quick-harassment">
-              <label class="form-check-label" for="quick-harassment" style="color: #e6e6e6;">Molestowanie/Nękanie</label>
+              <label class="form-check-label" for="quick-harassment">Molestowanie lub nękanie</label>
             </div>
-            <div class="form-check mb-2">
+            <div class="form-check form-check-custom">
               <input class="form-check-input" type="radio" name="quickReason" value="hate_speech" id="quick-hate">
-              <label class="form-check-label" for="quick-hate" style="color: #e6e6e6;">Mowa nienawiści</label>
+              <label class="form-check-label" for="quick-hate">Mowa nienawiści</label>
             </div>
-            <div class="form-check mb-2">
+            <div class="form-check form-check-custom">
               <input class="form-check-input" type="radio" name="quickReason" value="other" id="quick-other">
-              <label class="form-check-label" for="quick-other" style="color: #e6e6e6;">Inne</label>
+              <label class="form-check-label" for="quick-other">Inne</label>
             </div>
           </div>
-          <div class="mt-3">
-            <a href="#" id="detailedReportLink" style="color: #60a5fa; font-size: 0.9rem;">
-              <i class="bi bi-pencil"></i> Dodaj szczegółowy opis
+          <div class="mt-3" style="text-align: center;">
+            <a href="#" id="detailedReportLink" style="color: var(--accent-blue); font-size: 0.9rem; text-decoration: none;">
+              <i class="bi bi-pencil-square"></i> Dodaj szczegółowy opis
             </a>
           </div>
         </div>
-        <div class="modal-footer" style="border-top: 1px solid #2a2a2a;">
+        <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
           <button type="button" class="btn btn-danger" onclick="submitQuickReport()">
-            <i class="bi bi-flag"></i> Zgłoś
+            <i class="bi bi-flag-fill"></i> Wyślij zgłoszenie
           </button>
         </div>
       </div>
@@ -246,29 +671,25 @@
   </div>
 
 <script>
-// Uniwersalny toggler hasła
+// Password Toggle
 function togglePassword(btn, selector) {
   let input = null;
-
   if (selector) {
     input = document.querySelector(selector);
   } else if (btn && btn.closest) {
     input = btn.closest('.input-group')?.querySelector('input[type="password"], input[type="text"]');
   }
-
   if (!input) return;
 
   const makeVisible = input.type === 'password';
   input.type = makeVisible ? 'text' : 'password';
 
-  // ikona (Bootstrap Icons)
   const icon = btn.querySelector('i');
   if (icon) {
     icon.classList.toggle('bi-eye', !makeVisible);
     icon.classList.toggle('bi-eye-slash', makeVisible);
   }
 
-  // a11y
   btn.setAttribute('aria-pressed', makeVisible ? 'true' : 'false');
   btn.setAttribute('title', makeVisible ? 'Ukryj hasło' : 'Pokaż hasło');
 }
@@ -278,10 +699,6 @@ let currentContentType = '';
 let currentContentId = '';
 
 function showQuickReport(contentType, contentId) {
-  // Debug logging
-  console.log('Content Type:', contentType, 'Content ID:', contentId);
-  
-  // Validate inputs
   if (!contentType || !contentId || contentId === 'undefined') {
     alert('Błąd: nieprawidłowe dane treści');
     return;
@@ -290,16 +707,12 @@ function showQuickReport(contentType, contentId) {
   currentContentType = contentType;
   currentContentId = contentId;
   
-  // Update detailed report link
-  document.getElementById('detailedReportLink').href = 
-    `/users/report/${contentType}/${contentId}/`;
+  document.getElementById('detailedReportLink').href = `/users/report/${contentType}/${contentId}/`;
   
-  // Clear previous selection
   document.querySelectorAll('input[name="quickReason"]').forEach(input => {
     input.checked = false;
   });
   
-  // Show modal
   new bootstrap.Modal(document.getElementById('quickReportModal')).show();
 }
 
@@ -311,7 +724,6 @@ async function submitQuickReport() {
     return;
   }
   
-  // Validate data before sending
   if (!currentContentType || !currentContentId || currentContentId === 'undefined') {
     alert('Błąd: brak danych do zgłoszenia');
     return;
@@ -324,12 +736,6 @@ async function submitQuickReport() {
     formData.append('reason', reason.value);
     formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
     
-    console.log('Sending data:', {
-      content_type: currentContentType,
-      content_id: currentContentId,
-      reason: reason.value
-    });
-    
     const response = await fetch('/users/report-content/', {
       method: 'POST',
       body: formData,
@@ -338,14 +744,11 @@ async function submitQuickReport() {
       }
     });
     
-    console.log('Response status:', response.status);
-    
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     
     const data = await response.json();
-    console.log('Response data:', data);
     
     if (data.ok) {
       alert(data.message);
@@ -363,8 +766,17 @@ function getCookie(name) {
   const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
   return m ? m.pop() : '';
 }
-</script>
 
+// Highlight active nav link
+document.addEventListener('DOMContentLoaded', function() {
+  const currentPath = window.location.pathname;
+  document.querySelectorAll('.nav-link').forEach(link => {
+    if (link.getAttribute('href') === currentPath) {
+      link.classList.add('active');
+    }
+  });
+});
+</script>
 
 </body>
 </html>

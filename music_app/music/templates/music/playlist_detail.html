@@ -319,16 +319,22 @@
         </div>
 
         <div class="playlist-actions-hero">
-          {% if not playlist.is_favorite %}
-            <a href="{% url 'playlist_edit' playlist.id %}" class="btn btn-outline-light">
-              <i class="bi bi-pencil"></i> Edytuj
-            </a>
-            <a href="{% url 'playlist_delete' playlist.id %}" class="btn btn-outline-danger">
-              <i class="bi bi-trash"></i> Usuń
-            </a>
+          {% if is_owner %}
+            {% if not playlist.is_favorite %}
+              <a href="{% url 'playlist_edit' playlist.id %}" class="btn btn-outline-light">
+                <i class="bi bi-pencil"></i> Edytuj
+              </a>
+              <a href="{% url 'playlist_delete' playlist.id %}" class="btn btn-outline-danger">
+                <i class="bi bi-trash"></i> Usuń
+              </a>
+            {% else %}
+              <span class="text-muted small">
+                <i class="bi bi-info-circle"></i> Ta playlista jest automatycznie zarządzana
+              </span>
+            {% endif %}
           {% else %}
             <span class="text-muted small">
-              <i class="bi bi-info-circle"></i> Ta playlista jest automatycznie zarządzana
+              <i class="bi bi-eye"></i> Przeglądasz publiczną playlistę użytkownika {{ playlist.user.username }}
             </span>
           {% endif %}
         </div>
@@ -375,7 +381,7 @@
               <i class="bi bi-play-circle"></i>
             </button>
             
-            {% if not playlist.is_favorite %}
+            {% if is_owner and not playlist.is_favorite %}
             <button 
               class="btn-track-action danger" 
               onclick="removeFromPlaylist({{ playlist.id }}, {{ pt.track.id }})"

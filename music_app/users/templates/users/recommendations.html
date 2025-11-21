@@ -1,0 +1,646 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .recommendations-hero {
+    background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 32px;
+    border: 1px solid #2a2a2a;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .hero-subtitle {
+    color: #9aa0a6;
+    font-size: 1.1rem;
+  }
+
+  .stats-chips {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .stat-chip {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    padding: 8px 16px;
+    color: #60a5fa;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-badge {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  /* Track Cards */
+  .tracks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+
+  .track-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .track-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    border-color: #3b82f6;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .track-cover {
+    width: 100%;
+    height: 180px;
+    background: linear-gradient(135deg, #2a2a2a, #1f1f1f);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .track-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .track-info {
+    padding: 16px;
+  }
+
+  .track-title {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .track-artist {
+    color: #9aa0a6;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+  }
+
+  .track-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #2a2a2a;
+  }
+
+  .track-rating {
+    color: #fbbf24;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .track-genre {
+    background: rgba(139, 92, 246, 0.2);
+    color: #a78bfa;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  /* Group Cards - CHANGED TO GRID */
+  .groups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+
+  .group-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .group-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    border-color: #3b82f6;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .group-cover {
+    width: 100%;
+    height: 140px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 3rem;
+    font-weight: 800;
+  }
+
+  .group-info-card {
+    padding: 20px;
+  }
+
+  .group-name {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .group-location {
+    color: #9aa0a6;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .group-genres {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .genre-tag {
+    background: rgba(139, 92, 246, 0.2);
+    color: #a78bfa;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .group-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #2a2a2a;
+  }
+
+  .group-members {
+    color: #60a5fa;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Event Cards - MATCHING EVENT LIST DESIGN */
+  .events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+
+  .event-card {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .event-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    border-color: #3a3a3a;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .event-image {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #2a2a2a, #1f1f1f);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    color: #6b7280;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .event-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .event-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .event-date-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  }
+
+  .event-date-day {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+
+  .event-date-month {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+  }
+
+  .event-info-card {
+    padding: 20px;
+  }
+
+  .event-group {
+    color: #60a5fa;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .event-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .event-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .event-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #9aa0a6;
+    font-size: 0.9rem;
+  }
+
+  .event-detail-item i {
+    width: 20px;
+    text-align: center;
+    color: #60a5fa;
+  }
+
+  .event-footer {
+    padding-top: 16px;
+    border-top: 1px solid #2a2a2a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .event-creator {
+    color: #9aa0a6;
+    font-size: 0.85rem;
+  }
+
+  .event-attendees {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #10b981;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .past-badge {
+    background: rgba(107, 114, 128, 0.2);
+    color: #9aa0a6;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6b7280;
+  }
+
+  .empty-state i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.3;
+  }
+
+  @media (max-width: 768px) {
+    .tracks-grid,
+    .groups-grid,
+    .events-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="container py-4">
+  
+  <!-- Hero Section -->
+  <div class="recommendations-hero">
+    <h1 class="hero-title">
+      <i class="bi bi-stars"></i>
+      Rekomendacje dla Ciebie
+    </h1>
+    <p class="hero-subtitle">
+      Spersonalizowane propozycje na podstawie Twoich preferencji muzycznych
+    </p>
+    
+    {% if stats %}
+      <div class="stats-chips">
+        {% if stats.favorite_genres %}
+          {% for genre in stats.favorite_genres %}
+            <span class="stat-chip">
+              <i class="bi bi-music-note-beamed"></i> {{ genre }}
+            </span>
+          {% endfor %}
+        {% endif %}
+        {% if stats.city %}
+          <span class="stat-chip">
+            <i class="bi bi-geo-alt"></i> {{ stats.city }}
+          </span>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Track Recommendations -->
+  <div class="section-header">
+    <h2 class="section-title">
+      <i class="bi bi-music-note-list"></i>
+      Polecane utwory
+    </h2>
+    <span class="section-badge">{{ tracks|length }}</span>
+  </div>
+
+  {% if tracks %}
+    <div class="tracks-grid">
+      {% for track in tracks %}
+        <a href="{% url 'track_detail' track.id %}" class="track-card">
+          <div class="track-cover">
+            {% if track.cover_image %}
+              <img src="{{ track.cover_image }}" alt="{{ track.title }}">
+            {% else %}
+              <img src="{% static 'img/Insony.jpg' %}" alt="{{ track.title }}">
+            {% endif %}
+          </div>
+          <div class="track-info">
+            <div class="track-title">{{ track.title }}</div>
+            <div class="track-artist">{{ track.artist.name }}</div>
+            <div class="track-meta">
+              {% if track.average_rating %}
+                <div class="track-rating">
+                  <i class="bi bi-star-fill"></i>
+                  {{ track.average_rating|floatformat:1 }}
+                </div>
+              {% else %}
+                <div class="track-rating" style="color: #6b7280;">
+                  <i class="bi bi-star"></i>
+                  Brak ocen
+                </div>
+              {% endif %}
+              {% if track.genre %}
+                <span class="track-genre">{{ track.genre.name }}</span>
+              {% endif %}
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <i class="bi bi-music-note-list"></i>
+      <h3 style="color: #9aa0a6;">Brak rekomendacji</h3>
+      <p>Dodaj ulubione gatunki w ustawieniach, aby otrzymać spersonalizowane propozycje</p>
+      <a href="{% url 'account_settings' %}" class="btn btn-primary mt-3">
+        <i class="bi bi-gear"></i> Przejdź do ustawień
+      </a>
+    </div>
+  {% endif %}
+
+  <!-- Group Recommendations -->
+  <div class="section-header" style="margin-top: 48px;">
+    <h2 class="section-title">
+      <i class="bi bi-people-fill"></i>
+      Polecane grupy
+    </h2>
+    <span class="section-badge">{{ groups|length }}</span>
+  </div>
+  
+  {% if groups %}
+    <div class="groups-grid">
+      {% for group in groups %}
+        <a href="{% url 'group_detail' group.slug %}" class="group-card">
+          <div class="group-cover">
+            {% if group.cover_image %}
+              <img src="{{ group.cover_image.url }}" alt="{{ group.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+              {{ group.name|slice:":1"|upper }}
+            {% endif %}
+          </div>
+          <div class="group-info-card">
+            <div class="group-name">{{ group.name }}</div>
+            <div class="group-location">
+              <i class="bi bi-geo-alt"></i> {{ group.location }}
+            </div>
+            <div class="group-genres">
+              {% for genre in group.genres.all|slice:":3" %}
+                <span class="genre-tag">{{ genre.name }}</span>
+              {% endfor %}
+            </div>
+            <div class="group-footer">
+              <div class="group-members">
+                <i class="bi bi-people"></i>
+                {{ group.members_count }} członków
+              </div>
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <i class="bi bi-people-fill"></i>
+      <h3 style="color: #9aa0a6;">Brak rekomendacji grup</h3>
+      <p>Dołącz do grup, aby otrzymać lepsze propozycje</p>
+    </div>
+  {% endif %}
+
+  <!-- Event Recommendations -->
+  <div class="section-header" style="margin-top: 48px;">
+    <h2 class="section-title">
+      <i class="bi bi-calendar-event"></i>
+      Polecane wydarzenia
+    </h2>
+    <span class="section-badge">{{ events|length }}</span>
+  </div>
+
+  {% if events %}
+    <div class="events-grid">
+      {% for event in events %}
+        <a href="{% url 'event_detail' event.slug %}" class="event-card">
+          <div class="event-image">
+            {% if event.event_image %}
+              <img src="{{ event.event_image.url }}" alt="{{ event.title }}">
+            {% else %}
+              <div class="event-image-placeholder">
+                <i class="bi bi-calendar-event"></i>
+              </div>
+            {% endif %}
+            
+            <div class="event-date-badge">
+              <div class="event-date-day">{{ event.event_date|date:"d" }}</div>
+              <div class="event-date-month">{{ event.event_date|date:"M" }}</div>
+            </div>
+          </div>
+
+          <div class="event-info-card">
+            <div class="event-group">
+              <i class="bi bi-people"></i>
+              {{ event.group.name }}
+            </div>
+
+            <h3 class="event-title">{{ event.title }}</h3>
+
+            <div class="event-details">
+              <div class="event-detail-item">
+                <i class="bi bi-clock"></i>
+                {{ event.event_date|date:"d.m.Y, H:i" }}
+                {% if event.end_date %}
+                  - {{ event.end_date|date:"H:i" }}
+                {% endif %}
+              </div>
+              <div class="event-detail-item">
+                <i class="bi bi-geo-alt"></i>
+                {{ event.location }}, {{ event.group.location }}
+              </div>
+            </div>
+
+            <div class="event-footer">
+              <div class="event-creator">
+                <i class="bi bi-person"></i>
+                {{ event.creator.username }}
+              </div>
+
+              {% if event.is_past %}
+                <span class="past-badge">
+                  <i class="bi bi-check-circle"></i> Zakończone
+                </span>
+              {% else %}
+                <div class="event-attendees">
+                  <i class="bi bi-people-fill"></i>
+                  {{ event.attendee_count }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <i class="bi bi-calendar-event"></i>
+      <h3 style="color: #9aa0a6;">Brak nadchodzących wydarzeń</h3>
+      <p>Dołącz do grup, aby zobaczyć ich wydarzenia</p>
+    </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

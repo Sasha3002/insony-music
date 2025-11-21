@@ -233,23 +233,53 @@
 
 <div class="container py-4">
   
+  <!-- Breadcrumb for group filter -->
+  {% if filtered_group %}
+    <div style="margin-bottom: 24px;">
+      <a href="{% url 'group_detail' filtered_group.slug %}" class="btn btn-outline-light">
+        <i class="bi bi-arrow-left"></i> Powrót do grupy
+      </a>
+      <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 16px; margin-top: 12px;">
+        <div style="color: #60a5fa; font-weight: 600; margin-bottom: 4px;">
+          <i class="bi bi-filter"></i> Filtrowanie
+        </div>
+        <div style="color: #e6e6e6;">
+          Pokazujesz wydarzenia z grupy: <strong>{{ filtered_group.name }}</strong>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+  
   <div class="events-header">
     <h1 class="events-title">
       <i class="bi bi-calendar-event"></i>
-      Wydarzenia muzyczne
+      {% if filtered_group %}
+        Wydarzenia: {{ filtered_group.name }}
+      {% else %}
+        Wydarzenia muzyczne
+      {% endif %}
     </h1>
-    <p class="events-subtitle">Odkryj nadchodzące koncerty i spotkania</p>
+    <p class="events-subtitle">
+      {% if filtered_group %}
+        Wszystkie wydarzenia tej grupy
+      {% else %}
+        Odkryj nadchodzące koncerty i spotkania
+      {% endif %}
+    </p>
   </div>
 
   <!-- Filter Tabs -->
   <div class="filter-tabs">
-    <a href="?filter=upcoming" class="filter-tab {% if filter_type == 'upcoming' %}active{% endif %}">
+    <a href="?filter=upcoming{% if filtered_group %}&group={{ filtered_group.slug }}{% endif %}" 
+       class="filter-tab {% if filter_type == 'upcoming' %}active{% endif %}">
       <i class="bi bi-calendar-plus"></i> Nadchodzące
     </a>
-    <a href="?filter=my" class="filter-tab {% if filter_type == 'my' %}active{% endif %}">
+    <a href="?filter=my{% if filtered_group %}&group={{ filtered_group.slug }}{% endif %}" 
+       class="filter-tab {% if filter_type == 'my' %}active{% endif %}">
       <i class="bi bi-person-check"></i> Moje grupy
     </a>
-    <a href="?filter=past" class="filter-tab {% if filter_type == 'past' %}active{% endif %}">
+    <a href="?filter=past{% if filtered_group %}&group={{ filtered_group.slug }}{% endif %}" 
+       class="filter-tab {% if filter_type == 'past' %}active{% endif %}">
       <i class="bi bi-clock-history"></i> Archiwalne
     </a>
   </div>
@@ -258,6 +288,9 @@
   <div class="mb-4">
     <form method="get" class="d-flex gap-2 align-items-center" style="max-width: 500px;">
       <input type="hidden" name="filter" value="{{ filter_type }}">
+      {% if filtered_group %}
+        <input type="hidden" name="group" value="{{ filtered_group.slug }}">
+      {% endif %}
       <div style="flex: 1;">
         <input 
           type="text" 
@@ -277,7 +310,7 @@
         <i class="bi bi-search"></i> Szukaj
       </button>
       {% if city_filter %}
-        <a href="?filter={{ filter_type }}" class="btn btn-outline-light">
+        <a href="?filter={{ filter_type }}{% if filtered_group %}&group={{ filtered_group.slug }}{% endif %}" class="btn btn-outline-light">
           <i class="bi bi-x"></i> Wyczyść
         </a>
       {% endif %}

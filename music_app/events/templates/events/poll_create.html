@@ -1,0 +1,373 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .create-poll-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .create-header {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    border: 1px solid #2a2a2a;
+  }
+
+  .create-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .create-subtitle {
+    color: #9aa0a6;
+    font-size: 1rem;
+  }
+
+  .create-form {
+    background: linear-gradient(135deg, #1a1a1a, #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .form-group {
+    margin-bottom: 24px;
+  }
+
+  .form-label {
+    color: #e6e6e6;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+    font-size: 0.95rem;
+  }
+
+  .form-label-required::after {
+    content: " *";
+    color: #ef4444;
+  }
+
+  .form-input,
+  .form-textarea,
+  .form-select {
+    background: #1f2329;
+    border: 1px solid #2a2f32;
+    color: #e9ecf3;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    width: 100%;
+    transition: all 0.2s;
+  }
+
+  .form-input:focus,
+  .form-textarea:focus,
+  .form-select:focus {
+    background: #1f2329;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    color: #e9ecf3;
+    outline: none;
+  }
+
+  .form-textarea {
+    min-height: 100px;
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  .form-help {
+    color: #9aa0a6;
+    font-size: 0.85rem;
+    margin-top: 6px;
+  }
+
+  .form-section {
+    background: #0f0f0f;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  .form-section-title {
+    color: #60a5fa;
+    font-weight: 600;
+    margin-bottom: 16px;
+    font-size: 1.1rem;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #2a2a2a;
+  }
+
+  .btn-submit {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 32px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+  }
+
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  }
+
+  .btn-cancel {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    padding: 14px 32px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-cancel:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    text-decoration: none;
+  }
+
+  .conditional-fields {
+    display: none;
+  }
+
+  .conditional-fields.active {
+    display: block;
+  }
+</style>
+
+<div class="container py-4">
+  <div class="create-poll-container">
+    
+    <a href="{% url 'event_detail' event.slug %}" class="btn btn-outline-light mb-3">
+      <i class="bi bi-arrow-left"></i> Powrót do wydarzenia
+    </a>
+
+    <div class="create-header">
+      <h1 class="create-title">
+        <i class="bi bi-bar-chart"></i>
+        Utwórz głosowanie
+      </h1>
+      <p class="create-subtitle">{{ event.title }}</p>
+    </div>
+
+    <form method="post" class="create-form" id="pollForm">
+      {% csrf_token %}
+
+      <!-- Poll Type -->
+      <div class="form-group">
+        <label for="poll_type" class="form-label form-label-required">Typ głosowania</label>
+        <select id="poll_type" name="poll_type" class="form-select" required>
+          <option value="">Wybierz typ...</option>
+          <option value="time">Zmiana czasu</option>
+          <option value="date">Zmiana daty</option>
+          <option value="location">Zmiana miejsca</option>
+          <option value="other">Inne</option>
+        </select>
+        <p class="form-help">Wybierz, o czym będzie głosowanie</p>
+      </div>
+
+      <!-- Poll Title -->
+      <div class="form-group">
+        <label for="title" class="form-label form-label-required">Tytuł głosowania</label>
+        <input 
+          type="text" 
+          id="title" 
+          name="title" 
+          class="form-input" 
+          placeholder="np. Zmiana godziny koncertu na 20:00"
+          required
+          maxlength="200">
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label for="description" class="form-label form-label-required">Opis</label>
+        <textarea 
+          id="description" 
+          name="description" 
+          class="form-textarea" 
+          placeholder="Opisz powód głosowania i szczegóły proponowanych zmian..."
+          required></textarea>
+        <p class="form-help">Wyjaśnij, dlaczego proponujesz tę zmianę</p>
+      </div>
+
+      <!-- Proposed Changes Section -->
+      <div class="form-section">
+        <div class="form-section-title">
+          <i class="bi bi-arrow-right-circle"></i>
+          Proponowane zmiany
+        </div>
+
+        <!-- Date Change Fields -->
+        <div id="dateFields" class="conditional-fields">
+          <div class="form-group">
+            <label for="proposed_date" class="form-label">Nowa data rozpoczęcia</label>
+            <input 
+              type="datetime-local" 
+              id="proposed_date" 
+              name="proposed_date" 
+              class="form-input">
+            <p class="form-help">Obecna data: {{ event.event_date|date:"d.m.Y, H:i" }}</p>
+          </div>
+
+          <div class="form-group">
+            <label for="proposed_end_date" class="form-label">Nowa data zakończenia</label>
+            <input 
+              type="datetime-local" 
+              id="proposed_end_date" 
+              name="proposed_end_date" 
+              class="form-input">
+            <p class="form-help">
+              {% if event.end_date %}
+                Obecna data: {{ event.end_date|date:"d.m.Y, H:i" }}
+              {% else %}
+                Nie ustawiono
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <!-- Time Change Fields -->
+        <div id="timeFields" class="conditional-fields">
+          <div class="form-group">
+            <label for="proposed_time" class="form-label">Nowa godzina rozpoczęcia</label>
+            <input 
+              type="datetime-local" 
+              id="proposed_time" 
+              name="proposed_date" 
+              class="form-input">
+            <p class="form-help">Obecna godzina: {{ event.event_date|date:"H:i" }}</p>
+          </div>
+
+          <div class="form-group">
+            <label for="proposed_end_time" class="form-label">Nowa godzina zakończenia</label>
+            <input 
+              type="datetime-local" 
+              id="proposed_end_time" 
+              name="proposed_end_date" 
+              class="form-input">
+            <p class="form-help">
+              {% if event.end_date %}
+                Obecna godzina: {{ event.end_date|date:"H:i" }}
+              {% else %}
+                Nie ustawiono
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <!-- Location Change Fields -->
+        <div id="locationFields" class="conditional-fields">
+          <div class="form-group">
+            <label for="proposed_location" class="form-label">Nowe miejsce</label>
+            <input 
+              type="text" 
+              id="proposed_location" 
+              name="proposed_location" 
+              class="form-input" 
+              placeholder="np. Jazz Club Blue Note, ul. Nowy Świat 25"
+              maxlength="200">
+            <p class="form-help">Obecne miejsce: {{ event.location }}</p>
+          </div>
+        </div>
+
+        <!-- Other Type Fields -->
+        <div id="otherFields" class="conditional-fields">
+          <p class="form-help">
+            Opisz szczegóły w polu "Opis" powyżej. Członkowie grupy będą mogli głosować za lub przeciw.
+          </p>
+        </div>
+      </div>
+
+      <!-- Poll Duration -->
+      <div class="form-group">
+        <label for="closes_at" class="form-label form-label-required">Głosowanie kończy się</label>
+        <input 
+          type="datetime-local" 
+          id="closes_at" 
+          name="closes_at" 
+          class="form-input" 
+          required>
+        <p class="form-help">Kiedy głosowanie powinno się zakończyć?</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">
+          <i class="bi bi-check-circle"></i> Utwórz głosowanie
+        </button>
+        <a href="{% url 'event_detail' event.slug %}" class="btn-cancel">
+          Anuluj
+        </a>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+  // Show/hide fields based on poll type
+  const pollTypeSelect = document.getElementById('poll_type');
+  const dateFields = document.getElementById('dateFields');
+  const timeFields = document.getElementById('timeFields');
+  const locationFields = document.getElementById('locationFields');
+  const otherFields = document.getElementById('otherFields');
+
+  pollTypeSelect.addEventListener('change', function() {
+    // Hide all conditional fields
+    dateFields.classList.remove('active');
+    timeFields.classList.remove('active');
+    locationFields.classList.remove('active');
+    otherFields.classList.remove('active');
+
+    // Show relevant fields
+    switch(this.value) {
+      case 'date':
+        dateFields.classList.add('active');
+        break;
+      case 'time':
+        timeFields.classList.add('active');
+        break;
+      case 'location':
+        locationFields.classList.add('active');
+        break;
+      case 'other':
+        otherFields.classList.add('active');
+        break;
+    }
+  });
+
+  // Set minimum date/time to now
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  const minDateTime = now.toISOString().slice(0, 16);
+  
+  document.getElementById('closes_at').min = minDateTime;
+  document.getElementById('proposed_date').min = minDateTime;
+  document.getElementById('proposed_time').min = minDateTime;
+</script>
+
+{% endblock %}

@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied
 from .models import Track, Artist, Genre, Review, ReviewLike, Favorite, Playlist, PlaylistTrack
 from django.contrib import messages
 from .forms import ReviewForm
-from django.db.models import Avg, Count, F, ExpressionWrapper, FloatField, Q, Value
+from django.db.models import Avg, Count, F, ExpressionWrapper, FloatField, Q, Value, Max
 from django.db.models.functions import Coalesce
 from django.core.paginator import Paginator
 from django.urls import reverse
@@ -14,6 +14,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .forms import TrackEditForm
 from users.models import User, UserBlock
+
 
 
 
@@ -328,7 +329,8 @@ def favorite_toggle(request, track_id):
         if not PlaylistTrack.objects.filter(playlist=favorites_playlist, track=track).exists():
             # Get max position
             max_pos = PlaylistTrack.objects.filter(playlist=favorites_playlist).aggregate(
-                max_pos=models.Max('position')
+                #max_pos=models.Max('position')
+                max_pos=Max('position')
             )['max_pos']
             next_position = (max_pos or 0) + 1
             
@@ -344,7 +346,7 @@ def favorite_toggle(request, track_id):
 @login_required
 def playlist_list(request):
     """List all user's playlists"""
-    playlists = Playlist.objects.filter(user=request.user)
+    playlists = Playlist.objects.filter(user=request.user, is_event_playlist=False).order_by('-created_at')
     
     return render(request, 'music/playlist_list.html', {
         'playlists': playlists
@@ -354,7 +356,14 @@ def playlist_list(request):
 @login_required
 def playlist_detail(request, playlist_id):
     """View single playlist with tracks"""
-    playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
+    # Get playlist without user filter
+    playlist = get_object_or_404(Playlist, id=playlist_id)
+    
+    # Check if user has permission to view
+    is_owner = playlist.user == request.user
+    if not is_owner and not playlist.is_public:
+        # Not owner and not public - deny access
+        return render(request, 'music/403.html', status=403)
     
     # Get tracks in order
     playlist_tracks = PlaylistTrack.objects.filter(
@@ -363,7 +372,8 @@ def playlist_detail(request, playlist_id):
     
     return render(request, 'music/playlist_detail.html', {
         'playlist': playlist,
-        'playlist_tracks': playlist_tracks
+        'playlist_tracks': playlist_tracks,
+        'is_owner': is_owner,  # Pass this to template
     })
 
 
@@ -489,4 +499,3 @@ def playlist_remove_track(request, playlist_id, track_id):
         pt.save()
     
     return JsonResponse({'ok': True, 'message': 'Utwór usunięty z playlisty'})
-

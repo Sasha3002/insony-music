@@ -10,4 +10,10 @@ urlpatterns = [
     path('<slug:slug>/attend/', views.event_attend, name='event_attend'),
     path('<slug:slug>/rate/', views.rate_event, name='rate_event'),  
     path('<slug:slug>/delete-rating/', views.delete_rating, name='delete_rating'),
+    path('<slug:slug>/create-poll/', views.create_poll, name='create_poll'), 
+    path('poll/<int:poll_id>/vote/', views.vote_on_poll, name='vote_on_poll'),  
+    path('poll/<int:poll_id>/close/', views.close_poll, name='close_poll'),  
+    path('poll/<int:poll_id>/apply/', views.apply_poll_changes, name='apply_poll_changes'),  
+    path('<slug:slug>/playlist/add/', views.event_playlist_add_track, name='event_playlist_add_track'), 
+    path('<slug:slug>/playlist/remove/<int:track_id>/', views.event_playlist_remove_track, name='event_playlist_remove_track'),  
 ]

@@ -308,7 +308,7 @@
       formData.append('content', content);
       formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
 
-      const response = await fetch('/chat/group/send/', {
+      const response = await fetch('/chat/send/', {
         method: 'POST',
         body: formData,
         headers: {

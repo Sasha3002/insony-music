@@ -7,7 +7,7 @@ from .views import (
     account_delete, account_settings, password_change, blocked_users, verify_email,
     resend_verification, password_reset_request, password_reset_confirm,
     report_error, my_reports, admin_reports, admin_report_detail,
-    report_content, report_content_form,
+    report_content, report_content_form, recommendations
 )
 
 urlpatterns = [
@@ -41,4 +41,5 @@ urlpatterns = [
     path('admin/reports/<int:report_id>/', admin_report_detail, name='admin_report_detail'),
     path('report-content/', report_content, name='report_content'),
     path('report/<str:content_type>/<int:content_id>/', report_content_form, name='report_content_form'),
+    path('recommendations/', recommendations, name='recommendations'),
 ]
