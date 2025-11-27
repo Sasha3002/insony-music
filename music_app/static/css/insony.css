@@ -104,45 +104,6 @@ body {
 
 
 
-/* === Pill search bar ============================================ */
-.insony-search{
-  --bg:#202225;            /* tło */
-  --bg-focus:#26282c;      /* tło w focus/hover */
-  --bd:#2c2f34;            /* obramowanie */
-  --fg:#e6e6e6;            /* tekst */
-  --muted:#9aa0a6;         /* ikony/placeholder */
-  display:flex; align-items:center; gap:10px;
-  padding:8px 10px;
-  border:1px solid var(--bd);
-  background:var(--bg);
-  border-radius:999px;
-  min-width: 320px;
-  max-width: 560px;
-}
-
-.insony-search:focus-within{ background:var(--bg-focus); border-color:#3a3f46; }
-
-.insony-search .search-icon{ color:var(--muted); display:flex; align-items:center; margin-left:4px; }
-.insony-search .search-input{
-  background:transparent; border:none; outline:none; color:var(--fg);
-  width:100%; font-size:14px;
-}
-.insony-search .search-input::placeholder{ color:var(--muted); }
-
-.insony-search .clear-btn,
-.insony-search .submit-btn{
-  background:transparent; border:none; color:var(--muted);
-  display:flex; align-items:center; justify-content:center;
-  width:32px; height:32px; border-radius:50%;
-  transition:background .15s ease, color .15s ease;
-}
-.insony-search .clear-btn:hover,
-.insony-search .submit-btn:hover{ background:#2b2f34; color:#ffffff; }
-
-/* responsywność – na małych szerokościach niech zajmuje pełną linię */
-@media (max-width: 576px){
-  .insony-search{ width:100%; min-width:0; }
-}
 
 /* === TRACK DETAIL (hero + recenzje) ============================== */
 .insony-hero .cover-xl{
