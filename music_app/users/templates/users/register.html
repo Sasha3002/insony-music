@@ -1,9 +1,13 @@
 {% extends "users/base.html" %}
-
-{# ховаємо глобальні messages з base.html, показуватимемо їх у самій картці #}
+{% load static %}
 {% block global_messages %}{% endblock %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/users.css' %}">
+{% endblock %}
+
 {% block content %}
+
 <div class="row justify-content-center mt-5">
   <div class="col-sm-10 col-md-8 col-lg-5">
     <div class="auth-card shadow-sm p-4">
