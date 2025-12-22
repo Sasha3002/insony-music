@@ -76,12 +76,9 @@ function updateUnreadCounts() {
         data.conversations.forEach(conv => {
           const card = document.querySelector(`a[href*="conversation/${conv.conversation_id}/"]`);
           if (!card) return;
-          
           const metaDiv = card.querySelector('.conversation-meta');
           const previewDiv = card.querySelector('.conversation-preview');
           const timeDiv = card.querySelector('.conversation-time');
-          
-          // Update unread badge
           const oldBadge = metaDiv.querySelector('.unread-badge');
           if (oldBadge) oldBadge.remove();
           
@@ -94,8 +91,6 @@ function updateUnreadCounts() {
           } else {
             card.classList.remove('has-unread');
           }
-          
-          // Update last message preview
           if (conv.last_message) {
             const prefix = conv.last_message.is_own ? 'Ty: ' : '';
             const truncated = conv.last_message.content.substring(0, 47);
@@ -103,8 +98,6 @@ function updateUnreadCounts() {
               ? truncated + '...' 
               : truncated;
             previewDiv.textContent = prefix + display;
-            
-            // Update time
             if (timeDiv) {
               timeDiv.textContent = conv.last_message.time;
             }
@@ -115,7 +108,6 @@ function updateUnreadCounts() {
     .catch(error => console.error('Polling error:', error));
 }
 
-// Poll every 5 seconds
 setInterval(updateUnreadCounts, 5000);
 </script>
 

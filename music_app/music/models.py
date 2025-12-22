@@ -20,7 +20,9 @@ class Genre(models.Model):
 
 class Track(models.Model):
     title = models.CharField(max_length=255, db_index=True)
-    artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name="tracks")
+    artist = models.ForeignKey(
+        Artist, on_delete=models.CASCADE, related_name="tracks"
+    )
     genre = models.ForeignKey(
         Genre, on_delete=models.SET_NULL, null=True, blank=True, related_name="tracks"
     )
@@ -50,12 +52,6 @@ class Track(models.Model):
         help_text="URL of the cover image from Cover Art Archive"
     )
 
-    #favorited_by = models.ManyToManyField(
-    #settings.AUTH_USER_MODEL,
-    #through="Favorite",
-    #related_name="favorited_tracks",
-    #blank=True,
-    #)
 
     class Meta:
         ordering = ("-created_at",)

@@ -17,7 +17,6 @@
   </a>
 
   <div class="chat-container">
-    <!-- Chat Header -->
     <div class="chat-header">
       <div class="chat-header-icon">
         {% if group.cover_image %}
@@ -37,7 +36,7 @@
       </a>
     </div>
 
-    <!-- Messages -->
+    
     <div class="chat-messages" id="messagesContainer">
       {% for message in messages %}
         <div class="message {% if message.sender == request.user %}own{% endif %}" data-message-id="{{ message.id }}">
@@ -73,7 +72,6 @@
       {% endfor %}
     </div>
 
-    <!-- Message Input -->
     <div class="chat-input">
       <form id="messageForm" class="chat-input-group">
         {% csrf_token %}

@@ -20,7 +20,6 @@ class ReviewForm(forms.ModelForm):
             "text":             "Treść (opcjonalnie)",
         }
         widgets = {
-            # slider 0..10
             "rhyme_imagery":    forms.NumberInput(attrs={"type":"range","min":0,"max":10,"step":1,"class":"form-range rating-slider","data-target":"ri"}),
             "structure_rhythm": forms.NumberInput(attrs={"type":"range","min":0,"max":10,"step":1,"class":"form-range rating-slider","data-target":"sr"}),
             "style_execution":  forms.NumberInput(attrs={"type":"range","min":0,"max":10,"step":1,"class":"form-range rating-slider","data-target":"se"}),

@@ -204,7 +204,6 @@ def track_detail(request, track_id):
 
 
 @require_POST
-#@login_required
 def review_like_toggle(request, review_id):
     if not request.user.is_authenticated:
         return JsonResponse({"ok": False, "reason": "auth"}, status=401)
@@ -216,8 +215,6 @@ def review_like_toggle(request, review_id):
     else:
         ReviewLike.objects.create(review=review, user=request.user)
         liked = True
-        #add_xp(request.user, 10)
-        #add_xp(review.user, 10)
     count = ReviewLike.objects.filter(review=review).count()
     return JsonResponse({'ok': True, 'liked': liked, 'count': count})
 
@@ -285,7 +282,6 @@ def track_edit(request, track_id):
 def track_delete(request, track_id):
     if not request.user.is_staff:
         return render(request, "music/403.html", status=403)
-        #raise PermissionDenied
     track = get_object_or_404(Track, id=track_id)
 
     if request.method == 'POST':
@@ -293,8 +289,6 @@ def track_delete(request, track_id):
         track.delete()
         messages.success(request, f'Utwór "{title}" został usunięty.')
         return redirect('track_list')
-
-    # GET – pokazujemy stronę potwierdzenia
     return render(request, 'music/track_delete_confirm.html', {'track': track})
 
 
@@ -396,7 +390,6 @@ def playlist_create(request):
             is_public=is_public
         )
         
-        # Handle cover image
         if 'cover_image' in request.FILES:
             playlist.cover_image = request.FILES['cover_image']
             playlist.save()
@@ -465,11 +458,9 @@ def playlist_add_track(request, playlist_id, track_id):
     playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
     track = get_object_or_404(Track, id=track_id)
     
-    # Check if track already in playlist
     if PlaylistTrack.objects.filter(playlist=playlist, track=track).exists():
         return JsonResponse({'ok': False, 'message': 'Utwór już jest w playliście'})
     
-    # Add track at the end
     position = playlist.track_count
     PlaylistTrack.objects.create(
         playlist=playlist,
@@ -486,13 +477,11 @@ def playlist_remove_track(request, playlist_id, track_id):
     """Remove track from playlist (AJAX)"""
     playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
     
-    # Don't allow removing from favorites playlist (use unfavorite instead)
     if playlist.is_favorite:
         return JsonResponse({'ok': False, 'message': 'Usuń utwór z ulubionych zamiast tego'})
     
     PlaylistTrack.objects.filter(playlist=playlist, track_id=track_id).delete()
     
-    # Reorder remaining tracks
     remaining = PlaylistTrack.objects.filter(playlist=playlist).order_by('position')
     for i, pt in enumerate(remaining):
         pt.position = i

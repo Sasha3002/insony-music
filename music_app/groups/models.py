@@ -16,20 +16,10 @@ class Group(models.Model):
     slug = models.SlugField(max_length=200, unique=True, blank=True)
     description = models.TextField()
     location = models.CharField(max_length=200, help_text="City or place where group is based")
-    
-    # Visual
     cover_image = models.ImageField(upload_to='group_covers/', blank=True, null=True)
-    
-    # Type
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='public')
-    
-    # Admin/Creator
     admin = models.ForeignKey(User, on_delete=models.CASCADE, related_name='administered_groups')
-    
-    # Genres (store as comma-separated for simple filtering)
     genres = models.ManyToManyField(Genre, blank=True, related_name='groups')
-    
-    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -59,9 +49,9 @@ class Group(models.Model):
 class GroupMembership(models.Model):
     """Track group memberships"""
     STATUS_CHOICES = [
-        ('pending', 'Pending'),      # For private groups
-        ('accepted', 'Accepted'),    # Active member
-        ('rejected', 'Rejected'),    # Request denied
+        ('pending', 'Pending'),      
+        ('accepted', 'Accepted'),    
+        ('rejected', 'Rejected'),    
     ]
     
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='members')

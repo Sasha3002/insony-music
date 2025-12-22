@@ -18,7 +18,6 @@
   </a>
 
   <div class="chat-container">
-    <!-- Chat Header -->
     <div class="chat-header">
       <div class="chat-header-icon">
         {% if other_user.profile_picture %}
@@ -37,7 +36,6 @@
       </a>
     </div>
 
-    <!-- Messages -->
     <div class="chat-messages" id="messagesContainer">
       {% for message in messages %}
         <div class="message {% if message.sender == request.user %}own{% endif %}" data-message-id="{{ message.id }}">
@@ -63,7 +61,6 @@
       {% endfor %}
     </div>
 
-    <!-- Message Input -->
     <div class="chat-input">
       <form id="messageForm" class="chat-input-group">
         {% csrf_token %}
@@ -81,9 +78,7 @@
         </button>
       </form>
     </div>
-
   </div>
-
 </div>
 
 <script>
@@ -92,28 +87,24 @@
   const messageInput = document.getElementById('messageInput');
   const sendBtn = document.getElementById('sendBtn');
 
-  // Auto scroll to bottom
+
   function scrollToBottom() {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
-  // Initial scroll
   scrollToBottom();
 
-  // CSRF token helper
   function getCookie(name) {
     const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
     return m ? m.pop() : '';
   }
 
-  // Send message
   messageForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const content = messageInput.value.trim();
     if (!content) return;
 
-    // Disable form
     sendBtn.disabled = true;
     messageInput.disabled = true;
 
@@ -134,7 +125,6 @@
       const data = await response.json();
       
       if (data.ok) {
-        // Add message to UI
         const messageHTML = `
           <div class="message own" data-message-id="${data.message.id}">
             <div class="message-avatar">
@@ -151,13 +141,8 @@
           </div>
         `;
         
-        // Insert into the messages container
         messagesContainer.insertAdjacentHTML('beforeend', messageHTML);
-        
-        // Clear input
         messageInput.value = '';
-        
-        // Scroll to bottom
         scrollToBottom();
       } else {
         alert(data.message || 'Błąd podczas wysyłania wiadomości');
@@ -166,17 +151,14 @@
       console.error('Error sending message:', error);
       alert('Błąd podczas wysyłania wiadomości');
     } finally {
-      // Re-enable form
       sendBtn.disabled = false;
       messageInput.disabled = false;
       messageInput.focus();
     }
   });
 
-  // Focus input
-  messageInput.focus();
 
-  // Poll for new messages every 3 seconds
+  messageInput.focus();
   let lastMessageId = {{ messages.last.id|default:0 }};
   let pollInterval;
   
@@ -186,7 +168,6 @@
       .then(data => {
         if (data.ok && data.messages.length > 0) {
           data.messages.forEach(msg => {
-            // Add new message to UI
             const messageHTML = `
               <div class="message" data-message-id="${msg.id}">
                 <div class="message-avatar">
@@ -212,8 +193,7 @@
       .catch(error => console.error('Polling error:', error));
   }
   
-  // Start polling when page loads
-  pollInterval = setInterval(pollNewMessages, 3000); // Check every 3 seconds
+  pollInterval = setInterval(pollNewMessages, 3000); 
   
   // Stop polling when user leaves page
   window.addEventListener('beforeunload', () => {

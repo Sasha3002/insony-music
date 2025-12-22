@@ -8,14 +8,12 @@ class Conversation(models.Model):
     """Chat conversation between users"""
     TYPE_CHOICES = [
         ('direct', 'Direct Message'),
-        ('group', 'Group Chat'),  # For future use
+        ('group', 'Group Chat'), 
     ]
     
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='direct')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
-    # For future group functionality
     group_name = models.CharField(max_length=200, blank=True, null=True)
     
     class Meta:
