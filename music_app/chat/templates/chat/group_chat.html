@@ -10,6 +10,7 @@
   {# Disable Django messages on chat page #}
 {% endblock %}
 
+<div id="groupChatPage"></div>
 <div class="container py-4">
   
   <a href="{% url 'group_detail' group.slug %}" class="btn btn-outline-light mb-3">
@@ -94,151 +95,17 @@
 
 </div>
 
-<script>
-  const messagesContainer = document.getElementById('messagesContainer');
-  const messageForm = document.getElementById('messageForm');
-  const messageInput = document.getElementById('messageInput');
-  const sendBtn = document.getElementById('sendBtn');
+<input type="hidden" id="groupId" value="{{ group.id }}">
+<input type="hidden" id="lastMessageId" value="{{ messages.last.id|default:0 }}">
+<input type="hidden" id="sendMessageUrl" value="/chat/group/send/">
+<input type="hidden" id="pollMessagesUrl" value="/chat/group/{{ group.id }}/new/">
+<input type="hidden" id="deleteMessageUrlTemplate" value="/chat/group/message/0/delete/">
+<input type="hidden" id="userAvatar" value="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% endif %}">
+<input type="hidden" id="username" value="{{ request.user.username }}">
+<input type="hidden" id="canDeleteOwn" value="{% if is_admin or True %}true{% else %}false{% endif %}">
 
-  function scrollToBottom() {
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  }
+{% endblock %}
 
-  scrollToBottom();
-
-  function getCookie(name) {
-    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return m ? m.pop() : '';
-  }
-
-  messageForm.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const content = messageInput.value.trim();
-    if (!content) return;
-
-    sendBtn.disabled = true;
-    messageInput.disabled = true;
-
-    try {
-      const formData = new FormData();
-      formData.append('group_id', {{ group.id }});
-      formData.append('content', content);
-      formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
-
-      const response = await fetch('/chat/group/send/', {
-        method: 'POST',
-        body: formData,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      });
-
-      const data = await response.json();
-      
-      if (data.ok) {
-        const messageHTML = `
-          <div class="message own" data-message-id="${data.message.id}">
-            <div class="message-avatar">
-              {% if request.user.profile_picture %}
-                <img src="{{ request.user.profile_picture.url }}" alt="{{ request.user.username }}">
-              {% else %}
-                <div class="avatar-placeholder">{{ request.user.username|slice:":1"|upper }}</div>
-              {% endif %}
-            </div>
-            <div class="message-content-wrapper">
-              <div class="message-content">
-                ${data.message.content.replace(/\n/g, '<br>')}
-                <button class="message-delete-btn" onclick="deleteMessage(${data.message.id})" title="Usuń wiadomość">
-                  <i class="bi bi-x"></i>
-                </button>
-                <div class="message-time">${data.message.created_at}</div>
-              </div>
-            </div>
-          </div>
-        `;
-        
-        messagesContainer.insertAdjacentHTML('beforeend', messageHTML);
-        messageInput.value = '';
-        scrollToBottom();
-        lastMessageId = data.message.id;
-      } else {
-        alert(data.message || 'Błąd podczas wysyłania wiadomości');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Błąd podczas wysyłania wiadomości');
-    } finally {
-      sendBtn.disabled = false;
-      messageInput.disabled = false;
-      messageInput.focus();
-    }
-  });
-
-  async function deleteMessage(messageId) {
-    if (!confirm('Czy na pewno chcesz usunąć tę wiadomość?')) return;
-    
-    try {
-      const formData = new FormData();
-      formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
-      
-      const response = await fetch(`/chat/group/message/${messageId}/delete/`, {
-        method: 'POST',
-        body: formData,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      });
-      
-      const data = await response.json();
-      
-      if (data.ok) {
-        document.querySelector(`[data-message-id="${messageId}"]`)?.remove();
-      } else {
-        alert(data.message || 'Błąd podczas usuwania wiadomości');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Błąd podczas usuwania wiadomości');
-    }
-  }
-
-  let lastMessageId = {{ messages.last.id|default:0 }};
-  let pollInterval;
-
-  function pollNewMessages() {
-    fetch(`/chat/group/{{ group.id }}/new/?last_message_id=${lastMessageId}`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.ok && data.messages.length > 0) {
-          data.messages.forEach(msg => {
-            const messageHTML = `
-              <div class="message" data-message-id="${msg.id}">
-                <div class="message-avatar">
-                  ${msg.sender_picture 
-                    ? `<img src="${msg.sender_picture}" alt="${msg.sender}">` 
-                    : `<div class="avatar-placeholder">${msg.sender.charAt(0).toUpperCase()}</div>`
-                  }
-                </div>
-                <div class="message-content-wrapper">
-                  <div class="message-sender-name">${msg.sender}</div>
-                  <div class="message-content">
-                    ${msg.content.replace(/\n/g, '<br>')}
-                    <div class="message-time">${msg.created_at}</div>
-                  </div>
-                </div>
-              </div>
-            `;
-            
-            messagesContainer.insertAdjacentHTML('beforeend', messageHTML);
-            lastMessageId = msg.id;
-          });
-          
-          scrollToBottom();
-        }
-      })
-      .catch(error => console.error('Polling error:', error));
-  }
-
-  pollInterval = setInterval(pollNewMessages, 3000);
-  window.addEventListener('beforeunload', () => clearInterval(pollInterval));
-  messageInput.focus();
-</script>
-
+{% block extra_js %}
+  <script src="{% static 'js/chat.js' %}"></script>
 {% endblock %}
