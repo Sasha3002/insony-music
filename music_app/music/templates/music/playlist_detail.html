@@ -7,6 +7,7 @@
 
 {% block content %}
 
+<div id="playlistDetailPage"></div>
 <div class="container py-4">
   
   <!-- Playlist Hero -->
@@ -142,42 +143,10 @@
       </div>
     {% endif %}
   </div>
-
 </div>
 
-<script>
-  function getCookie(name) {
-    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return m ? m.pop() : '';
-  }
+{% endblock %}
 
-  async function removeFromPlaylist(playlistId, trackId) {
-    if (!confirm('Czy na pewno chcesz usunąć ten utwór z playlisty?')) {
-      return;
-    }
-
-    try {
-      const resp = await fetch(`/playlists/${playlistId}/remove/${trackId}/`, {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': getCookie('csrftoken'),
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      });
-
-      const data = await resp.json();
-      
-      if (data.ok) {
-        // Reload page to show updated list
-        window.location.reload();
-      } else {
-        alert(data.message || 'Wystąpił błąd');
-      }
-    } catch (e) {
-      console.error('Error:', e);
-      alert('Wystąpił błąd podczas usuwania utworu');
-    }
-  }
-</script>
-
+{% block extra_js %}
+  <script src="{% static 'js/music.js' %}"></script>
 {% endblock %}

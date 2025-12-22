@@ -7,6 +7,7 @@
 
 {% block content %}
 
+<div id="playlistEditPage"></div>
 <div class="container py-4">
   
   <!-- Page Hero -->
@@ -104,68 +105,11 @@
         Zapisz zmiany
       </button>
     </div>
-
   </form>
-
 </div>
 
-<script>
-(function() {
-  // Cover preview
-  const coverUpload = document.getElementById('cover-upload');
-  const coverPreview = document.getElementById('cover-preview');
-  
-  if (coverUpload && coverPreview) {
-    coverUpload.addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          coverPreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  }
+{% endblock %}
 
-  // Remove cover button
-  const removeCoverBtn = document.getElementById('remove-cover-btn');
-  const removeCoverInput = document.getElementById('remove-cover-input');
-  
-  if (removeCoverBtn && removeCoverInput) {
-    removeCoverBtn.addEventListener('click', function() {
-      if (confirm('Czy na pewno chcesz usunąć okładkę?')) {
-        removeCoverInput.value = 'true';
-        coverPreview.innerHTML = '<i class="bi bi-music-note-list"></i>';
-        removeCoverBtn.style.display = 'none';
-      }
-    });
-  }
-
-  // Name character counter
-  const nameInput = document.getElementById('name-input');
-  const nameCount = document.getElementById('name-count');
-  
-  if (nameInput && nameCount) {
-    const updateNameCount = () => {
-      nameCount.textContent = nameInput.value.length;
-    };
-    updateNameCount();
-    nameInput.addEventListener('input', updateNameCount);
-  }
-
-  // Description character counter
-  const descInput = document.getElementById('description-input');
-  const descCount = document.getElementById('description-count');
-  
-  if (descInput && descCount) {
-    const updateDescCount = () => {
-      descCount.textContent = descInput.value.length;
-    };
-    updateDescCount();
-    descInput.addEventListener('input', updateDescCount);
-  }
-})();
-</script>
-
+{% block extra_js %}
+  <script src="{% static 'js/music.js' %}"></script>
 {% endblock %}

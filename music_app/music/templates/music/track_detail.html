@@ -7,8 +7,8 @@
 
 {% block content %}
 
+<div id="trackDetailPage"></div>
 <div class="container py-4">
-  
   <!-- Track Hero -->
   <div class="track-hero">
     <div class="track-hero-content">
@@ -331,6 +331,8 @@
               class="btn-like js-like {% if r.id in liked_ids %}is-liked{% endif %}"
               type="button"
               data-review-id="{{ r.id }}"
+              data-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
+              data-login-url="{% url 'login' %}?next={{ request.get_full_path }}"
               aria-pressed="{% if r.id in liked_ids %}true{% else %}false{% endif %}"
               title="{% if user.is_authenticated %}Polub{% else %}Zaloguj się, aby polubić{% endif %}">
               <i class="bi bi-heart{% if r.id in liked_ids %}-fill{% endif %}"></i>
@@ -384,313 +386,8 @@
       </div>
     {% endif %}
   </div>
-
 </div>
 
-<script>
-(function () {
-  /* ========== SLIDERY + SUMA /100 ========== */
-  const sliders = document.querySelectorAll('#crit-form .form-range');
-  const totalEl = document.getElementById('total-current');
-
-  function recomputeTotal() {
-    let sum = 0;
-    sliders.forEach(sl => sum += Number(sl.value) || 0);
-    const total100 = Math.round((sum / 60) * 100);
-    if (totalEl) totalEl.textContent = total100;
-  }
-
-  sliders.forEach(function (sl) {
-    const key = sl.dataset.target;
-    const val = document.getElementById(key + '-val');
-
-    const update = () => {
-      const v = Number(sl.value) || 0;
-      if (val) val.textContent = v;
-      recomputeTotal();
-    };
-
-    update();
-    sl.addEventListener('input', update);
-  });
-
-  recomputeTotal();
-
-  /* ========== ЛІЧИЛЬНИКИ СИМВОЛІВ ========== */
-  const titleInput = document.querySelector('.insony-title-input');
-  const titleCount = document.getElementById('title-count');
-  if (titleInput && titleCount) {
-    const upd = () => titleCount.textContent = (titleInput.value || '').length;
-    upd();
-    titleInput.addEventListener('input', upd);
-  }
-
-  const textArea = document.querySelector('#crit-form textarea');
-  const textCount = document.getElementById('text-count');
-  if (textArea && textCount) {
-    const upd = () => textCount.textContent = (textArea.value || '').length;
-    upd();
-    textArea.addEventListener('input', upd);
-  }
-
-  /* ========== ЛАЙКИ РЕЦЕНЗІЙ ========== */
-  function getCookie(name) {
-    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return m ? m.pop() : '';
-  }
-  const csrftoken = getCookie('csrftoken');
-
-  document.querySelectorAll('.js-like').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const reviewId = btn.dataset.reviewId;
-      if (!reviewId) return;
-
-      // Check if user is authenticated - if not, redirect
-      {% if not user.is_authenticated %}
-        window.location.href = "{% url 'login' %}?next={{ request.get_full_path }}";
-        return;
-      {% endif %}
-
-      try {
-        const resp = await fetch(`/reviews/${reviewId}/like/`, {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': csrftoken,
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        });
-
-        if (resp.status === 401 || resp.status === 403) {
-          window.location.href = "{% url 'login' %}?next={{ request.get_full_path }}";
-          return;
-        }
-
-        const data = await resp.json();
-        if (!data || !data.ok) return;
-
-        const countEl = document.getElementById(`like-count-${reviewId}`);
-        const icon = btn.querySelector('i');
-
-        if (data.liked) {
-          btn.classList.add('is-liked');
-          btn.setAttribute('aria-pressed', 'true');
-          if (icon) {
-            icon.classList.remove('bi-heart');
-            icon.classList.add('bi-heart-fill');
-          }
-        } else {
-          btn.classList.remove('is-liked');
-          btn.setAttribute('aria-pressed', 'false');
-          if (icon) {
-            icon.classList.remove('bi-heart-fill');
-            icon.classList.add('bi-heart');
-          }
-        }
-        if (countEl) countEl.textContent = data.count;
-
-      } catch (e) {
-        console.error('Like error:', e);
-      }
-    });
-  });
-
-  /* ========== FAVORITE TOGGLE ========== */
-  const favBtn = document.querySelector('.js-fav');
-  if (favBtn) {
-    favBtn.addEventListener('click', async () => {
-      const trackId = favBtn.dataset.trackId;
-      try {
-        const resp = await fetch(`/favorite/${trackId}/toggle/`, {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': csrftoken,
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        });
-
-        if (resp.status === 401 || resp.status === 403) {
-          window.location.href = "{% url 'login' %}?next={{ request.get_full_path }}";
-          return;
-        }
-
-        const data = await resp.json();
-        if (!data.ok) return;
-
-        const pressed = data.favorited === true;
-        favBtn.setAttribute('aria-pressed', pressed ? 'true' : 'false');
-
-        const icon = favBtn.querySelector('i');
-        const text = pressed ? 'Ulubiony' : 'Dodaj do ulubionych';
-        
-        if (icon) {
-          if (pressed) {
-            icon.classList.remove('bi-heart');
-            icon.classList.add('bi-heart-fill');
-          } else {
-            icon.classList.remove('bi-heart-fill');
-            icon.classList.add('bi-heart');
-          }
-        }
-        
-        // Update button text (preserving the icon)
-        favBtn.innerHTML = `<i class="bi bi-heart${pressed ? '-fill' : ''}"></i> ${text}`;
-
-        // Flash effect
-        favBtn.classList.add('btn-success');
-        setTimeout(() => favBtn.classList.remove('btn-success'), 300);
-
-      } catch (e) {
-        console.error(e);
-      }
-    });
-  }
-
-  /* ========== ANIMATE BARS ON LOAD ========== */
-  document.addEventListener('DOMContentLoaded', () => {
-    const fills = document.querySelectorAll('.criterion-fill');
-    fills.forEach(fill => {
-      const targetWidth = fill.style.width;
-      fill.style.width = '0%';
-      setTimeout(() => {
-        fill.style.width = targetWidth;
-      }, 100);
-    });
-  });
-
-  /* ========== ADD TO PLAYLIST ========== */
-  document.addEventListener('DOMContentLoaded', function() {
-    const addButtons = document.querySelectorAll('.add-to-playlist');
-    const removeButtons = document.querySelectorAll('.remove-from-playlist');
-    const messageDiv = document.getElementById('playlistMessage');
-    
-    // Add to playlist
-    addButtons.forEach(btn => {
-      btn.addEventListener('click', async function(e) {
-        e.stopPropagation();
-        if (this.disabled) return;
-        
-        const playlistId = this.dataset.playlistId;
-        const trackId = this.dataset.trackId;
-        this.disabled = true;
-        
-        try {
-          const resp = await fetch(`/playlists/${playlistId}/add/${trackId}/`, {
-            method: 'POST',
-            headers: {
-              'X-CSRFToken': csrftoken,
-              'X-Requested-With': 'XMLHttpRequest'
-            }
-          });
-          
-          const data = await resp.json();
-          
-          if (data.ok) {
-            showPlaylistMessage('success', data.message || 'Utwór dodany!');
-            
-            // Update count
-            const playlistItem = this.closest('.playlist-list-item');
-            const countSpan = playlistItem.querySelector('.track-count');
-            if (countSpan) {
-              const match = countSpan.textContent.match(/\d+/);
-              if (match) {
-                const newCount = parseInt(match[0]) + 1;
-                countSpan.textContent = `${newCount} utwor${newCount === 1 ? '' : newCount < 5 ? 'y' : 'ów'}`;
-              }
-            }
-            
-            // Change icon
-            this.querySelector('i').className = 'bi bi-check-circle-fill';
-          } else {
-            showPlaylistMessage('warning', data.message || 'Nie udało się dodać');
-          }
-          
-          this.disabled = false;
-        } catch (error) {
-          showPlaylistMessage('error', 'Wystąpił błąd');
-          this.disabled = false;
-        }
-      });
-    });
-    
-    // Remove from playlist
-    removeButtons.forEach(btn => {
-      btn.addEventListener('click', async function(e) {
-        e.stopPropagation();
-        if (this.disabled) return;
-        
-        const playlistId = this.dataset.playlistId;
-        const trackId = this.dataset.trackId;
-        this.disabled = true;
-        
-        try {
-          const resp = await fetch(`/playlists/${playlistId}/remove/${trackId}/`, {
-            method: 'POST',
-            headers: {
-              'X-CSRFToken': csrftoken,
-              'X-Requested-With': 'XMLHttpRequest'
-            }
-          });
-          
-          const data = await resp.json();
-          
-          if (data.ok) {
-            showPlaylistMessage('success', 'Utwór usunięty!');
-            
-            // Update count
-            const playlistItem = this.closest('.playlist-list-item');
-            const countSpan = playlistItem.querySelector('.track-count');
-            if (countSpan) {
-              const match = countSpan.textContent.match(/\d+/);
-              if (match) {
-                const newCount = Math.max(0, parseInt(match[0]) - 1);
-                countSpan.textContent = `${newCount} utwor${newCount === 1 ? '' : newCount < 5 ? 'y' : 'ów'}`;
-              }
-            }
-          } else {
-            showPlaylistMessage('warning', data.message || 'Nie udało się usunąć');
-          }
-          
-          this.disabled = false;
-        } catch (error) {
-          showPlaylistMessage('error', 'Wystąpił błąd');
-          this.disabled = false;
-        }
-      });
-    });
-    
-    function showPlaylistMessage(type, message) {
-      messageDiv.className = `playlist-message ${type}`;
-      messageDiv.textContent = message;
-      messageDiv.classList.remove('d-none');
-      
-      setTimeout(() => {
-        messageDiv.classList.add('d-none');
-      }, 3000);
-    }
-  });
-  document.addEventListener('DOMContentLoaded', function() {
-  // Handle report buttons
-    document.querySelectorAll('.report-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const contentType = this.dataset.contentType;
-        const contentId = this.dataset.contentId;
-        
-        console.log('Reporting:', contentType, contentId); // Debug log
-        
-        if (contentType && contentId) {
-          showQuickReport(contentType, contentId);
-        } else {
-          alert('Błąd: brak danych do zgłoszenia');
-        }
-      });
-    });
-  });
-
-})();
-</script>
 
 <!-- Add to Playlist Modal -->
 <div class="modal fade" id="playlistModal" tabindex="-1" aria-labelledby="playlistModalLabel" aria-hidden="true">
@@ -752,7 +449,9 @@
   </div>
 </div>
 
+{% endblock %}
 
-
+{% block extra_js %}
+  <script src="{% static 'js/music.js' %}"></script>
 {% endblock %}
 

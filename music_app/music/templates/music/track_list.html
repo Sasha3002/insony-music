@@ -8,6 +8,7 @@
 
 {% block content %}
 
+<div id="trackListPage"></div>
 <div class="container mt-4">
 
   <!-- Page Header -->
@@ -247,72 +248,8 @@
   {% endif %}
 </div>
 
-<script>
-  // Clear search button
-  const clearBtn = document.querySelector('.insony-search .clear-btn');
-  if (clearBtn) {
-    clearBtn.addEventListener('click', () => {
-      const form = clearBtn.closest('form');
-      const input = form.querySelector('.search-input');
-      input.value = '';
-      form.submit();
-    });
-  }
+{% endblock %}
 
-  // Animate rating bars on load
-  document.addEventListener('DOMContentLoaded', () => {
-    const fills = document.querySelectorAll('.rating-fill');
-    fills.forEach(fill => {
-      const targetWidth = fill.style.width;
-      fill.style.width = '0%';
-      setTimeout(() => {
-        fill.style.width = targetWidth;
-      }, 100);
-    });
-  });
-
-  // Favorite toggle function
-  function toggleFavorite(button, trackId) {
-    fetch(`/favorite/${trackId}/toggle/`, {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': getCookie('csrftoken'),
-        'Content-Type': 'application/json',
-      },
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.ok) {
-        const icon = button.querySelector('i');
-        if (data.favorited) {
-          button.classList.add('favorited');
-          icon.classList.remove('bi-heart');
-          icon.classList.add('bi-heart-fill');
-        } else {
-          button.classList.remove('favorited');
-          icon.classList.remove('bi-heart-fill');
-          icon.classList.add('bi-heart');
-        }
-      }
-    })
-    .catch(error => console.error('Error:', error));
-  }
-
-  // Get CSRF token
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
-</script>
-
+{% block extra_js %}
+  <script src="{% static 'js/music.js' %}"></script>
 {% endblock %}
