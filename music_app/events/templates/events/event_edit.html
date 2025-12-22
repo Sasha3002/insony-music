@@ -7,6 +7,7 @@
 
 {% block content %}
 
+<div id="eventEditPage"></div>
 <div class="container py-4">
   <div class="edit-event-container">
     
@@ -121,19 +122,11 @@
         </a>
       </div>
     </form>
-
   </div>
 </div>
 
-<script>
-  function updateFileName(input) {
-    const fileName = document.getElementById('file-name');
-    if (input.files && input.files[0]) {
-      fileName.textContent = input.files[0].name;
-    } else {
-      fileName.textContent = 'Nie wybrano nowego pliku';
-    }
-  }
-</script>
+{% endblock %}
 
+{% block extra_js %}
+  <script src="{% static 'js/events.js' %}"></script>
 {% endblock %}

@@ -7,6 +7,7 @@
 
 {% block content %}
 
+<div id="pollCreatePage"></div>
 <div class="container py-4">
   <div class="create-poll-container">
     
@@ -173,50 +174,11 @@
         </a>
       </div>
     </form>
-
   </div>
 </div>
 
-<script>
-  // Show/hide fields based on poll type
-  const pollTypeSelect = document.getElementById('poll_type');
-  const dateFields = document.getElementById('dateFields');
-  const timeFields = document.getElementById('timeFields');
-  const locationFields = document.getElementById('locationFields');
-  const otherFields = document.getElementById('otherFields');
+{% endblock %}
 
-  pollTypeSelect.addEventListener('change', function() {
-    // Hide all conditional fields
-    dateFields.classList.remove('active');
-    timeFields.classList.remove('active');
-    locationFields.classList.remove('active');
-    otherFields.classList.remove('active');
-
-    // Show relevant fields
-    switch(this.value) {
-      case 'date':
-        dateFields.classList.add('active');
-        break;
-      case 'time':
-        timeFields.classList.add('active');
-        break;
-      case 'location':
-        locationFields.classList.add('active');
-        break;
-      case 'other':
-        otherFields.classList.add('active');
-        break;
-    }
-  });
-
-  // Set minimum date/time to now
-  const now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  const minDateTime = now.toISOString().slice(0, 16);
-  
-  document.getElementById('closes_at').min = minDateTime;
-  document.getElementById('proposed_date').min = minDateTime;
-  document.getElementById('proposed_time').min = minDateTime;
-</script>
-
+{% block extra_js %}
+  <script src="{% static 'js/events.js' %}"></script>
 {% endblock %}
