@@ -7,8 +7,8 @@
 
 {% block content %}
 
-<div class="container py-4">
-  
+<div id="blockedUsersPage"></div>
+<div class="container py-4"> 
   <a href="{% url 'account_settings' %}" class="btn btn-outline-light mb-3">
     <i class="bi bi-arrow-left"></i> Powrót do ustawień
   </a>
@@ -57,62 +57,10 @@
       <p>Możesz zablokować użytkowników z ich profilu</p>
     </div>
   {% endif %}
-
 </div>
 
-<script>
-  function getCookie(name) {
-    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return m ? m.pop() : '';
-  }
+{% endblock %}
 
-  async function unblockUser(username, btn) {
-    if (!confirm(`Czy na pewno chcesz odblokować użytkownika ${username}?`)) {
-      return;
-    }
-    
-    const originalHTML = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Odblokowywanie...';
-    
-    try {
-      const resp = await fetch(`/users/u/${username}/unblock/`, {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': getCookie('csrftoken'),
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      });
-      
-      const data = await resp.json();
-      
-      if (data.ok) {
-        const userItem = btn.closest('.blocked-user-item');
-        userItem.style.opacity = '0';
-        userItem.style.transform = 'translateX(-30px)';
-        
-        setTimeout(() => {
-          userItem.remove();
-          
-          const list = document.getElementById('blockedUsersList');
-          if (list && list.children.length === 0) {
-            window.location.reload();
-          }
-        }, 300);
-        
-        alert(data.message);
-      } else {
-        alert(data.message || 'Wystąpił błąd');
-        btn.disabled = false;
-        btn.innerHTML = originalHTML;
-      }
-    } catch (e) {
-      console.error(e);
-      alert('Wystąpił błąd podczas odblokowywania');
-      btn.disabled = false;
-      btn.innerHTML = originalHTML;
-    }
-  }
-</script>
-
+{% block extra_js %}
+  <script src="{% static 'js/users.js' %}"></script>
 {% endblock %}

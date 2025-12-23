@@ -1,16 +1,10 @@
-// ============================================================================
 // UTILITY FUNCTIONS
-// ============================================================================
-
 function getCookie(name) {
   const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
   return m ? m.pop() : '';
 }
 
-// ============================================================================
 // PLAYLIST CREATE PAGE
-// ============================================================================
-
 function initPlaylistCreate() {
   const coverUpload = document.getElementById('cover-upload');
   const coverPreview = document.getElementById('cover-preview');
@@ -63,10 +57,7 @@ function initPlaylistCreate() {
   }
 }
 
-// ============================================================================
 // PLAYLIST EDIT PAGE
-// ============================================================================
-
 function initPlaylistEdit() {
   const coverUpload = document.getElementById('cover-upload');
   const coverPreview = document.getElementById('cover-preview');
@@ -121,10 +112,7 @@ function initPlaylistEdit() {
   }
 }
 
-// ============================================================================
 // PLAYLIST DETAIL PAGE
-// ============================================================================
-
 function initPlaylistDetail() {
   // Remove from playlist function is made global for inline onclick
   window.removeFromPlaylist = async function(playlistId, trackId) {
@@ -155,29 +143,14 @@ function initPlaylistDetail() {
   };
 }
 
-// ============================================================================
 // TRACK DETAIL PAGE
-// ============================================================================
-
 function initTrackDetail() {
   const csrftoken = getCookie('csrftoken');
-
-  // Sliders + Sum /100
   initReviewSliders();
-
-  // Character counters
   initCharacterCounters();
-
-  // Review likes
   initReviewLikes(csrftoken);
-
-  // Favorite toggle
   initFavoriteToggle(csrftoken);
-
-  // Animate bars on load
   animateCriteriaBars();
-
-  // Add to playlist functionality
   initPlaylistActions(csrftoken);
 }
 
@@ -465,10 +438,7 @@ function initPlaylistActions(csrftoken) {
   }
 }
 
-// ============================================================================
 // TRACK LIST PAGE
-// ============================================================================
-
 function initTrackList() {
   // Clear search button
   const clearBtn = document.querySelector('.insony-search .clear-btn');
@@ -519,10 +489,7 @@ function initTrackList() {
   };
 }
 
-// ============================================================================
 // INITIALIZE ON PAGE LOAD
-// ============================================================================
-
 document.addEventListener('DOMContentLoaded', function() {
   // Check which page we're on and initialize accordingly
   if (document.getElementById('playlistCreatePage')) {

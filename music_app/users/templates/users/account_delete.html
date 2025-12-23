@@ -7,6 +7,7 @@
 
 {% block content %}
 
+<div id="accountDeletePage"></div>
 <div class="delete-container">
   
   <div class="delete-card">
@@ -93,49 +94,12 @@
           Usuń konto na zawsze
         </button>
       </div>
-
     </form>
   </div>
-
 </div>
 
-<script>
-(function() {
-  const form = document.getElementById('deleteForm');
-  const passwordInput = document.getElementById('password-input');
-  const confirmInput = document.getElementById('confirm-input');
-  const deleteBtn = document.getElementById('deleteBtn');
+{% endblock %}
 
-  function checkForm() {
-    const password = passwordInput.value;
-    const confirmText = confirmInput.value;
-    
-    // Enable button only if both fields are filled
-    if (password && confirmText === 'USUŃ KONTO') {
-      deleteBtn.disabled = false;
-    } else {
-      deleteBtn.disabled = true;
-    }
-  }
-
-  passwordInput.addEventListener('input', checkForm);
-  confirmInput.addEventListener('input', checkForm);
-
-  form.addEventListener('submit', function(e) {
-    const confirmText = confirmInput.value;
-    
-    if (confirmText !== 'USUŃ KONTO') {
-      e.preventDefault();
-      alert('Musisz wpisać dokładnie: USUŃ KONTO');
-      return;
-    }
-
-    if (!confirm('Czy NA PEWNO chcesz usunąć swoje konto? Tej operacji nie można cofnąć!')) {
-      e.preventDefault();
-      return;
-    }
-  });
-})();
-</script>
-
+{% block extra_js %}
+  <script src="{% static 'js/users.js' %}"></script>
 {% endblock %}

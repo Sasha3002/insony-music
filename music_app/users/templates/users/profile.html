@@ -8,13 +8,9 @@
 
 {% block content %}
 
-<!-- Profile Cover Section -->
+ <div id="profilePage"></div>
 <div class="profile-cover"></div>
-<!-- Main Container -->
 <div class="container" style="margin-top: -50px; position: relative; z-index: 10;">
-  
-  
-  <!-- Profile Header -->
   <div class="profile-header-content">
     <img src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=2a2a2a&color=fff&size=280{% endif %}" 
          alt="{{ user.username }}" 
@@ -246,45 +242,9 @@
   <div style="height: 80px;"></div>
 </div>
 
-<script>
-  // Animate XP bar on load
-(function () {
-  const fill = document.getElementById('xpFill');
-  const tip  = document.getElementById('xpTip');
-  if (!fill || !tip) return;
 
-  // цільовий % із data-атрибуту
-  const target = parseFloat(fill.dataset.target || '0');
-  const clamp = v => Math.max(0, Math.min(100, v));
+{% endblock %}
 
-  // стартова анімація
-  requestAnimationFrame(() => {
-    fill.style.setProperty('--xp-pct', clamp(target) + '%');
-    tip.textContent = Math.round(clamp(target)) + '%';
-    tip.style.left  = clamp(target) + '%';
-  });
-
-  // якщо хочеш, щоб тултіп плавав при наведенні:
-  fill.parentElement.addEventListener('mousemove', (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pct = clamp(((e.clientX - rect.left) / rect.width) * 100);
-    tip.style.left = pct + '%';
-  });
-
-  
-  document.getElementById('followersCount').textContent = '{{ followers_count }}';
-  document.getElementById('followingCount').textContent = '{{ following_count }}';
-})();
-</script>
-
-<script>
-// Load follower counts
-(async function() {
-  try {
-    const resp = await fetch('/users/u/{{ user.username }}/');
-    // We'll need to pass these counts in context
-  } catch(e) {}
-})();
-</script>
-
+{% block extra_js %}
+  <script src="{% static 'js/users.js' %}"></script>
 {% endblock %}

@@ -7,9 +7,8 @@
 
 {% block content %}
 
+<div id="profileEditPage"></div>
 <div class="container py-4">
-  
-  <!-- Page Hero -->
   <div class="edit-hero">
     <h1 class="page-title-edit">
       <i class="bi bi-pencil-square"></i>
@@ -17,6 +16,9 @@
     </h1>
     <p class="page-subtitle">Zaktualizuj swoje informacje i preferencje muzyczne</p>
   </div>
+
+  <script type="application/json" id="genresData">{{ all_genres_json|safe }}</script>
+  <script type="application/json" id="artistsData">{{ all_artists_json|safe }}</script>
 
   <form method="POST" enctype="multipart/form-data" class="form-card">
     {% csrf_token %}
@@ -205,224 +207,11 @@
         Zapisz zmiany
       </button>
     </div>
-
   </form>
 </div>
 
-<script>
-(function() {
-  // Get all genres and artists from Django context
-  const allGenres = [
-    {% for genre in all_genres %}
-      "{{ genre.name|escapejs }}"{% if not forloop.last %},{% endif %}
-    {% endfor %}
-  ];
-  
-  const allArtists = [
-    {% for artist in all_artists %}
-      "{{ artist.name|escapejs }}"{% if not forloop.last %},{% endif %}
-    {% endfor %}
-  ];
+{% endblock %}
 
-  // Initialize selected items from current values
-  const currentGenres = "{{ favorite_genres|escapejs }}".split(',').map(g => g.trim()).filter(g => g);
-  const currentArtists = "{{ favorite_artists|escapejs }}".split(',').map(a => a.trim()).filter(a => a);
-
-  // Generic autocomplete class
-  class Autocomplete {
-    constructor(inputId, dropdownId, tagsId, hiddenId, allItems, icon) {
-      this.input = document.getElementById(inputId);
-      this.dropdown = document.getElementById(dropdownId);
-      this.tagsContainer = document.getElementById(tagsId);
-      this.hiddenInput = document.getElementById(hiddenId);
-      this.allItems = allItems;
-      this.icon = icon;
-      this.selectedItems = [];
-      
-      this.init();
-    }
-
-    init() {
-      // Load initial selected items
-      const initialValue = this.hiddenInput.value;
-      if (initialValue) {
-        this.selectedItems = initialValue.split(',').map(i => i.trim()).filter(i => i);
-        this.renderTags();
-      }
-
-      // Input events
-      this.input.addEventListener('input', () => this.handleInput());
-      this.input.addEventListener('focus', () => this.handleInput());
-      
-      // Click outside to close
-      document.addEventListener('click', (e) => {
-        if (!this.input.contains(e.target) && !this.dropdown.contains(e.target)) {
-          this.dropdown.classList.remove('show');
-        }
-      });
-    }
-
-    handleInput() {
-      const query = this.input.value.trim().toLowerCase();
-      
-      if (query.length === 0) {
-        this.dropdown.classList.remove('show');
-        return;
-      }
-
-      // Filter items
-      const filtered = this.allItems.filter(item => 
-        item.toLowerCase().includes(query) && !this.selectedItems.includes(item)
-      );
-
-      this.renderDropdown(filtered);
-    }
-
-    renderDropdown(items) {
-      if (items.length === 0) {
-        this.dropdown.innerHTML = '<div class="autocomplete-empty">Nie znaleziono wyników</div>';
-        this.dropdown.classList.add('show');
-        return;
-      }
-
-      this.dropdown.innerHTML = items.slice(0, 10).map(item => `
-        <div class="autocomplete-item" data-value="${item}">
-          <i class="bi ${this.icon}"></i>
-          ${item}
-        </div>
-      `).join('');
-
-      // Add click handlers
-      this.dropdown.querySelectorAll('.autocomplete-item').forEach(el => {
-        el.addEventListener('click', () => {
-          this.addItem(el.dataset.value);
-        });
-      });
-
-      this.dropdown.classList.add('show');
-    }
-
-    addItem(item) {
-      if (!this.selectedItems.includes(item)) {
-        this.selectedItems.push(item);
-        this.updateHidden();
-        this.renderTags();
-      }
-      
-      this.input.value = '';
-      this.dropdown.classList.remove('show');
-      this.input.focus();
-    }
-
-    removeItem(item) {
-      this.selectedItems = this.selectedItems.filter(i => i !== item);
-      this.updateHidden();
-      this.renderTags();
-    }
-
-    updateHidden() {
-      this.hiddenInput.value = this.selectedItems.join(', ');
-    }
-
-    renderTags() {
-      if (this.selectedItems.length === 0) {
-        this.tagsContainer.innerHTML = '<span class="text-muted small">Nie wybrano żadnych pozycji</span>';
-        return;
-      }
-
-      this.tagsContainer.innerHTML = this.selectedItems.map(item => `
-        <span class="selected-tag">
-          <i class="bi ${this.icon}"></i>
-          ${item}
-          <span class="tag-remove" data-value="${item}">×</span>
-        </span>
-      `).join('');
-
-      // Add remove handlers
-      this.tagsContainer.querySelectorAll('.tag-remove').forEach(el => {
-        el.addEventListener('click', () => {
-          this.removeItem(el.dataset.value);
-        });
-      });
-    }
-  }
-
-  // Initialize autocompletes
-  const genresAutocomplete = new Autocomplete(
-    'genres-search',
-    'genres-dropdown',
-    'genres-tags',
-    'genres-hidden',
-    allGenres,
-    'bi-music-note'
-  );
-
-  const artistsAutocomplete = new Autocomplete(
-    'artists-search',
-    'artists-dropdown',
-    'artists-tags',
-    'artists-hidden',
-    allArtists,
-    'bi-person'
-  );
-
-  // Bio character counter
-  const bioInput = document.getElementById('bio-input');
-  const bioCount = document.getElementById('bio-count');
-  
-  if (bioInput && bioCount) {
-    const updateBioCount = () => {
-      bioCount.textContent = bioInput.value.length;
-    };
-    updateBioCount();
-    bioInput.addEventListener('input', updateBioCount);
-  }
-
-  // Form validation on submit
-  const form = document.querySelector('form');
-  if (form) {
-    form.addEventListener('submit', (e) => {
-      const email = form.querySelector('[name="email"]');
-      if (!email.value.trim()) {
-        e.preventDefault();
-        alert('Email jest wymagany');
-        email.focus();
-      }
-    });
-  }
-
-  // Profile picture preview
-  const pictureUpload = document.getElementById('picture-upload');
-  const avatarPreview = document.getElementById('avatar-preview');
-  const removeButton = document.getElementById('remove-picture');
-  
-  if (pictureUpload && avatarPreview) {
-    pictureUpload.addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  }
-
-  if (removeButton) {
-    removeButton.addEventListener('click', function() {
-      if (confirm('Czy na pewno chcesz usunąć zdjęcie profilowe?')) {
-        // Create hidden input to signal removal
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'remove_picture';
-        input.value = 'true';
-        document.querySelector('form').appendChild(input);
-        document.querySelector('form').submit();
-      }
-    });
-  }
-})();
-</script>
-
+{% block extra_js %}
+  <script src="{% static 'js/users.js' %}"></script>
 {% endblock %}

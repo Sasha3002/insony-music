@@ -7,8 +7,8 @@
 
 {% block content %}
 
+<div id="userSearchPage"></div>
 <div class="container py-4">
-  
   <div class="search-header">
     <h1 class="search-title">
       <i class="bi bi-search"></i>
@@ -97,82 +97,8 @@
 
 </div>
 
-<script>
-  function getCookie(name) {
-    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return m ? m.pop() : '';
-  }
+{% endblock %}
 
-  async function toggleFollow(username, btn) {
-    const originalHTML = btn.innerHTML;
-    btn.disabled = true;
-    
-    try {
-      const resp = await fetch(`/users/u/${username}/follow/`, {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': getCookie('csrftoken'),
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      });
-      
-      const data = await resp.json();
-      
-      if (data.ok) {
-        if (data.is_following) {
-          btn.classList.add('following');
-          btn.innerHTML = '<i class="bi bi-check-circle"></i> Obserwujesz';
-        } else {
-          btn.classList.remove('following');
-          btn.innerHTML = '<i class="bi bi-plus-circle"></i> Obserwuj';
-        }
-      } else {
-        alert(data.message || 'Wystąpił błąd');
-      }
-      
-      btn.disabled = false;
-    } catch (e) {
-      console.error(e);
-      btn.disabled = false;
-      btn.innerHTML = originalHTML;
-    }
-  }
-
-  async function toggleBlock(username, btn) {
-    if (!confirm('Czy na pewno chcesz zablokować tego użytkownika?')) {
-      return;
-    }
-    
-    btn.disabled = true;
-    
-    try {
-      const resp = await fetch(`/users/u/${username}/block/`, {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': getCookie('csrftoken'),
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      });
-      
-      const data = await resp.json();
-      
-      if (data.ok) {
-        alert(data.message);
-        // Remove user card
-        btn.closest('.user-card').style.opacity = '0';
-        setTimeout(() => {
-          btn.closest('.user-card').remove();
-        }, 300);
-      } else {
-        alert(data.message || 'Wystąpił błąd');
-        btn.disabled = false;
-      }
-    } catch (e) {
-      console.error(e);
-      alert('Wystąpił błąd');
-      btn.disabled = false;
-    }
-  }
-</script>
-
+{% block extra_js %}
+  <script src="{% static 'js/users.js' %}"></script>
 {% endblock %}

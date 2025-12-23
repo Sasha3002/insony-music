@@ -22,6 +22,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
 from groups.views import validate_city
+import json
 from .recommendations import RecommendationEngine
 
 
@@ -222,9 +223,11 @@ def profile_edit(request):
                 "favorite_genres": user.favorite_genres,
                 "favorite_artists": user.favorite_artists,
                 "bio": user.bio,
-                "city": city,  # Return the submitted city
+                "city": city,  
                 "all_genres": all_genres,
                 "all_artists": all_artists,
+                "all_genres_json": json.dumps([g.name for g in all_genres]),
+                "all_artists_json": json.dumps([a.name for a in all_artists]),
             })
         
         # Update user fields
@@ -254,6 +257,8 @@ def profile_edit(request):
         "city": user.city,
         "all_genres": all_genres,
         "all_artists": all_artists,
+        "all_genres_json": json.dumps([g.name for g in all_genres]),
+        "all_artists_json": json.dumps([a.name for a in all_artists]),
     }
     return render(request, "users/profile_edit.html", context)
 
