@@ -1,7 +1,7 @@
 #version: '3.8'
 
 services:
-  # Baza danych PostgreSQL
+  # PostgreSQL database
   db:
     image: postgres:16-alpine
     container_name: music_app_db
@@ -14,7 +14,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5433:5432"  # Używam 5433 na hoście żeby nie konfliktować z Twoim lokalnym PostgreSQL na 5432
+      - "5433:5432"  
     networks:
       - music_app_network
     healthcheck:
@@ -23,7 +23,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Aplikacja Django
+  # Django application
   web:
     build:
       context: .
@@ -58,7 +58,7 @@ services:
     networks:
       - music_app_network
 
-# Wolumeny (trwałe przechowywanie danych)
+# Volumes 
 volumes:
   postgres_data:
     name: music_app_postgres_data
@@ -67,7 +67,7 @@ volumes:
   static_files:
     name: music_app_static_files
 
-# Sieć (izolacja)
+# Network 
 networks:
   music_app_network:
     name: music_app_network

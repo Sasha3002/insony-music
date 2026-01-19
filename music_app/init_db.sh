@@ -6,7 +6,6 @@ echo "Checking for database backup..."
 if [ -f /docker-entrypoint-initdb.d/database_data_only.sql ]; then
     echo "Waiting for Django migrations to complete..."
     
-    # Czekaj aż Django stworzy tabele (max 60 sekund)
     for i in {1..60}; do
         if psql -U musicuser -d musicdb -c "SELECT 1 FROM users_user LIMIT 1;" > /dev/null 2>&1; then
             echo "Django tables detected!"

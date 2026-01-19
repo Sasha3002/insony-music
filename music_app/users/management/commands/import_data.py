@@ -7,7 +7,7 @@ class Command(BaseCommand):
     help = 'Import data from SQL file if not already imported'
 
     def handle(self, *args, **options):
-        # Sprawdź czy dane już są
+        # Check if the data is already there
         with connection.cursor() as cursor:
             cursor.execute("SELECT COUNT(*) FROM users_user")
             user_count = cursor.fetchone()[0]
@@ -44,7 +44,7 @@ class Command(BaseCommand):
             if result.returncode == 0:
                 self.stdout.write(self.style.SUCCESS('Data imported successfully!'))
                 
-                # Pokaż statystyki
+                # Show statistics
                 with connection.cursor() as cursor:
                     cursor.execute("SELECT COUNT(*) FROM users_user")
                     users = cursor.fetchone()[0]

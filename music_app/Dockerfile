@@ -1,16 +1,15 @@
-# Używamy oficjalnego obrazu Python 3.11
 FROM python:3.11-slim
 
-# Ustawiamy zmienne środowiskowe
+# environmental variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Ustawiamy katalog roboczy
+# working catalog
 WORKDIR /app
 
-# Instalujemy zależności systemowe
+# Installs system dependencies
 RUN apt-get update && apt-get install -y \
     postgresql-client \
     libpq-dev \
@@ -19,19 +18,19 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Kopiujemy requirements.txt i instalujemy zależności Python
+# Copying requirements.txt and installing Python dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-# Kopiujemy cały kod projektu
+# Copying the entire project code
 COPY . .
 
-# Tworzymy katalogi dla media i static files
+# Creating catalogs for media and static files
 RUN mkdir -p /app/media /app/staticfiles
 
-# Otwieramy port 8000
+# Open port 8000
 EXPOSE 8000
 
-# Domyślna komenda
+# Default command to run the application
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
