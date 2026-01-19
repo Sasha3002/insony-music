@@ -1,6 +1,5 @@
 /* ==================== EVENT DETAIL PAGE STYLES ==================== */
 
-/* Event Header */
 .event-header {
   background: linear-gradient(135deg, #1a1a1a, #151515);
   border-radius: 20px;
@@ -81,7 +80,6 @@
   flex-shrink: 0;
 }
 
-/* Event Action Buttons */
 .btn-attend {
   background: linear-gradient(135deg, #16a34a, #22c55e);
   color: #fff;
@@ -134,7 +132,6 @@
   text-decoration: none;
 }
 
-/* Event Meta Grid */
 .event-meta-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -175,7 +172,6 @@
   color: #fff;
 }
 
-/* Event Sections */
 .event-section {
   background: linear-gradient(135deg, #1a1a1a, #151515);
   border: 1px solid #2a2a2a;
@@ -200,7 +196,6 @@
   font-size: 1rem;
 }
 
-/* Attendees */
 .attendees-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -271,7 +266,6 @@
   color: #60a5fa;
 }
 
-/* Past Event Banner */
 .past-event-banner {
   background: rgba(107, 114, 128, 0.2);
   border: 1px solid rgba(107, 114, 128, 0.3);
@@ -284,13 +278,11 @@
   color: #9aa0a6;
 }
 
-/* Vote Buttons */
 .vote-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
-/* Event Playlist Styles */
 .playlist-header {
   display: flex;
   justify-content: space-between;
@@ -386,7 +378,6 @@
   padding: 40px;
 }
 
-/* Past Event Banner Extras */
 .past-event-banner-wrapper {
   margin: 24px;
 }
@@ -399,7 +390,6 @@
   font-size: 0.85rem;
 }
 
-/* Delete Button Variant */
 .btn-delete {
   color: #ef4444;
   border-color: rgba(239, 68, 68, 0.3);
@@ -411,7 +401,6 @@
   background: rgba(239, 68, 68, 0.2);
 }
 
-/* Attend Form */
 .attend-form {
   display: flex;
   gap: 12px;

@@ -83,15 +83,12 @@ class Review(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews"
     )
     title = models.CharField(max_length=120, blank=True)
-
-
-    # 6 критеріїв по 0–10
-    rhyme_imagery = models.PositiveSmallIntegerField(default=0)       # Рими / Образи
-    structure_rhythm = models.PositiveSmallIntegerField(default=0)    # Структура / Ритміка
-    style_execution = models.PositiveSmallIntegerField(default=0)     # Реалізація стилю
-    individuality = models.PositiveSmallIntegerField(default=0)       # Індивідуальність / Харизма
-    atmosphere_vibe = models.PositiveSmallIntegerField(default=0)     # Атмосфера / Вайб
-    trend_relevance = models.PositiveSmallIntegerField(default=0)     # Трендовість / Актуальність жанру
+    rhyme_imagery = models.PositiveSmallIntegerField(default=0)      
+    structure_rhythm = models.PositiveSmallIntegerField(default=0)   
+    style_execution = models.PositiveSmallIntegerField(default=0)     
+    individuality = models.PositiveSmallIntegerField(default=0)      
+    atmosphere_vibe = models.PositiveSmallIntegerField(default=0)     
+    trend_relevance = models.PositiveSmallIntegerField(default=0)     
 
     text = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -110,7 +107,6 @@ class Review(models.Model):
         ]
         indexes = [models.Index(fields=["track", "user"])]
 
-    # сума всіх критеріїв (0..60)
     @property
     def total_points(self):
         return (
@@ -122,7 +118,6 @@ class Review(models.Model):
             + self.trend_relevance
         )
 
-    # у відсотках (0..100)
     @property
     def total_percent(self):
         return (self.total_points / 60) * 100 if self.total_points else 0
@@ -175,15 +170,12 @@ class Playlist(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True, null=True)
     cover_image = models.ImageField(upload_to='playlist_covers/', blank=True, null=True)
-    is_favorite = models.BooleanField(default=False)  # Special flag for favorites playlist
+    is_favorite = models.BooleanField(default=False)  
     is_public = models.BooleanField(default=False)
     is_event_playlist = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-
-    
-    # Many-to-many relationship with Track through PlaylistTrack
     tracks = models.ManyToManyField(
         'Track',
         through='PlaylistTrack',
@@ -197,7 +189,6 @@ class Playlist(models.Model):
             models.Index(fields=['user', 'is_favorite']),
         ]
         constraints = [
-            # Each user can have only one favorites playlist
             models.UniqueConstraint(
                 fields=['user'],
                 condition=models.Q(is_favorite=True),
@@ -223,7 +214,6 @@ class Playlist(models.Model):
 
 
 class PlaylistTrack(models.Model):
-    """Through model for many-to-many relationship with ordering"""
     playlist = models.ForeignKey(
         Playlist,
         on_delete=models.CASCADE,

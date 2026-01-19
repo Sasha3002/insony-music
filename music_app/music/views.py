@@ -24,14 +24,13 @@ def track_list(request):
     sort = request.GET.get('sort', 'custom')
     page = request.GET.get('page') or 1
 
-    # Базовий запит + середня у % з кешу
     qs = (
         Track.objects
         .select_related('artist', 'genre')
         .annotate(avg=Coalesce(F('average_rating_cached'), Value(0.0)))
     )
 
-    # Пошук по назві треку, імені артиста та жанру
+    # Search by track name, artist name, and genre
     if q:
         qs = qs.filter(
             Q(title__icontains=q) |
@@ -49,7 +48,6 @@ def track_list(request):
     artist_number = Artist.objects.count()
     review_count = Review.objects.count()
 
-    # Сортування
     sort_map = {
         'custom':      '-created_at',
         'date':        '-created_at',
@@ -65,14 +63,12 @@ def track_list(request):
         'reviews':     '-reviews_count_cached',
     }
     order_by = sort_map.get(sort, '-created_at')
-    qs = qs.order_by(order_by, 'id')  # tie-breaker
-
-    # Пагінація
+    qs = qs.order_by(order_by, 'id') 
     paginator = Paginator(qs, 12)
     tracks_page = paginator.get_page(page)
 
     return render(request, 'music/track_list.html', {
-        'tracks': tracks_page,   # це тепер page object
+        'tracks': tracks_page,   
         'sort': sort,
         'q': q,
         'favorite_ids': favorite_ids,
@@ -86,8 +82,6 @@ def is_staff(user):
 
 def track_detail(request, track_id):
     track = get_object_or_404(Track, id=track_id)
-
-    # --- нова агрегація для 6 критеріїв ---
     agg = track.reviews.aggregate(
         ri_avg=Avg('rhyme_imagery'),
         sr_avg=Avg('structure_rhythm'),
@@ -102,29 +96,22 @@ def track_detail(request, track_id):
     if mode not in ("review", "no_text"):
         mode = "review"
 
-    # середній % (0..100)
     if agg['total']:
         criteria = [agg['ri_avg'], agg['sr_avg'], agg['se_avg'], agg['ind_avg'], agg['av_avg'], agg['tr_avg']]
         avg_percent = sum(filter(None, criteria)) / len(criteria) * 10
     else:
         avg_percent = None
 
-    total_reviews = agg['total']
-
-    # --- сортування відгуків ---
+    total_reviews = track.reviews_count_cached
     sort = request.GET.get('sort', 'new')
     order_by = {
         'new': '-created_at',
         'old': 'created_at',
-        'high': '-rhyme_imagery',  # умовно, бо тепер кілька критеріїв
+        'high': '-rhyme_imagery',  
         'low': 'rhyme_imagery',
     }.get(sort, '-created_at')
 
     reviews_qs = track.reviews.select_related('user').annotate(likes_count=Count('likes')).order_by(order_by)
-
-    #reviews_qs = Review.objects.filter(track=track).select_related('user').annotate(likes_count=Count('likes')).order_by(order_by)
-
-    # --- пагінація ---
     page_number = request.GET.get('page') or 1
     paginator = Paginator(reviews_qs, 5)
     reviews_page = paginator.get_page(page_number)
@@ -141,8 +128,6 @@ def track_detail(request, track_id):
     if request.user.is_authenticated:
         is_favorited = Favorite.objects.filter(user=request.user, track=track).exists()
 
-
-    # --- форма створення/редагування ---
     user_review = None
     form = None
     if request.user.is_authenticated:
@@ -157,17 +142,12 @@ def track_detail(request, track_id):
                 if mode == "no_text":
                     r.text = ""
                 r.save()
-                #if r.text and r.text.strip():
-                #    add_xp(request.user, 250)
-                #else:
-                #    add_xp(request.user, 100)
                 messages.success(request, 'Twoja recenzja została zapisana.')
                 return redirect(f"{reverse('track_detail', args=[track.id])}?sort={sort}&mode={mode}")
             else:
                 messages.error(request, 'Popraw błędy w formularzu.')
 
     def val(field_name):
-        # значення для прогрес-барів/цифр: з рецензії користувача або 0
         return getattr(user_review, field_name, 0) if user_review else 0
     
     def bound(field_name):
@@ -184,12 +164,10 @@ def track_detail(request, track_id):
         {"label": "Trend / Aktualność",        "short": "tr",  "field": "trend_relevance",  "color": "crit--pink",   "value": val("trend_relevance"),  "bound": bound("trend_relevance")},
     ]
 
-
-    # --- контекст у шаблон ---
     return render(request, 'music/track_detail.html', {
         'track': track,
-        'avg_percent': avg_percent,         # середня оцінка у відсотках
-        'criteria_avg': agg,                # середнє по кожному критерію
+        'avg_percent': avg_percent,         
+        'criteria_avg': agg,                
         'total_reviews': total_reviews,
         'reviews_page': reviews_page,
         'liked_ids': liked_ids,
@@ -303,43 +281,14 @@ def favorite_toggle(request, track_id):
     if already:
         fav_qs.delete()
         is_favorited = False
-        
-        # Remove from favorites playlist
-        favorites_playlist = Playlist.objects.filter(user=request.user, is_favorite=True).first()
-        if favorites_playlist:
-            PlaylistTrack.objects.filter(playlist=favorites_playlist, track=track).delete()
     else:
         Favorite.objects.create(user=request.user, track=track)
         is_favorited = True
-        
-        # Add to favorites playlist
-        favorites_playlist, created = Playlist.objects.get_or_create(
-            user=request.user,
-            is_favorite=True,
-            defaults={'name': 'Ulubione', 'description': 'Twoje ulubione utwory'}
-        )
-        
-        # Check if track already in playlist
-        if not PlaylistTrack.objects.filter(playlist=favorites_playlist, track=track).exists():
-            # Get max position
-            max_pos = PlaylistTrack.objects.filter(playlist=favorites_playlist).aggregate(
-                #max_pos=models.Max('position')
-                max_pos=Max('position')
-            )['max_pos']
-            next_position = (max_pos or 0) + 1
-            
-            PlaylistTrack.objects.create(
-                playlist=favorites_playlist,
-                track=track,
-                position=next_position
-            )
-
     return JsonResponse({"ok": True, "favorited": is_favorited, "track_id": track_id})
 
 
 @login_required
 def playlist_list(request):
-    """List all user's playlists"""
     playlists = Playlist.objects.filter(user=request.user, is_event_playlist=False).order_by('-created_at')
     
     return render(request, 'music/playlist_list.html', {
@@ -349,17 +298,11 @@ def playlist_list(request):
 
 @login_required
 def playlist_detail(request, playlist_id):
-    """View single playlist with tracks"""
-    # Get playlist without user filter
     playlist = get_object_or_404(Playlist, id=playlist_id)
-    
-    # Check if user has permission to view
     is_owner = playlist.user == request.user
     if not is_owner and not playlist.is_public:
-        # Not owner and not public - deny access
         return render(request, 'music/403.html', status=403)
     
-    # Get tracks in order
     playlist_tracks = PlaylistTrack.objects.filter(
         playlist=playlist
     ).select_related('track', 'track__artist', 'track__genre').order_by('position')
@@ -367,13 +310,12 @@ def playlist_detail(request, playlist_id):
     return render(request, 'music/playlist_detail.html', {
         'playlist': playlist,
         'playlist_tracks': playlist_tracks,
-        'is_owner': is_owner,  # Pass this to template
+        'is_owner': is_owner,  
     })
 
 
 @login_required
 def playlist_create(request):
-    """Create new playlist"""
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         description = request.POST.get('description', '').strip()
@@ -402,10 +344,8 @@ def playlist_create(request):
 
 @login_required
 def playlist_edit(request, playlist_id):
-    """Edit playlist details"""
     playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
-    
-    # Don't allow editing favorites playlist name
+
     if playlist.is_favorite:
         messages.error(request, 'Nie możesz edytować playlisty ulubionych')
         return redirect('playlist_detail', playlist_id=playlist.id)
@@ -434,10 +374,8 @@ def playlist_edit(request, playlist_id):
 
 @login_required
 def playlist_delete(request, playlist_id):
-    """Delete playlist"""
     playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
-    
-    # Don't allow deleting favorites playlist
+
     if playlist.is_favorite:
         messages.error(request, 'Nie możesz usunąć playlisty ulubionych')
         return redirect('playlist_list')
@@ -454,7 +392,6 @@ def playlist_delete(request, playlist_id):
 @login_required
 @require_POST
 def playlist_add_track(request, playlist_id, track_id):
-    """Add track to playlist (AJAX)"""
     playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
     track = get_object_or_404(Track, id=track_id)
     
@@ -474,7 +411,6 @@ def playlist_add_track(request, playlist_id, track_id):
 @login_required
 @require_POST
 def playlist_remove_track(request, playlist_id, track_id):
-    """Remove track from playlist (AJAX)"""
     playlist = get_object_or_404(Playlist, id=playlist_id, user=request.user)
     
     if playlist.is_favorite:

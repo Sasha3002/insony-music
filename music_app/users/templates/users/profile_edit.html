@@ -125,7 +125,6 @@
     </div>
 
     <div class="form-grid">
-      <!-- Genres Autocomplete -->
       <div class="form-group form-grid-full">
         <label class="form-label-modern">Ulubione gatunki</label>
         <div class="autocomplete-wrapper">
@@ -142,14 +141,10 @@
           Wpisz nazwę gatunku i wybierz z listy
         </div>
         
-        <!-- Selected Tags -->
         <div class="selected-tags" id="genres-tags"></div>
-        
-        <!-- Hidden input for form submission -->
         <input type="hidden" name="favorite_genres" id="genres-hidden" value="{{ favorite_genres }}">
       </div>
 
-      <!-- Artists Autocomplete -->
       <div class="form-group form-grid-full">
         <label class="form-label-modern">Ulubieni artyści</label>
         <div class="autocomplete-wrapper">
@@ -166,21 +161,17 @@
           Wpisz nazwę artysty i wybierz z listy
         </div>
         
-        <!-- Selected Tags -->
-        <div class="selected-tags" id="artists-tags"></div>
         
-        <!-- Hidden input for form submission -->
+        <div class="selected-tags" id="artists-tags"></div>
         <input type="hidden" name="favorite_artists" id="artists-hidden" value="{{ favorite_artists }}">
       </div>
     </div>
 
-    <!-- Bio Section -->
     <div class="form-section-title" style="margin-top: 32px;">
       <i class="bi bi-chat-quote"></i>
       O mnie
     </div>
 
-    
 
     <div class="form-group">
       <label class="form-label-modern">Bio</label>
@@ -196,7 +187,6 @@
       </div>
     </div>
 
-    <!-- Action Buttons -->
     <div class="action-buttons">
       <a class="btn-cancel" href="{% url 'profile' %}">
         <i class="bi bi-x-circle"></i>

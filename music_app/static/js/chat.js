@@ -1,5 +1,4 @@
 // UTILITY FUNCTIONS
-
 function getCookie(name) {
   const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
   return m ? m.pop() : '';
@@ -10,7 +9,6 @@ function scrollToBottom(container) {
 }
 
 // CHAT LIST FUNCTIONS
-
 function initChatList() {
   function updateUnreadCounts() {
     const unreadCountsUrl = document.getElementById('unreadCountsUrl')?.value;
@@ -62,7 +60,6 @@ function initChatList() {
   setInterval(updateUnreadCounts, 5000);
 }
 // GROUP CHAT FUNCTIONS
-
 function initGroupChat() {
   const messagesContainer = document.getElementById('messagesContainer');
   const messageForm = document.getElementById('messageForm');
@@ -147,7 +144,7 @@ function initGroupChat() {
     }
   });
 
-  // Delete message (global function)
+  // Delete message 
   window.deleteMessage = async function(messageId) {
     if (!confirm('Czy na pewno chcesz usunąć tę wiadomość?')) return;
     
@@ -216,7 +213,6 @@ function initGroupChat() {
 }
 
 // CONVERSATION DETAIL FUNCTIONS
-
 function initConversationDetail() {
   const messagesContainer = document.getElementById('messagesContainer');
   const messageForm = document.getElementById('messageForm');
@@ -225,6 +221,7 @@ function initConversationDetail() {
   const conversationId = document.getElementById('conversationId')?.value;
   const sendMessageUrl = document.getElementById('sendMessageUrl')?.value;
   const pollMessagesUrl = document.getElementById('pollMessagesUrl')?.value;
+  const deleteMessageUrlTemplate = document.getElementById('deleteMessageUrlTemplate')?.value;
   
   if (!messagesContainer || !messageForm) return;
 
@@ -272,9 +269,14 @@ function initConversationDetail() {
                 : `<div class="avatar-placeholder">${username.charAt(0).toUpperCase()}</div>`
               }
             </div>
-            <div class="message-content">
-              ${data.message.content.replace(/\n/g, '<br>')}
-              <div class="message-time">${data.message.created_at}</div>
+            <div class="message-content-wrapper">
+              <div class="message-content">
+                ${data.message.content.replace(/\n/g, '<br>')}
+                <button class="message-delete-btn" onclick="deleteMessage(${data.message.id})" title="Usuń wiadomość">
+                  <i class="bi bi-x"></i>
+                </button>
+                <div class="message-time">${data.message.created_at}</div>
+              </div>
             </div>
           </div>
         `;
@@ -326,6 +328,35 @@ function initConversationDetail() {
       })
       .catch(error => console.error('Polling error:', error));
   }
+
+  // Delete private message 
+  window.deleteMessage = async function(messageId) {
+    if (!confirm('Czy na pewno chcesz usunąć tę wiadomość?')) return;
+    
+    try {
+      const formData = new FormData();
+      formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+      
+      const deleteUrl = deleteMessageUrlTemplate.replace('0', messageId);
+      
+      const response = await fetch(deleteUrl, {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      
+      const data = await response.json();
+      
+      if (data.ok) {
+        document.querySelector(`[data-message-id="${messageId}"]`)?.remove();
+      } else {
+        alert(data.message || 'Błąd podczas usuwania wiadomości');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Błąd podczas usuwania wiadomości');
+    }
+  };
   
   pollInterval = setInterval(pollNewMessages, 3000);
   
@@ -335,9 +366,7 @@ function initConversationDetail() {
 }
 
 // INITIALIZATION
-
 document.addEventListener('DOMContentLoaded', function() {
-  // Check which page we're on and initialize accordingly
   if (document.getElementById('chatListPage')) {
     initChatList();
   } else if (document.getElementById('conversationDetailPage')) {

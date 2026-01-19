@@ -8,26 +8,17 @@ from music.models import Playlist
 User = get_user_model()
 
 class Event(models.Model):
-    """Music event organized by a group"""
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='events')
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_events')
     
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True, blank=True)
     description = models.TextField()
-    
-    # Event details
     location = models.CharField(max_length=200, help_text="Dokładne miejsce (np. nazwa klubu, ulica)")
     event_date = models.DateTimeField(help_text="Data i godzina rozpoczęcia")
     end_date = models.DateTimeField(help_text="Data i godzina zakończenia", blank=True, null=True)
-    
-    # Optional image
     event_image = models.ImageField(upload_to='event_images/', blank=True, null=True)
-
-    # Event playlist
     playlist = models.ForeignKey(Playlist, on_delete=models.SET_NULL, null=True, blank=True, related_name='event')
-    
-    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -59,17 +50,14 @@ class Event(models.Model):
     
     @property
     def city(self):
-        """Get city from group location"""
         return self.group.location
     
     @property
     def full_location(self):
-        """Get full location: venue in city"""
         return f"{self.location}, {self.group.location}"
     
     @property
     def average_rating(self):
-        """Calculate average rating"""
         ratings = self.ratings.all()
         if not ratings:
             return 0
@@ -77,16 +65,13 @@ class Event(models.Model):
 
     @property
     def rating_count(self):
-        """Get total number of ratings"""
         return self.ratings.count()
 
     def get_user_rating(self, user):
-        """Get rating by specific user"""
         return self.ratings.filter(user=user).first()
 
 
 class EventAttendee(models.Model):
-    """Track who's attending events"""
     STATUS_CHOICES = [
         ('going', 'Idę'),
         ('maybe', 'Może'),
@@ -106,10 +91,9 @@ class EventAttendee(models.Model):
         return f"{self.user.username} - {self.event.title} ({self.status})"
     
 class EventRating(models.Model):
-    """User ratings for past events"""
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='ratings')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])  # 1-5 stars
+    rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)]) 
     comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -122,7 +106,6 @@ class EventRating(models.Model):
     
 
 class EventPoll(models.Model):
-    """Poll for event changes"""
     POLL_TYPES = [
         ('time', 'Zmiana czasu'),
         ('location', 'Zmiana miejsca'),
@@ -136,8 +119,6 @@ class EventPoll(models.Model):
     poll_type = models.CharField(max_length=20, choices=POLL_TYPES)
     title = models.CharField(max_length=200)
     description = models.TextField()
-    
-    # Proposed changes
     proposed_date = models.DateTimeField(blank=True, null=True, help_text="Proponowana nowa data rozpoczęcia")
     proposed_end_date = models.DateTimeField(blank=True, null=True, help_text="Proponowana nowa data zakończenia")
     proposed_location = models.CharField(max_length=200, blank=True, help_text="Proponowane nowe miejsce")
@@ -177,7 +158,6 @@ class EventPoll(models.Model):
 
 
 class PollVote(models.Model):
-    """Individual vote on a poll"""
     poll = models.ForeignKey(EventPoll, on_delete=models.CASCADE, related_name='votes')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     vote = models.BooleanField(help_text="True = Za, False = Przeciw")

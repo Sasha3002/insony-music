@@ -15,37 +15,28 @@ from django.db.models import Max
 
 @login_required
 def event_list(request):
-    """List all upcoming events"""
     now = timezone.now()
-    
-    # Get filter parameters
     filter_type = request.GET.get('filter', 'upcoming')
     city_filter = request.GET.get('city', '')
     group_slug = request.GET.get('group', '') 
-    
-    # Base queryset
     events = Event.objects.all()
     
     # Filter by group if specified
     if group_slug:
         group = get_object_or_404(Group, slug=group_slug)
         events = events.filter(group=group)
-        # Store group for template
         filtered_group = group
     else:
         filtered_group = None
     
-    # Filter by time
     if filter_type == 'past':
         events = events.filter(event_date__lt=now)
     elif filter_type == 'my':
-        # Events from groups user is member of
         user_groups = Group.objects.filter(members__user=request.user, members__status='accepted')
         events = events.filter(group__in=user_groups)
-    else:  # upcoming (default)
+    else:  
         events = events.filter(event_date__gte=now)
     
-    # Filter by city (from group location)
     if city_filter:
         events = events.filter(group__location__icontains=city_filter)
     
@@ -66,17 +57,14 @@ def event_list(request):
 
 @login_required
 def event_detail(request, slug):
-    """View event details"""
     event = get_object_or_404(Event.objects.select_related('group', 'creator'), slug=slug)
-    
-    # Check if user is group member
+
     is_member = GroupMembership.objects.filter(
         group=event.group,
         user=request.user,
         status='accepted'
     ).exists()
     
-    # Check user's attendance status
     user_attendance = None
     is_attending = False
     if is_member:
@@ -86,13 +74,10 @@ def event_detail(request, slug):
         ).first()
         is_attending = user_attendance and user_attendance.status == 'going'
     
-    # Get attendees
     attendees = event.attendees.filter(status='going').select_related('user')
-    
     is_creator = event.creator == request.user
     is_admin = event.group.admin == request.user
-    
-    # Rating info
+
     user_rating = None
     can_rate = False
     
@@ -100,16 +85,13 @@ def event_detail(request, slug):
         can_rate = True
         user_rating = EventRating.objects.filter(event=event, user=request.user).first()
     
-    # Get all ratings
     ratings = event.ratings.select_related('user').order_by('-created_at')
-    
-    # Get active polls
     polls = event.polls.filter(is_active=True).select_related('creator').prefetch_related('votes')
     
     # Add user vote status and voting eligibility to each poll
     for poll in polls:
         poll.user_vote = poll.votes.filter(user=request.user).first()
-        poll.can_user_vote = is_attending  # Only attendees can vote
+        poll.can_user_vote = is_attending 
     
     return render(request, 'events/event_detail.html', {
         'event': event,
@@ -128,10 +110,8 @@ def event_detail(request, slug):
 
 @login_required
 def event_create(request, group_slug):
-    """Create a new event for a group"""
     group = get_object_or_404(Group, slug=group_slug)
     
-    # Check if user is a member
     if not GroupMembership.objects.filter(group=group, user=request.user, status='accepted').exists():
         messages.error(request, 'Tylko członkowie grupy mogą tworzyć wydarzenia')
         return redirect('group_detail', slug=group_slug)
@@ -148,7 +128,6 @@ def event_create(request, group_slug):
             messages.error(request, 'Wszystkie wymagane pola muszą być wypełnione')
             return redirect('event_create', group_slug=group_slug)
         
-        # Convert datetime strings to timezone-aware datetimes
         try:
             event_date = timezone.make_aware(datetime.fromisoformat(event_date_str))
             end_date = timezone.make_aware(datetime.fromisoformat(end_date_str)) if end_date_str else None
@@ -160,11 +139,10 @@ def event_create(request, group_slug):
             user = request.user,
             name=f"{title}",
             description=f"Playlista wydarzenia: {title}",
-            is_public=True,  # Event playlists are public
+            is_public=True, 
             is_event_playlist=True
         )
         
-        # Create event
         event = Event.objects.create(
             group=group,
             creator=request.user,
@@ -176,8 +154,7 @@ def event_create(request, group_slug):
             event_image=event_image
             ,playlist=event_playlist
         )
-        
-        # Auto-add creator as attendee
+
         EventAttendee.objects.create(
             event=event,
             user=request.user,
@@ -194,10 +171,8 @@ def event_create(request, group_slug):
 
 @login_required
 def event_edit(request, slug):
-    """Edit event (creator or group admin only)"""
     event = get_object_or_404(Event, slug=slug)
     
-    # Check permissions
     if event.creator != request.user and event.group.admin != request.user:
         messages.error(request, 'Tylko twórca wydarzenia lub administrator grupy może je edytować')
         return redirect('event_detail', slug=slug)
@@ -208,15 +183,13 @@ def event_edit(request, slug):
         event.location = request.POST.get('location')
         event.event_date = request.POST.get('event_date')
         event.end_date = request.POST.get('end_date', '').strip() or None
-        
-        # Handle image update
+
         if 'event_image' in request.FILES:
             if event.event_image:
                 event.event_image.delete()
             event.event_image = request.FILES['event_image']
         
         event.save()
-        
         messages.success(request, 'Wydarzenie zostało zaktualizowane')
         return redirect('event_detail', slug=event.slug)
     
@@ -227,10 +200,8 @@ def event_edit(request, slug):
 
 @login_required
 def event_delete(request, slug):
-    """Delete event (creator or group admin only)"""
     event = get_object_or_404(Event, slug=slug)
     
-    # Check permissions
     if event.creator != request.user and event.group.admin != request.user:
         messages.error(request, 'Tylko twórca wydarzenia lub administrator grupy może je usunąć')
         return redirect('event_detail', slug=slug)
@@ -250,16 +221,13 @@ def event_delete(request, slug):
 @require_POST
 @login_required
 def event_attend(request, slug):
-    """Mark attendance for an event"""
     event = get_object_or_404(Event, slug=slug)
     status = request.POST.get('status', 'going')
     
-    # Check if user is group member
     if not GroupMembership.objects.filter(group=event.group, user=request.user, status='accepted').exists():
         messages.error(request, 'Tylko członkowie grupy mogą uczestniczyć w wydarzeniach')
         return redirect('event_detail', slug=slug)
     
-    # Get or create attendance
     attendance, created = EventAttendee.objects.get_or_create(
         event=event,
         user=request.user,
@@ -268,11 +236,9 @@ def event_attend(request, slug):
     
     if not created:
         if attendance.status == status:
-            # Remove attendance if clicking same status
             attendance.delete()
             messages.info(request, 'Anulowano uczestnictwo')
         else:
-            # Update status
             attendance.status = status
             attendance.save()
             status_text = dict(EventAttendee.STATUS_CHOICES)[status]
@@ -286,15 +252,12 @@ def event_attend(request, slug):
 @require_POST
 @login_required
 def rate_event(request, slug):
-    """Rate a past event"""
     event = get_object_or_404(Event, slug=slug)
     
-    # Check if event is past
     if not event.is_past:
         messages.error(request, 'Możesz ocenić tylko zakończone wydarzenia')
         return redirect('event_detail', slug=slug)
-    
-    # Check if user attended the event
+
     attended = EventAttendee.objects.filter(
         event=event,
         user=request.user,
@@ -320,7 +283,6 @@ def rate_event(request, slug):
         messages.error(request, 'Nieprawidłowa ocena')
         return redirect('event_detail', slug=slug)
     
-    # Create or update rating
     rating, created = EventRating.objects.update_or_create(
         event=event,
         user=request.user,
@@ -341,7 +303,6 @@ def rate_event(request, slug):
 @require_POST
 @login_required
 def delete_rating(request, slug):
-    """Delete event rating"""
     event = get_object_or_404(Event, slug=slug)
     
     rating = EventRating.objects.filter(event=event, user=request.user).first()
@@ -355,7 +316,6 @@ def delete_rating(request, slug):
 
 @login_required
 def create_poll(request, slug):
-    """Create a poll for event changes"""
     event = get_object_or_404(Event, slug=slug)
 
     is_attending = EventAttendee.objects.filter(
@@ -364,12 +324,10 @@ def create_poll(request, slug):
         status='going'
     ).exists()
     
-    # Check if user is an attendee
     if not is_attending:
         messages.error(request, 'Tylko uczestnicy wydarzenia mogą tworzyć głosowania')
         return redirect('event_detail', slug=slug)
     
-    # Can't create polls for past events
     if event.is_past:
         messages.error(request, 'Nie można tworzyć głosowań dla zakończonych wydarzeń')
         return redirect('event_detail', slug=slug)
@@ -411,7 +369,6 @@ def create_poll(request, slug):
             messages.error(request, f'Nieprawidłowy format daty: {e}')
             return redirect('create_poll', slug=slug)
         
-        # Create poll
         poll = EventPoll.objects.create(
             event=event,
             creator=request.user,
@@ -435,7 +392,6 @@ def create_poll(request, slug):
 @require_POST
 @login_required
 def vote_on_poll(request, poll_id):
-    """Vote on a poll"""
     from .models import EventPoll, PollVote
     
     poll = get_object_or_404(EventPoll, id=poll_id)
@@ -446,13 +402,11 @@ def vote_on_poll(request, poll_id):
         user=request.user,
         status='going'
     ).first()
-    
-    # Check if user is a member
+
     if not attendee:
         messages.error(request, 'Tylko uczestnicy wydarzenia mogą głosować')
         return redirect('event_detail', slug=poll.event.slug)
     
-    # Check if poll is still active
     if poll.is_closed:
         messages.error(request, 'To głosowanie zostało zakończone')
         return redirect('event_detail', slug=poll.event.slug)
@@ -463,7 +417,6 @@ def vote_on_poll(request, poll_id):
     
     vote_bool = vote_value == 'yes'
     
-    # Create or update vote
     vote, created = PollVote.objects.update_or_create(
         poll=poll,
         user=request.user,
@@ -481,12 +434,10 @@ def vote_on_poll(request, poll_id):
 @require_POST
 @login_required
 def close_poll(request, poll_id):
-    """Close a poll (creator or admin only)"""
     from .models import EventPoll
     
     poll = get_object_or_404(EventPoll, id=poll_id)
-    
-    # Check permissions
+
     if poll.creator != request.user and poll.event.group.admin != request.user:
         messages.error(request, 'Tylko twórca głosowania lub administrator może je zamknąć')
         return redirect('event_detail', slug=poll.event.slug)
@@ -501,28 +452,23 @@ def close_poll(request, poll_id):
 @require_POST
 @login_required
 def apply_poll_changes(request, poll_id):
-    """Apply poll changes to event (admin only)"""
     from .models import EventPoll
     
     poll = get_object_or_404(EventPoll, id=poll_id)
     event = poll.event
     
-    # Only admin can apply changes
     if event.group.admin != request.user:
         messages.error(request, 'Tylko administrator może zastosować zmiany')
         return redirect('event_detail', slug=event.slug)
     
-    # Check if poll passed (at least 50% approval)
     if poll.approval_percentage < 50:
         messages.error(request, 'Głosowanie nie uzyskało wystarczającego poparcia (wymagane minimum 50%)')
         return redirect('event_detail', slug=event.slug)
     
-    # Check if there are any votes at all
     if poll.total_votes == 0:
         messages.error(request, 'Nie można zastosować zmian - brak głosów')
         return redirect('event_detail', slug=event.slug)
     
-    # Apply changes based on poll type
     changes_applied = []
     
     if poll.proposed_date:
@@ -545,12 +491,8 @@ def apply_poll_changes(request, poll_id):
     
     if changes_applied:
         event.save()
-        
-        # Close the poll after applying
         poll.is_active = False
         poll.save()
-        
-        # Create a success message with details
         changes_text = "<br>".join(changes_applied)
         messages.success(request, f'Zmiany zostały zastosowane!<br>{changes_text}')
     else:
@@ -562,12 +504,10 @@ def apply_poll_changes(request, poll_id):
 
 @login_required
 def event_playlist_add_track(request, slug):
-    """Add track to event playlist (creator only)"""
     from music.models import Track, PlaylistTrack
 
     event = get_object_or_404(Event, slug=slug)
-    
-    # Only creator can add tracks
+
     if event.creator != request.user:
         messages.error(request, 'Tylko twórca wydarzenia może dodawać utwory do playlisty')
         return redirect('event_detail', slug=slug)
@@ -576,20 +516,15 @@ def event_playlist_add_track(request, slug):
         messages.error(request, 'To wydarzenie nie ma playlisty')
         return redirect('event_detail', slug=slug)
     
-    if request.method == 'POST':
-        
+    if request.method == 'POST':   
         track_id = request.POST.get('track_id')
         track = get_object_or_404(Track, id=track_id)
         
-        # Check if track already in playlist
         if PlaylistTrack.objects.filter(playlist=event.playlist, track=track).exists():
             messages.warning(request, f'Utwór "{track.title}" już jest w playliście')
             return redirect('event_playlist_add_track', slug=slug)
         
-        # Get next position
         max_position = PlaylistTrack.objects.filter(playlist=event.playlist).aggregate(Max('position'))['position__max'] or 0
-        
-        # Add track to playlist
         PlaylistTrack.objects.create(
             playlist=event.playlist,
             track=track,
@@ -598,14 +533,12 @@ def event_playlist_add_track(request, slug):
         
         messages.success(request, f'Dodano "{track.title}" do playlisty wydarzenia')
         return redirect('event_detail', slug=slug)
-    
-    # GET request - show track search
-    
+
     query = request.GET.get('q', '')
     if query:
         tracks = Track.objects.filter(
             Q(title__icontains=query) | 
-            Q(artist__name__icontains=query)  # Fix: use artist__name
+            Q(artist__name__icontains=query)  
         ).select_related('artist')[:20]
     else:
         tracks = Track.objects.all().select_related('artist')[:20]
@@ -620,10 +553,8 @@ def event_playlist_add_track(request, slug):
 @require_POST
 @login_required
 def event_playlist_remove_track(request, slug, track_id):
-    """Remove track from event playlist (creator only)"""
     event = get_object_or_404(Event, slug=slug)
     
-    # Only creator can remove tracks
     if event.creator != request.user:
         messages.error(request, 'Tylko twórca wydarzenia może usuwać utwory z playlisty')
         return redirect('event_detail', slug=slug)

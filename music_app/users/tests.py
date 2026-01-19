@@ -1,15 +1,3 @@
-"""
-Focused tests for Users app
-Tests cover the most important functionality:
-- User registration and authentication
-- User profiles (own and public)
-- Follow/unfollow system
-- Block/unblock system
-- Profile editing
-- Password management
-- Recommendation system
-"""
-
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -45,10 +33,10 @@ class UserModelTest(TestCase):
         )
         
         user.xp = 2500
-        self.assertEqual(user.level, 2)  # 2500 / 1000 = 2
+        self.assertEqual(user.level, 2)  
         
         user.xp = 999
-        self.assertEqual(user.level, 0)  # 999 / 1000 = 0
+        self.assertEqual(user.level, 0)  
     
     def test_user_level_progress_property(self):
         """Test level progress calculation"""
@@ -59,7 +47,7 @@ class UserModelTest(TestCase):
         )
         
         user.xp = 2750
-        self.assertEqual(user.level_progress, 750)  # 2750 % 1000 = 750
+        self.assertEqual(user.level_progress, 750)  
 
 
 class UserFollowModelTest(TestCase):
@@ -193,13 +181,8 @@ class RegisterViewTest(TestCase):
             'accept_terms': True
         })
         
-        # Should redirect
         self.assertEqual(response.status_code, 302)
-        
-        # Verify user was created
-        self.assertTrue(
-            User.objects.filter(username='newuser').exists()
-        )
+        self.assertTrue(User.objects.filter(username='newuser').exists())
     
     def test_register_duplicate_email(self):
         """Test that registration fails with duplicate email"""
@@ -217,10 +200,7 @@ class RegisterViewTest(TestCase):
             'accept_terms': True
         })
         
-        # Should not create user
-        self.assertFalse(
-            User.objects.filter(username='newuser').exists()
-        )
+        self.assertFalse(User.objects.filter(username='newuser').exists())
     
     def test_register_password_mismatch(self):
         """Test that registration fails with mismatched passwords"""
@@ -232,7 +212,6 @@ class RegisterViewTest(TestCase):
             'accept_terms': True
         })
         
-        # Should not create user
         self.assertFalse(
             User.objects.filter(username='newuser').exists()
         )
@@ -249,7 +228,6 @@ class LoginViewTest(TestCase):
             email='test@test.com',
             password='testpass123'
         )
-        # Activate user for login
         self.user.is_active = True
         self.user.save()
     
@@ -267,10 +245,7 @@ class LoginViewTest(TestCase):
             'password': 'testpass123'
         })
         
-        # Should redirect to profile
         self.assertEqual(response.status_code, 302)
-        
-        # User should be authenticated
         self.assertTrue(response.wsgi_request.user.is_authenticated)
     
     def test_login_invalid_credentials(self):
@@ -279,11 +254,8 @@ class LoginViewTest(TestCase):
             'username': 'testuser',
             'password': 'wrongpassword'
         })
-        
-        # Should stay on login page
+
         self.assertEqual(response.status_code, 200)
-        
-        # User should not be authenticated
         self.assertFalse(response.wsgi_request.user.is_authenticated)
 
 
@@ -370,10 +342,7 @@ class FollowToggleTest(TestCase):
         url = reverse('follow_toggle', kwargs={'username': 'user2'})
         response = self.client.post(url)
         
-        # Should redirect
         self.assertEqual(response.status_code, 200)
-        
-        # Verify follow was created
         self.assertTrue(
             UserFollow.objects.filter(
                 follower=self.user1,
@@ -383,7 +352,6 @@ class FollowToggleTest(TestCase):
     
     def test_unfollow_user(self):
         """Test unfollowing a user"""
-        # Create initial follow
         UserFollow.objects.create(
             follower=self.user1,
             following=self.user2
@@ -392,11 +360,8 @@ class FollowToggleTest(TestCase):
         self.client.login(username='user1', password='testpass123')
         url = reverse('follow_toggle', kwargs={'username': 'user2'})
         response = self.client.post(url)
-        
-        # Should redirect
+
         self.assertEqual(response.status_code, 200)
-        
-        # Verify follow was removed
         self.assertFalse(
             UserFollow.objects.filter(
                 follower=self.user1,
@@ -410,10 +375,7 @@ class FollowToggleTest(TestCase):
         url = reverse('follow_toggle', kwargs={'username': 'user1'})
         response = self.client.post(url)
         
-        # Should redirect
         self.assertEqual(response.status_code, 200)
-        
-        # Verify no self-follow was created
         self.assertFalse(
             UserFollow.objects.filter(
                 follower=self.user1,
@@ -445,10 +407,7 @@ class BlockToggleTest(TestCase):
         url = reverse('block_toggle', kwargs={'username': 'user2'})
         response = self.client.post(url)
         
-        # Should redirect
         self.assertEqual(response.status_code, 200)
-        
-        # Verify block was created
         self.assertTrue(
             UserBlock.objects.filter(
                 blocker=self.user1,
@@ -458,7 +417,6 @@ class BlockToggleTest(TestCase):
     
     def test_unblock_user(self):
         """Test unblocking a user"""
-        # Create initial block
         UserBlock.objects.create(
             blocker=self.user1,
             blocked=self.user2
@@ -468,10 +426,7 @@ class BlockToggleTest(TestCase):
         url = reverse('block_toggle', kwargs={'username': 'user2'})
         response = self.client.post(url)
         
-        # Should redirect
         self.assertEqual(response.status_code, 200)
-        
-        # Verify block was removed
         self.assertFalse(
             UserBlock.objects.filter(
                 blocker=self.user1,
@@ -509,10 +464,8 @@ class ProfileEditTest(TestCase):
             'favorite_artists': 'Artist1, Artist2'
         })
         
-        # Should redirect
+
         self.assertEqual(response.status_code, 302)
-        
-        # Verify profile was updated
         self.user.refresh_from_db()
         self.assertEqual(self.user.bio, 'Updated bio')
         self.assertEqual(self.user.city, 'Warsaw')
@@ -549,7 +502,6 @@ class UserSearchTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'users/user_search.html')
         
-        # Check that alice is in results
         users = response.context['users']
         self.assertTrue(any(u.username == 'alice' for u in users))
 
@@ -568,7 +520,6 @@ class RecommendationEngineTest(TestCase):
         self.user.city = 'Warsaw'
         self.user.save()
         
-        # Create some test data
         self.artist = Artist.objects.create(name='Test Artist')
         from music.models import Genre
         self.genre = Genre.objects.create(name='Hip Hop')
@@ -596,8 +547,6 @@ class RecommendationEngineTest(TestCase):
         
         engine = RecommendationEngine(self.user)
         recommendations = engine.recommend_tracks(limit=10)
-        
-        # Should return a list
         self.assertIsInstance(recommendations, list)
 
 
@@ -629,11 +578,8 @@ class ErrorReportTest(TestCase):
             'page_url': '/profile/',
             'content_type': 'general'
         })
-        
-        # Should redirect
+
         self.assertEqual(response.status_code, 302)
-        
-        # Verify report was created
         self.assertTrue(
             ErrorReport.objects.filter(
                 user=self.user,
@@ -659,7 +605,6 @@ class FollowersListTest(TestCase):
             password='testpass123'
         )
         
-        # user2 follows user1
         UserFollow.objects.create(
             follower=self.user2,
             following=self.user1
@@ -673,7 +618,6 @@ class FollowersListTest(TestCase):
         
         self.assertEqual(response.status_code, 200)
         
-        # Check that user2 is in followers
         followers = response.context['followers']
         self.assertTrue(any(f.follower.username == 'user2' for f in followers))
 
@@ -705,11 +649,8 @@ class PasswordChangeTest(TestCase):
             'new_password1': 'NewSecurePass123!',
             'new_password2': 'NewSecurePass123!'
         })
-        
-        # Should redirect
+
         self.assertIn(response.status_code, [200, 302])
-        
-        # Verify password was changed (if successful)
         if response.status_code == 302:
             self.user.refresh_from_db()
             self.assertTrue(self.user.check_password('NewSecurePass123!'))

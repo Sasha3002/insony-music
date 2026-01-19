@@ -1,6 +1,5 @@
 /* ==================== TRACK LIST PAGE ==================== */
 
-/* Page Header */
 .page-header {
   margin-bottom: 32px;
 }
@@ -15,7 +14,6 @@
   gap: 16px;
 }
 
-/* Controls Bar */
 .controls-bar {
   display: flex;
   gap: 16px;
@@ -30,7 +28,6 @@
   max-width: 600px;
 }
 
-/* Stats Bar */
 .stats-bar {
   display: flex;
   gap: 24px;
@@ -71,7 +68,6 @@
   color: #9aa0a6;
 }
 
-/* Tracks Grid */
 .tracks-grid {
   display: grid;
   gap: 16px;
@@ -250,7 +246,6 @@
   background: rgba(220, 38, 38, 0.1);
 }
 
-/* Pagination */
 .pagination-wrapper {
   display: flex;
   justify-content: center;
@@ -295,7 +290,6 @@
   cursor: not-allowed;
 }
 
-/* Empty State */
 .empty-state {
   text-align: center;
   padding: 80px 20px;
@@ -308,13 +302,12 @@
   opacity: 0.5;
 }
 
-/* Pill search bar */
 .insony-search{
-  --bg:#202225;            /* tło */
-  --bg-focus:#26282c;      /* tło w focus/hover */
-  --bd:#2c2f34;            /* obramowanie */
-  --fg:#e6e6e6;            /* tekst */
-  --muted:#9aa0a6;         /* ikony/placeholder */
+  --bg:#202225;            
+  --bg-focus:#26282c;      
+  --bd:#2c2f34;           
+  --fg:#e6e6e6;          
+  --muted:#9aa0a6;         
   display:flex; align-items:center; gap:10px;
   padding:8px 10px;
   border:1px solid var(--bd);
@@ -345,7 +338,6 @@
 
 /* ==================== TRACK DETAIL PAGE ==================== */
 
-/* Track Hero Section */
 .track-hero {
   background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
   border-radius: 20px;
@@ -422,7 +414,6 @@
   margin-top: 20px;
 }
 
-/* Overall Rating Card */
 .overall-rating-card {
   background: linear-gradient(135deg, #1e3a8a, #3b82f6);
   border-radius: 20px;
@@ -452,7 +443,6 @@
   margin-top: 4px;
 }
 
-/* Section Headers */
 .section-header {
   display: flex;
   align-items: center;
@@ -467,7 +457,7 @@
   margin: 0;
 }
 
-/* Criteria Grid */
+
 .criteria-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -522,7 +512,6 @@
   transition: width 0.5s cubic-bezier(0.22, 0.8, 0.3, 1);
 }
 
-/* Gradient colors for criteria */
 .crit-blue .criterion-fill {
   background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
   box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
@@ -553,7 +542,6 @@
   box-shadow: 0 0 12px rgba(219, 39, 119, 0.5);
 }
 
-/* Review Form */
 .review-form-card {
   background: linear-gradient(135deg, #1a1a1a, #151515);
   border: 1px solid #2a2a2a;
@@ -641,7 +629,6 @@
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
 }
 
-/* Review Text Area */
 .form-control {
   background: #1f2329;
   border: 1px solid #2a2f32;
@@ -657,7 +644,6 @@
   color: #e9ecf3;
 }
 
-/* Reviews Section */
 .reviews-section {
   margin-top: 48px;
 }
@@ -723,7 +709,6 @@
   font-size: 1.25rem;
 }
 
-/* Mini Criteria Dots */
 .review-criteria-mini {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -797,7 +782,6 @@
   background: rgba(220, 38, 38, 0.1);
 }
 
-/* Rating Toggle */
 .rating-toggle {
   display: inline-flex;
   background: #1a1a1a;
@@ -828,7 +812,6 @@
   color: #fff;
 }
 
-/* Guest Review Box */
 .guest-review-box {
   background: linear-gradient(135deg, #1a1a1a, #151515);
   border: 1px solid #2a2a2a;
@@ -852,7 +835,6 @@
     color:#fff;
 }
 
-/* Pagination for Reviews */
 .insony-pager{
   display:flex;
   gap:4px;
@@ -941,7 +923,6 @@
 }
 
 
-/* Playlist Modal */
 .playlist-modal-content {
   background: linear-gradient(135deg, #1a1a1a, #151515);
   border: 1px solid #2a2a2a;
@@ -1092,7 +1073,7 @@
   background: rgba(220, 38, 38, 0.1);
 }
 
-/* ==================== PLAYLIST CREATE & EDIT PAGES ==================== */
+/* ==================== PLAYLIST CREATE AND EDIT PAGES ==================== */
 
 .edit-hero {
   background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
@@ -1167,7 +1148,6 @@ textarea.form-control-modern {
   margin-top: 6px;
 }
 
-/* Cover Upload Section */
 .cover-upload-section {
   display: flex;
   align-items: start;
@@ -1255,7 +1235,6 @@ textarea.form-control-modern {
   background: rgba(220, 38, 38, 0.1);
 }
 
-/* Action Buttons */
 .action-buttons {
   display: flex;
   gap: 12px;
@@ -1418,7 +1397,6 @@ textarea.form-control-modern {
   margin-top: 20px;
 }
 
-/* Track List in Playlist Detail */
 .tracks-section {
   margin-top: 32px;
 }
@@ -1559,7 +1537,6 @@ textarea.form-control-modern {
 
 /* ==================== PLAYLIST LIST PAGE ==================== */
 
-/* Reuse .playlist-hero for list page with different layout */
 .playlist-list-hero {
   background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
   border-radius: 20px;
@@ -1610,7 +1587,6 @@ textarea.form-control-modern {
   color: #fff;
 }
 
-/* Playlists Grid */
 .playlists-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -1854,7 +1830,6 @@ textarea.form-control-modern {
 
 /* ==================== RESPONSIVE ==================== */
 
-/* Track Detail Responsive */
 @media (max-width: 1200px) {
   .criteria-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -1887,7 +1862,6 @@ textarea.form-control-modern {
     grid-template-columns: 1fr;
   }
   
-  /* Track List Responsive */
   .track-card {
     grid-template-columns: 1fr;
   }
@@ -1910,7 +1884,6 @@ textarea.form-control-modern {
     font-size: 2rem;
   }
 
-  /* Playlist Create/Edit Responsive */
   .cover-upload-section {
     flex-direction: column;
   }
@@ -1930,7 +1903,6 @@ textarea.form-control-modern {
     justify-content: center;
   }
 
-  /* Playlist Detail Responsive */
   .playlist-hero-content {
     flex-direction: column;
   }
@@ -1953,7 +1925,6 @@ textarea.form-control-modern {
     display: none;
   }
   
-  /* Playlist List Responsive */
   .playlist-list-hero,
   .playlist-hero {
     flex-direction: column;
@@ -1968,7 +1939,6 @@ textarea.form-control-modern {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
 
-  /* Playlist Delete Responsive */
   .delete-card {
     margin: 40px 20px;
     padding: 32px 24px;

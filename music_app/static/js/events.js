@@ -27,7 +27,6 @@ function initEventDetail() {
   const stars = document.querySelectorAll('.star-label');
   const radios = document.querySelectorAll('input[name="rating"]');
 
-  // Highlight stars on hover
   stars.forEach((star, index) => {
     star.addEventListener('mouseenter', function() {
       highlightStars(index + 1);
@@ -45,14 +44,12 @@ function initEventDetail() {
     }
   });
 
-  // Update on click
   radios.forEach(radio => {
     radio.addEventListener('change', function() {
       highlightStars(parseInt(this.value));
     });
   });
 
-  // Initial highlight if rating exists
   const checkedRadio = document.querySelector('input[name="rating"]:checked');
   if (checkedRadio) {
     highlightStars(parseInt(checkedRadio.value));
@@ -80,9 +77,7 @@ function initPollCreate() {
   const locationFields = document.getElementById('locationFields');
   const otherFields = document.getElementById('otherFields');
 
-  // Show/hide fields based on poll type
   pollTypeSelect.addEventListener('change', function() {
-    // Hide all conditional fields
     dateFields.classList.remove('active');
     timeFields.classList.remove('active');
     locationFields.classList.remove('active');
@@ -113,10 +108,14 @@ function initPollCreate() {
   const closesAtInput = document.getElementById('closes_at');
   const proposedDateInput = document.getElementById('proposed_date');
   const proposedTimeInput = document.getElementById('proposed_time');
+  const proposedEndDateInput = document.getElementById('proposed_end_date');
+  const proposedEndTimeInput = document.getElementById('proposed_end_time');
   
   if (closesAtInput) closesAtInput.min = minDateTime;
   if (proposedDateInput) proposedDateInput.min = minDateTime;
   if (proposedTimeInput) proposedTimeInput.min = minDateTime;
+  if (proposedEndDateInput) proposedEndDateInput.min = minDateTime;
+  if (proposedEndTimeInput) proposedEndTimeInput.min = minDateTime;
 }
 
 // SHARED FILE UPLOAD FUNCTIONALITY
@@ -132,7 +131,6 @@ function updateFileName(input) {
   }
 }
 
-// Make it globally accessible for inline onchange handlers
 window.updateFileName = updateFileName;
 
 // INITIALIZE ON PAGE LOAD

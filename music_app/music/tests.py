@@ -1,15 +1,3 @@
-"""
-Focused tests for Music app
-Tests cover the most important functionality:
-- Model creation and properties
-- Track CRUD operations
-- Review system with 6 criteria
-- Review likes
-- Favorites system
-- Playlist management
-- XP system through signals
-"""
-
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -140,7 +128,6 @@ class ReviewModelTest(TestCase):
             trend_relevance=5
         )
         
-        # 10 + 9 + 8 + 7 + 6 + 5 = 45
         self.assertEqual(review.total_points, 45)
     
     def test_review_total_percent(self):
@@ -156,7 +143,6 @@ class ReviewModelTest(TestCase):
             trend_relevance=10
         )
         
-        # 60/60 = 100%
         self.assertEqual(review.total_percent, 100.0)
     
     def test_one_review_per_user_per_track(self):
@@ -179,7 +165,6 @@ class ReviewModelTest(TestCase):
         """Test that review criteria are within 0-10 range"""
         from django.db import IntegrityError
         
-        # This should work
         review = Review.objects.create(
             track=self.track,
             user=self.user,
@@ -317,7 +302,6 @@ class PlaylistModelTest(TestCase):
             name='My Playlist'
         )
         
-        # Add tracks
         PlaylistTrack.objects.create(
             playlist=playlist,
             track=self.track,
@@ -413,7 +397,6 @@ class TrackDetailViewTest(TestCase):
     
     def test_track_detail_shows_reviews(self):
         """Test that track detail shows reviews"""
-        # Create a review
         Review.objects.create(
             track=self.track,
             user=self.user,
@@ -458,8 +441,6 @@ class ReviewCreateTest(TestCase):
                 'trend_relevance': 6,
             }
         )
-        
-        # Should not create review
         self.assertEqual(Review.objects.count(), 0)
     
     def test_create_review_success(self):
@@ -480,10 +461,7 @@ class ReviewCreateTest(TestCase):
             }
         )
         
-        # Should redirect
         self.assertEqual(response.status_code, 302)
-        
-        # Verify review was created
         self.assertEqual(Review.objects.count(), 1)
         review = Review.objects.first()
         self.assertEqual(review.track, self.track)
@@ -536,8 +514,6 @@ class ReviewLikeToggleTest(TestCase):
         self.assertTrue(data['ok'])
         self.assertTrue(data['liked'])
         self.assertEqual(data['count'], 1)
-        
-        # Verify like was created
         self.assertTrue(
             ReviewLike.objects.filter(
                 review=self.review,
@@ -547,7 +523,6 @@ class ReviewLikeToggleTest(TestCase):
     
     def test_unlike_review(self):
         """Test unliking a review"""
-        # Create initial like
         ReviewLike.objects.create(
             review=self.review,
             user=self.user2
@@ -561,8 +536,6 @@ class ReviewLikeToggleTest(TestCase):
         self.assertTrue(data['ok'])
         self.assertFalse(data['liked'])
         self.assertEqual(data['count'], 0)
-        
-        # Verify like was removed
         self.assertFalse(
             ReviewLike.objects.filter(
                 review=self.review,
@@ -601,11 +574,7 @@ class FavoriteToggleTest(TestCase):
         self.client.login(username='testuser', password='testpass123')
         url = reverse('favorite_toggle', kwargs={'track_id': self.track.id})
         response = self.client.post(url)
-        
-        # Should redirect
         self.assertEqual(response.status_code, 200)
-        
-        # Verify favorite was created
         self.assertTrue(
             Favorite.objects.filter(
                 user=self.user,
@@ -615,7 +584,6 @@ class FavoriteToggleTest(TestCase):
     
     def test_remove_from_favorites(self):
         """Test removing track from favorites"""
-        # Create initial favorite
         Favorite.objects.create(
             user=self.user,
             track=self.track
@@ -624,11 +592,7 @@ class FavoriteToggleTest(TestCase):
         self.client.login(username='testuser', password='testpass123')
         url = reverse('favorite_toggle', kwargs={'track_id': self.track.id})
         response = self.client.post(url)
-        
-        # Should redirect
         self.assertEqual(response.status_code, 200)
-        
-        # Verify favorite was removed
         self.assertFalse(
             Favorite.objects.filter(
                 user=self.user,
@@ -666,11 +630,7 @@ class PlaylistCreateTest(TestCase):
             'description': 'Great songs',
             'is_public': True
         })
-        
-        # Should redirect
         self.assertEqual(response.status_code, 302)
-        
-        # Verify playlist was created
         self.assertTrue(
             Playlist.objects.filter(
                 user=self.user,
@@ -719,11 +679,7 @@ class PlaylistAddTrackTest(TestCase):
             'track_id': self.track.id
         })
         response = self.client.post(url)
-        
-        # Should redirect
         self.assertEqual(response.status_code, 200)
-        
-        # Verify track was added to playlist
         self.assertTrue(
             PlaylistTrack.objects.filter(
                 playlist=self.playlist,
@@ -745,11 +701,7 @@ class PlaylistAddTrackTest(TestCase):
             'track_id': self.track.id
         })
         response = self.client.post(url)
-        
-        # Should redirect or deny
         self.assertEqual(response.status_code, 404)
-        
-        # Verify track was NOT added
         self.assertFalse(
             PlaylistTrack.objects.filter(
                 playlist=self.playlist,
@@ -786,10 +738,7 @@ class ReviewDeleteTest(TestCase):
         url = reverse('review_delete', kwargs={'track_id': self.track.id})
         response = self.client.post(url)
         
-        # Should redirect
         self.assertEqual(response.status_code, 302)
-        
-        # Verify review was deleted
         self.assertFalse(
             Review.objects.filter(id=self.review.id).exists()
         )
@@ -806,10 +755,7 @@ class ReviewDeleteTest(TestCase):
         url = reverse('review_delete', kwargs={'track_id': self.track.id})
         response = self.client.post(url)
         
-        # Should redirect
         self.assertEqual(response.status_code, 302)
-        
-        # Verify review was NOT deleted
         self.assertTrue(
             Review.objects.filter(id=self.review.id).exists()
         )

@@ -35,7 +35,6 @@
   padding: 32px;
 }
 
-/* Form Elements */
 .form-group {
   margin-bottom: 24px;
 }
@@ -93,7 +92,6 @@
   margin-top: 6px;
 }
 
-/* File Upload */
 .file-input-wrapper {
   position: relative;
   overflow: hidden;
@@ -130,7 +128,6 @@
   font-size: 0.9rem;
 }
 
-/* Genre Checkboxes */
 .genre-checkboxes {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -163,7 +160,6 @@
   font-size: 0.95rem;
 }
 
-/* Type Radio Buttons */
 .type-radio-group {
   display: flex;
   gap: 16px;
@@ -215,7 +211,6 @@
   font-size: 0.85rem;
 }
 
-/* Form Actions */
 .form-actions {
   display: flex;
   gap: 12px;

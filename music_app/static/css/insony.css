@@ -1,14 +1,11 @@
 /* ==================== INSONY GLOBAL STYLES ==================== */
-/* Site-wide styles that apply across all modules */
 
-/* Dark background for entire site */
 body { 
   background: #0a0a0a; 
   color: #e6e6e6; 
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Full height layout */
 html, body {
   height: 100%;
 }
@@ -19,10 +16,9 @@ body {
 }
 
 .main-wrapper {
-  flex: 1; /* Take all space so footer goes to bottom */
+  flex: 1; 
 }
 
-/* Global alert styling (used across the site) */
 .alert-isony {
   background: #1f1f1f;
   border: 1px solid #3a2a2a;

@@ -15,7 +15,6 @@ User = get_user_model()
 
 @login_required
 def group_list(request):
-    """List all groups with search and filters"""
     groups = Group.objects.annotate(
         members_count=Count('members', filter=Q(members__status='accepted'))
     ).select_related('admin').prefetch_related('genres')
@@ -24,13 +23,11 @@ def group_list(request):
     query = request.GET.get('q', '')
     if query:
         groups = groups.filter(name__icontains=query)
-    
-    # Filter by location
+
     location = request.GET.get('location', '')
     if location:
         groups = groups.filter(location__icontains=location)
-    
-    # Filter by genre
+
     genre_id = request.GET.get('genre', '')
     if genre_id:
         groups = groups.filter(genres__id=genre_id)
@@ -55,20 +52,11 @@ def group_list(request):
 
 @login_required
 def group_detail(request, slug):
-    """View group details"""
     group = get_object_or_404(Group.objects.prefetch_related('genres', 'members__user'), slug=slug)
-    
-    # Check if user is member
     is_member = group.members.filter(user=request.user, status='accepted').exists()
     is_admin = group.admin == request.user
-    
-    # Check if user has pending request
     has_pending_request = group.members.filter(user=request.user, status='pending').exists()
-    
-    # Get accepted members
     members = group.members.filter(status='accepted').select_related('user')
-    
-    # Get pending requests (only visible to admin)
     pending_requests = []
     if is_admin:
         pending_requests = group.members.filter(status='pending').select_related('user')
@@ -100,16 +88,13 @@ def group_detail(request, slug):
     })
 
 def validate_city(city_name):
-    """Validate if city exists using Nominatim API"""
     if not city_name:
         return False
     
-    # Allow "Online" as valid location
     if city_name.lower() == 'online':
         return True
     
     try:
-        # Nominatim API - free geocoding service
         url = "https://nominatim.openstreetmap.org/search"
         params = {
             'city': city_name,
@@ -129,14 +114,12 @@ def validate_city(city_name):
         return False
         
     except Exception as e:
-        # If API fails, allow the location (don't block users)
         print(f"Location validation error: {e}")
         return True
 
 
 @login_required
 def group_create(request):
-    """Create a new group"""
     if request.method == 'POST':
         name = request.POST.get('name')
         description = request.POST.get('description')
@@ -155,10 +138,9 @@ def group_create(request):
             genres = Genre.objects.all()
             return render(request, 'groups/group_create.html', {
                 'genres': genres,
-                'submitted_data': request.POST  # Keep form data
+                'submitted_data': request.POST  
             })
         
-        # Create group
         group = Group.objects.create(
             name=name,
             description=description,
@@ -168,11 +150,9 @@ def group_create(request):
             cover_image=cover_image
         )
         
-        # Add genres
         if genre_ids:
             group.genres.set(genre_ids)
         
-        # Auto-add creator as member
         GroupMembership.objects.create(
             group=group,
             user=request.user,
@@ -182,7 +162,6 @@ def group_create(request):
         messages.success(request, f'Grupa "{name}" została utworzona!')
         return redirect('group_detail', slug=group.slug)
     
-    # GET request
     genres = Genre.objects.all()
     return render(request, 'groups/group_create.html', {
         'genres': genres
@@ -191,7 +170,6 @@ def group_create(request):
 
 @login_required
 def group_edit(request, slug):
-    """Edit group (admin only)"""
     group = get_object_or_404(Group, slug=slug)
     
     if group.admin != request.user:
@@ -215,7 +193,7 @@ def group_edit(request, slug):
         
         if 'cover_image' in request.FILES:
             if group.cover_image:
-                group.cover_image.delete()  # Delete old image
+                group.cover_image.delete()  
             group.cover_image = request.FILES['cover_image']
         
         genre_ids = request.POST.getlist('genres')
@@ -237,7 +215,6 @@ def group_edit(request, slug):
 
 @login_required
 def group_delete(request, slug):
-    """Delete group (admin only)"""
     group = get_object_or_404(Group, slug=slug)
     
     if group.admin != request.user:
@@ -258,10 +235,7 @@ def group_delete(request, slug):
 @require_POST
 @login_required
 def group_join(request, slug):
-    """Join a group"""
     group = get_object_or_404(Group, slug=slug)
-    
-    # Check if already member
     existing = GroupMembership.objects.filter(group=group, user=request.user).first()
     
     if existing:
@@ -271,7 +245,6 @@ def group_join(request, slug):
             messages.info(request, 'Twoja prośba o dołączenie oczekuje na akceptację')
         return redirect('group_detail', slug=slug)
     
-    # Create membership
     status = 'accepted' if group.type == 'public' else 'pending'
     GroupMembership.objects.create(
         group=group,
@@ -290,7 +263,6 @@ def group_join(request, slug):
 @require_POST
 @login_required
 def group_leave(request, slug):
-    """Leave a group"""
     group = get_object_or_404(Group, slug=slug)
     
     if group.admin == request.user:
@@ -309,7 +281,6 @@ def group_leave(request, slug):
 @require_POST
 @login_required
 def approve_member(request, slug, membership_id):
-    """Approve pending member (admin only)"""
     group = get_object_or_404(Group, slug=slug)
     
     if group.admin != request.user:
@@ -327,7 +298,6 @@ def approve_member(request, slug, membership_id):
 @require_POST
 @login_required
 def reject_member(request, slug, membership_id):
-    """Reject pending member (admin only)"""
     group = get_object_or_404(Group, slug=slug)
     
     if group.admin != request.user:
@@ -343,10 +313,8 @@ def reject_member(request, slug, membership_id):
 
 @login_required
 def group_invite(request, slug):
-    """Invite users to group"""
     group = get_object_or_404(Group, slug=slug)
-    
-    # Only members can invite
+
     if not group.members.filter(user=request.user, status='accepted').exists():
         messages.error(request, 'Tylko członkowie mogą zapraszać')
         return redirect('group_detail', slug=slug)
@@ -359,7 +327,6 @@ def group_invite(request, slug):
             messages.error(request, 'Użytkownik nie istnieje')
             return redirect('group_invite', slug=slug)
         
-        # Check if already member or invited
         if group.members.filter(user=user_to_invite).exists():
             messages.error(request, 'Użytkownik już jest członkiem lub ma oczekującą prośbę')
             return redirect('group_invite', slug=slug)
@@ -368,7 +335,6 @@ def group_invite(request, slug):
             messages.error(request, 'Zaproszenie już zostało wysłane')
             return redirect('group_invite', slug=slug)
         
-        # Create invitation
         GroupInvitation.objects.create(
             group=group,
             invited_by=request.user,
@@ -385,7 +351,6 @@ def group_invite(request, slug):
 
 @login_required
 def group_members(request, slug):
-    """View all group members"""
     group = get_object_or_404(Group, slug=slug)
     members = group.members.filter(status='accepted').select_related('user')
     is_admin = group.admin == request.user
@@ -399,7 +364,6 @@ def group_members(request, slug):
 @require_POST
 @login_required
 def remove_member(request, slug, user_id):
-    """Remove a member from group (admin only)"""
     group = get_object_or_404(Group, slug=slug)
     
     if group.admin != request.user:
@@ -408,7 +372,6 @@ def remove_member(request, slug, user_id):
     
     user_to_remove = get_object_or_404(User, id=user_id)
     
-    # Admin cannot remove themselves
     if user_to_remove == group.admin:
         messages.error(request, 'Administrator nie może usunąć samego siebie')
         return redirect('group_detail', slug=slug)
@@ -420,12 +383,10 @@ def remove_member(request, slug, user_id):
         messages.success(request, f'{user_to_remove.username} został usunięty z grupy')
     else:
         messages.error(request, 'Użytkownik nie jest członkiem grupy')
-    
     return redirect('group_detail', slug=slug)
 
 @login_required
 def my_invitations(request):
-    """View all pending invitations for current user"""
     invitations = GroupInvitation.objects.filter(
         invited_user=request.user,
         accepted=False
@@ -439,23 +400,19 @@ def my_invitations(request):
 @require_POST
 @login_required
 def accept_invitation(request, invitation_id):
-    """Accept group invitation"""
     invitation = get_object_or_404(GroupInvitation, id=invitation_id, invited_user=request.user)
-    
-    # Check if already a member
+
     if GroupMembership.objects.filter(group=invitation.group, user=request.user).exists():
         messages.info(request, 'Już jesteś członkiem tej grupy')
         invitation.delete()
         return redirect('my_invitations')
     
-    # Create membership
     GroupMembership.objects.create(
         group=invitation.group,
         user=request.user,
         status='accepted'
     )
     
-    # Mark invitation as accepted and delete
     invitation.accepted = True
     invitation.save()
     invitation.delete()
@@ -467,7 +424,6 @@ def accept_invitation(request, invitation_id):
 @require_POST
 @login_required
 def decline_invitation(request, invitation_id):
-    """Decline group invitation"""
     invitation = get_object_or_404(GroupInvitation, id=invitation_id, invited_user=request.user)
     group_name = invitation.group.name
     invitation.delete()

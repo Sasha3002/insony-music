@@ -1,13 +1,3 @@
-"""
-Comprehensive tests for Chat app
-Tests cover:
-- Model functionality (Conversation, Message, ChatParticipant, GroupChatMessage)
-- View functionality (chat_list, conversation_detail, send_message, etc.)
-- Permissions and security
-- AJAX endpoints
-- Group chat functionality
-"""
-
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -25,7 +15,6 @@ User = get_user_model()
 
 
 class ConversationModelTest(TestCase):
-    
     def setUp(self):
         """Set up test users"""
         self.user1 = User.objects.create_user(

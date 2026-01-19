@@ -93,7 +93,7 @@
   </div>
   {% endif %}
 
-  <!-- Average Criteria Display - 2-3 COLUMNS -->
+  <!-- Average Criteria Display -->
   {% if avg_percent %}
   <div class="section-header">
     <h2 class="section-title">
@@ -165,7 +165,7 @@
   </div>
   {% endif %}
 
-  <!-- Review Form - 2-3 COLUMNS -->
+  <!-- Review Form  -->
   <div class="review-form-card">
     <h2 class="section-title mb-3">
       <i class="bi bi-pencil-square me-2"></i>
@@ -190,7 +190,7 @@
         {% csrf_token %}
         <input type="hidden" name="mode" value="{{ mode }}">
 
-        <!-- Sliders in 2 columns -->
+        <!-- Sliders -->
         <div class="sliders-grid">
           {% for c in criteria_cfg %}
           <div class="slider-group">
@@ -249,7 +249,7 @@
     {% endif %}
   </div>
 
-  <!-- Reviews Section - MY STYLE WITH YOUR IMPROVED DOTS -->
+  <!-- Reviews Section -->
   <div class="reviews-section">
     <div class="section-header">
       <h2 class="section-title">
@@ -290,7 +290,7 @@
             <div class="review-score">{{ r.total_percent|default:0|floatformat:0 }}/100</div>
           </div>
 
-          <!-- Mini Criteria Dots -->
+          <!-- Mini Criteria -->
           <div class="review-criteria-mini">
             <div class="mini-criterion">
               <div class="mini-criterion-value">{{ r.rhyme_imagery }}</div>

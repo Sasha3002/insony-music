@@ -1,6 +1,3 @@
-"""
-Django management command для імпорту треків з MusicBrainz API
-"""
 import datetime
 import requests
 from django.core.management.base import BaseCommand, CommandError
@@ -51,7 +48,7 @@ class Command(BaseCommand):
                 'Zainstaluj go: pip install musicbrainzngs'
             )
 
-        # Налаштування MusicBrainz API
+        # Settings MusicBrainz API
         musicbrainzngs.set_useragent(
             "MusicApp",
             "1.0",
@@ -69,7 +66,6 @@ class Command(BaseCommand):
                 'Należy podać co najmniej jeden parametr: --artist lub --title'
             )
 
-        # Отримання адміністратора (ID = 3)
         try:
             admin_user = User.objects.get(id=3)
             self.stdout.write(
@@ -81,7 +77,7 @@ class Command(BaseCommand):
                 'Utwórz użytkownika admin lub zmień ID w kodzie.'
             )
 
-        # Отримання або створення жанру за замовчуванням
+        # Getting or creating a default genre
         default_genre = None
         if default_genre_name:
             default_genre, _ = Genre.objects.get_or_create(name=default_genre_name)
@@ -92,7 +88,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Wyszukiwanie utworów na MusicBrainz...'))
 
         try:
-            # Пошук записів (recordings) на MusicBrainz
+            # Search for recordings on MusicBrainz
             search_query = []
             if artist_query:
                 search_query.append(f'artist:"{artist_query}"')
@@ -126,14 +122,14 @@ class Command(BaseCommand):
             for recording in recordings:
                 track_title = recording.get('title', 'Unknown Title')
                 
-                # Отримання інформації про виконавця
+                # Getting info about the performer
                 artist_credit = recording.get('artist-credit', [])
                 if artist_credit:
                     artist_name = artist_credit[0].get('artist', {}).get('name', 'Unknown Artist')
                 else:
                     artist_name = 'Unknown Artist'
 
-                # Отримання тривалості
+                # Getting duration
                 duration_ms = recording.get('length')
                 duration = None
                 if duration_ms:
@@ -142,20 +138,19 @@ class Command(BaseCommand):
                     except (ValueError, TypeError):
                         pass
 
-                # Отримання обкладинки та дати випуску з Cover Art Archive
+                # Getting cover art and release date from Cover Art Archive
                 cover_url = None
                 authored_date = None
                 release_list = recording.get('release-list', [])
                 if release_list:
-                    # Беремо перший реліз для пошуку обкладинки та дати
                     first_release = release_list[0]
                     release_id = first_release.get('id')
-                    
-                    # Отримання дати випуску
+
+                    # Getting release date
                     release_date_str = first_release.get('date')
                     if release_date_str:
                         try:
-                            # MusicBrainz повертає дати у форматі YYYY, YYYY-MM або YYYY-MM-DD
+                            # MusicBrainz returns dates in the format YYYY, YYYY-MM, or YYYY-MM-DD
                             date_parts = release_date_str.split('-')
                             if len(date_parts) == 3:
                                 authored_date = datetime.date(
@@ -164,14 +159,14 @@ class Command(BaseCommand):
                                     int(date_parts[2])
                                 )
                             elif len(date_parts) == 2:
-                                # Якщо лише рік та місяць, використовуємо перший день місяця
+                                # If only the year and month are given, we use the first day of the month.
                                 authored_date = datetime.date(
                                     int(date_parts[0]),
                                     int(date_parts[1]),
                                     1
                                 )
                             elif len(date_parts) == 1:
-                                # Якщо лише рік, використовуємо 1 січня
+                                # If only the year is given, we use January 1st
                                 authored_date = datetime.date(int(date_parts[0]), 1, 1)
                         except (ValueError, TypeError) as e:
                             self.stdout.write(
@@ -190,7 +185,6 @@ class Command(BaseCommand):
                                 cover_data = cover_response.json()
                                 images = cover_data.get('images', [])
                                 if images:
-                                    # Беремо перше зображення (зазвичай фронт обкладинки)
                                     for img in images:
                                         if img.get('front', False):
                                             cover_url = img.get('thumbnails', {}).get('small') or img.get('image')
@@ -204,7 +198,7 @@ class Command(BaseCommand):
                                 )
                             )
 
-                # Перевірка на дублікати
+                # Check for duplicates
                 artist_obj, _ = Artist.objects.get_or_create(name=artist_name)
                 
                 if skip_duplicates:
@@ -217,27 +211,21 @@ class Command(BaseCommand):
                         skipped_count += 1
                         continue
 
-                # Отримання жанру з пріоритетом:
-                # 1. Теги з MusicBrainz (якщо немає default_genre)
-                # 2. Параметр --default-genre
-                # 3. Жанр "Unknown" як fallback
                 genre = None
                 tags = recording.get('tag-list', [])
                 
                 if default_genre:
-                    # Якщо вказано --default-genre, використовуємо його
                     genre = default_genre
                 elif tags:
-                    # Використовуємо перший тег з MusicBrainz як жанр
                     genre_name = tags[0].get('name', '').capitalize()
                     if genre_name:
                         genre, _ = Genre.objects.get_or_create(name=genre_name)
                 
-                # Якщо жанр все ще не визначено, створюємо "Unknown"
+                # If genre is still not defined, create "Unknown" genre
                 if not genre:
                     genre, _ = Genre.objects.get_or_create(name='Unknown')
 
-                # Створення треку з адміністратором
+                # Creating track with admin user
                 with transaction.atomic():
                     track = Track.objects.create(
                         title=track_title,
@@ -261,7 +249,6 @@ class Command(BaseCommand):
                     )
                 )
 
-            # Підсумок
             self.stdout.write(
                 self.style.SUCCESS(
                     f'\n Podsumowanie: zaimportowano {imported_count} utworów, '

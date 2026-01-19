@@ -8,8 +8,6 @@
 {% block content %}
 
 <div class="container py-4">
-  
-  <!-- Breadcrumb for group filter -->
   {% if filtered_group %}
     <div style="margin-bottom: 24px;">
       <a href="{% url 'group_detail' filtered_group.slug %}" class="btn btn-outline-light">

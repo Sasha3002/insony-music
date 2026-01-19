@@ -240,7 +240,7 @@
     {% endif %}
   </div>
 
-  <!-- Polls Section (for upcoming events) -->
+  <!-- Polls Section -->
   {% if not event.is_past and is_member %}
     <div class="event-section">
       <div class="playlist-header">
@@ -275,10 +275,8 @@
                   </div>
                 </div>
 
-                <!-- Poll creator (for creator) -->
                 {% if is_creator %}
                   <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <!-- Apply Changes Button (show if poll passed, regardless of status) -->
                     {% if poll.approval_percentage >= 50 and poll.total_votes > 0 %}
                       <form method="post" action="{% url 'apply_poll_changes' poll.id %}" style="display: inline;">
                         {% csrf_token %}
@@ -299,7 +297,7 @@
                       </button>
                     {% endif %}
                     
-                    <!-- Close Poll Button (only if still active) -->
+                    <!-- Close Poll Button -->
                     {% if not poll.is_closed %}
                       <form method="post" action="{% url 'close_poll' poll.id %}" style="display: inline;">
                         {% csrf_token %}
@@ -312,7 +310,6 @@
                     {% endif %}
                   </div>
                 {% elif poll.creator == request.user and not poll.is_closed %}
-                  <!-- Poll Creator (non-admin) can only close their own poll -->
                   <form method="post" action="{% url 'close_poll' poll.id %}" style="display: inline;">
                     {% csrf_token %}
                     <button type="submit" 
@@ -370,11 +367,7 @@
                   {% if poll.total_votes > 0 %}
                     {% widthratio poll.votes_for poll.total_votes 100 as for_percent %}
                     {% widthratio poll.votes_against poll.total_votes 100 as against_percent %}
-
-                    <!-- Green bar from left -->
                     <div style="position: absolute; left: 0; top: 0; height: 100%; background: linear-gradient(90deg, #10b981, #22c55e); width: {{ for_percent }}%; transition: width 0.3s;"></div>
-
-                    <!-- Red bar from right -->
                     <div style="position: absolute; right: 0; top: 0; height: 100%; background: linear-gradient(90deg, #dc2626, #ef4444); width: {{ against_percent }}%; transition: width 0.3s;"></div>
                   {% endif %}
                 </div>
@@ -453,7 +446,7 @@
     </div>
   {% endif %}
 
-  <!-- Ratings Section (for past events) -->
+  <!-- Ratings Section -->
   {% if event.is_past %}
     <div class="event-section">
       <h2 class="section-title">
@@ -466,7 +459,7 @@
         {% endif %}
       </h2>
     
-      <!-- Rating Form (if user can rate) -->
+      <!-- Rating Form -->
       {% if can_rate %}
         <div style="background: #0f0f0f; border: 1px solid #2a2a2a; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
           <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 16px;">

@@ -5,7 +5,6 @@ from django.contrib.auth.decorators import login_required
 from django.utils.http import url_has_allowed_host_and_scheme
 from .models import User, UserFollow, UserBlock, ErrorReport
 from .forms import RegisterForm
-#from music.models import Review
 from music.utils.xp import level_from_xp, level_progress, badge_for_level, badge_progress, badge_name
 from music.models import Review, Favorite, Genre, Artist, Playlist
 from django.db.models import Avg, F, FloatField, Q, Count
@@ -28,7 +27,6 @@ from .recommendations import RecommendationEngine
 
 def login_view(request):
     next_url = request.GET.get('next') or request.POST.get('next')
-    # якщо вже залогінений — перенаправляємо туди, куди просив, або в профіль
     if request.user.is_authenticated:
         if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
             return redirect(next_url)
@@ -39,12 +37,11 @@ def login_view(request):
     if request.method == "POST":
         username = (request.POST.get("username") or "").strip()
         password = request.POST.get("password") or ""
-        ctx["username"] = username  # щоб не вводити логін повторно
+        ctx["username"] = username  
 
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            # "Запам’ятай мене": якщо чекбокс не поставлено — сесія до закриття браузера
             if not request.POST.get("remember_me"):
                 request.session.set_expiry(0)
             messages.success(request, f"Witaj, {user.username}!")
@@ -78,7 +75,7 @@ def profile_view(request):
     
     playlists_number = Playlist.objects.filter(user=user, is_favorite = False).count()
 
-    # Calculate average rating from user's reviews
+
 
     followers_count = UserFollow.objects.filter(following=user).count()
     following_count = UserFollow.objects.filter(follower=user).count()
@@ -90,13 +87,9 @@ def profile_view(request):
             output_field=FloatField()
         )
     )
-    # avg_total is the average sum of all 6 criteria (0-60), convert to 0-10 scale
-    average_rating = round(avg_data['avg_total'] / 6, 1) if avg_data['avg_total'] else 0
     
-    # Parse favorite genres (comma-separated)
+    average_rating = (round(avg_data['avg_total'] / 6, 1))*10 if avg_data['avg_total'] else 0
     favorite_genres_list = [g.strip() for g in user.favorite_genres.split(',') if g.strip()] if user.favorite_genres else []
-    
-    # Parse favorite artists (comma-separated) 
     favorite_artists_list = [a.strip() for a in user.favorite_artists.split(',') if a.strip()] if user.favorite_artists else []
 
     favorites_count = Favorite.objects.filter(user=user).count()
@@ -119,11 +112,11 @@ def profile_view(request):
         "followers_count": followers_count,
         'pending_reports_count': pending_reports_count,
         "following_count": following_count,
-        "badge": b,                               # dict: slug/name/min/max
-        "badge_slug": badge_slug,                 # 'bronze' / 'silver' / 'gold' / 'diamond'
-        "badge_name": badge_name(badge_slug),     # 'Bronze' / 'Silver' ...
-        "badge_pct": badge_pct,                   # % прогресу всередині бейджа
-        "next_badge_slug": next_badge_slug,       # або None
+        "badge": b,                               
+        "badge_slug": badge_slug,                 
+        "badge_name": badge_name(badge_slug),     
+        "badge_pct": badge_pct,                   
+        "next_badge_slug": next_badge_slug,       
         "next_badge_name": badge_name(next_badge_slug) if next_badge_slug else None,
         "playlists_number": playlists_number,
     }
@@ -140,16 +133,13 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             try:
-                # Save user (is_active=False set in form)
-                user = form.save()
-                
+                user = form.save()  
                 # Generate verification token
                 token = secrets.token_urlsafe(32)
                 user.email_verification_token = token
                 user.email_verification_sent_at = timezone.now()
                 user.save()
                 
-                # Send verification email
                 current_site = get_current_site(request)
                 verification_url = f"http://{current_site.domain}/users/verify-email/{token}/"
                 
@@ -196,22 +186,16 @@ Zespół Insony
 def profile_edit(request):
     user = request.user
     if request.method == "POST":
-        # Handle picture removal
         if request.POST.get('remove_picture') == 'true':
             if user.profile_picture:
                 user.profile_picture.delete()
                 user.profile_picture = None
-        # Handle new picture upload
         elif 'profile_picture' in request.FILES:
-            # Delete old picture if exists
             if user.profile_picture:
                 user.profile_picture.delete()
             user.profile_picture = request.FILES['profile_picture']
         
-        # Get city and validate
         city = request.POST.get("city")
-        
-        # Only validate if city is not empty
         if city and not validate_city(city):
             messages.error(request, f'Lokalizacja "{city}" nie istnieje w Polsce. Sprawdź pisownię lub pozostaw puste.')
             all_genres = Genre.objects.all().order_by('name')
@@ -230,8 +214,7 @@ def profile_edit(request):
                 "all_artists_json": json.dumps([a.name for a in all_artists]),
             })
         
-        # Update user fields
-        user.city = city if city else None  # Set to None if empty
+        user.city = city if city else None  
         user.email = request.POST.get("email", user.email)
         user.first_name = request.POST.get("first_name", user.first_name)
         user.last_name  = request.POST.get("last_name", user.last_name)
@@ -246,7 +229,6 @@ def profile_edit(request):
     all_genres = Genre.objects.all().order_by('name')
     all_artists = Artist.objects.all().order_by('name')
 
-    # GET – pokazujemy formularz z aktualnymi wartościami
     context = {
         "email": user.email,
         "first_name": user.first_name,
@@ -271,15 +253,12 @@ def user_search(request):
     if q:
         excluded_ids = set()
         if request.user.is_authenticated:
-            # Users I blocked
             excluded_ids.update(
                 UserBlock.objects.filter(blocker=request.user).values_list('blocked_id', flat=True)
             )
-            # Users who blocked me
             excluded_ids.update(
                 UserBlock.objects.filter(blocked=request.user).values_list('blocker_id', flat=True)
             )
-            # Exclude myself
             excluded_ids.add(request.user.id)
         
         users = User.objects.filter(
@@ -313,7 +292,6 @@ def user_profile_public(request, username):
     if not profile_user:
         return render(request, 'users/404.html', status=404)
     
-    # Check if blocked
     if request.user.is_authenticated:
         is_blocked = UserBlock.objects.filter(
             Q(blocker=request.user, blocked=profile_user) |
@@ -330,15 +308,12 @@ def user_profile_public(request, username):
     else:
         is_following = False
     
-    # Get stats
     followers_count = UserFollow.objects.filter(following=profile_user).count()
     following_count = UserFollow.objects.filter(follower=profile_user).count()
-    
-    # Get reviews
+
     recent_reviews = Review.objects.filter(user=profile_user).select_related('track', 'track__artist').order_by('-created_at')[:5]
     recent_reviews_count = Review.objects.filter(user=profile_user).count()
     
-    # Get XP and level info
     xp = getattr(profile_user, "xp", 0)
     from music.utils.xp import level_from_xp, level_progress, badge_for_level, badge_progress, badge_name
     
@@ -346,14 +321,12 @@ def user_profile_public(request, username):
     level_cur, xp_in_level, to_next = level_progress(xp)
     level_progress_pct = round((xp_in_level / 1000) * 100, 1)
     
-    # Parse favorites
     favorite_genres_list = [g.strip() for g in profile_user.favorite_genres.split(',') if g.strip()] if profile_user.favorite_genres else []
     favorite_artists_list = [a.strip() for a in profile_user.favorite_artists.split(',') if a.strip()] if profile_user.favorite_artists else []
     
     favorites_count = Favorite.objects.filter(user=profile_user).count()
     playlists_number = Playlist.objects.filter(user=profile_user, is_favorite=False).count()
     
-    # Average rating
     avg_data = Review.objects.filter(user=profile_user).aggregate(
         avg_total=Avg(
             F('rhyme_imagery') + F('structure_rhythm') + F('style_execution') + 
@@ -361,7 +334,7 @@ def user_profile_public(request, username):
             output_field=FloatField()
         )
     )
-    average_rating = round(avg_data['avg_total'] / 6, 1) if avg_data['avg_total'] else 0
+    average_rating = (round(avg_data['avg_total'] / 6, 1))*10 if avg_data['avg_total'] else 0
     
     return render(request, 'users/user_profile_public.html', {
         'profile_user': profile_user,
@@ -521,7 +494,6 @@ def user_playlists_public(request, username):
     if not profile_user:
         return render(request, 'users/404.html', status=404)
     
-    # Check if blocked
     if request.user.is_authenticated:
         is_blocked = UserBlock.objects.filter(
             Q(blocker=request.user, blocked=profile_user) |
@@ -531,9 +503,7 @@ def user_playlists_public(request, username):
         if is_blocked:
             return render(request, 'users/user_blocked.html', status=403)
     
-    # Show only public playlists for other users, all playlists for own profile
     if request.user == profile_user:
-        # Redirect to their own playlist page
         return redirect('playlist_list')
     else:
         playlists = Playlist.objects.filter(user=profile_user, is_favorite=False, is_public=True, is_event_playlist = False).order_by('-created_at')
@@ -547,22 +517,17 @@ def user_playlists_public(request, username):
 @login_required
 def user_favorites(request):
     """Redirect to user's favorites playlist"""
-    # Get or create favorites playlist
     favorites_playlist, created = Playlist.objects.get_or_create(
         user=request.user,
         is_favorite=True,
         defaults={'name': 'Ulubione'}
     )
-    
-    # Redirect to playlist detail
     return redirect('playlist_detail', playlist_id=favorites_playlist.id)
 
 @login_required
 def user_reviews(request):
     """View all user's reviews"""
     user = request.user
-    
-    # Get all reviews
     reviews = Review.objects.filter(user=user).select_related('track', 'track__artist').order_by('-created_at')
     
     return render(request, 'users/user_reviews.html', {
@@ -576,7 +541,6 @@ def user_reviews_public(request, username):
     if not profile_user:
         return render(request, 'users/404.html', status=404)
     
-    # Check if blocked
     if request.user.is_authenticated:
         is_blocked = UserBlock.objects.filter(
             Q(blocker=request.user, blocked=profile_user) |
@@ -585,10 +549,8 @@ def user_reviews_public(request, username):
         
         if is_blocked:
             return render(request, 'users/user_blocked.html', status=403)
-    
-    # Get all reviews
+
     reviews = Review.objects.filter(user=profile_user).select_related('track', 'track__artist').order_by('-created_at')
-    
     return render(request, 'users/user_reviews.html', {
         'reviews': reviews,
         'profile_user': profile_user,  
@@ -605,21 +567,17 @@ def account_delete(request):
         password = request.POST.get('password', '')
         confirm_text = request.POST.get('confirm_text', '').strip()
         
-        # Check if password is correct
         if not user.check_password(password):
             messages.error(request, 'Nieprawidłowe hasło')
             return render(request, 'users/account_delete.html')
         
-        # Check if confirmation text matches
         if confirm_text != 'USUŃ KONTO':
             messages.error(request, 'Nieprawidłowy tekst potwierdzenia')
             return render(request, 'users/account_delete.html')
         
-        # Delete the account
         username = user.username
         logout(request)
         user.delete()
-        
         messages.success(request, f'Konto {username} zostało usunięte')
         return redirect('login')
     
@@ -630,10 +588,7 @@ def account_delete(request):
 def account_settings(request):
     """Account settings page"""
     user = request.user
-    
-    # Get blocked users count
     blocked_count = UserBlock.objects.filter(blocker=user).count()
-    
     return render(request, 'users/account_settings.html', {
         'blocked_count': blocked_count,
     })
@@ -647,22 +602,18 @@ def password_change(request):
         new_password = request.POST.get('new_password', '')
         confirm_password = request.POST.get('confirm_password', '')
         
-        # Check current password
         if not request.user.check_password(current_password):
             messages.error(request, 'Nieprawidłowe obecne hasło')
             return render(request, 'users/password_change.html')
-        
-        # Check new passwords match
+
         if new_password != confirm_password:
             messages.error(request, 'Nowe hasła nie są zgodne')
             return render(request, 'users/password_change.html')
         
-        # Check password length
         if len(new_password) < 8:
             messages.error(request, 'Hasło musi mieć co najmniej 8 znaków')
             return render(request, 'users/password_change.html')
         
-        # Change password
         request.user.set_password(new_password)
         request.user.save()
         
@@ -679,10 +630,7 @@ def password_change(request):
 def blocked_users(request):
     """Manage blocked users"""
     user = request.user
-    
-    # Get blocked users
     blocked_users = UserBlock.objects.filter(blocker=user).select_related('blocked')
-    
     return render(request, 'users/blocked_users.html', {
         'blocked_users': blocked_users,
     })
@@ -701,7 +649,6 @@ def verify_email(request, token):
                 user.delete()  # Remove unverified user
                 return redirect('register')
         
-        # Activate user
         user.is_active = True
         user.is_email_verified = True
         user.email_verification_token = None
@@ -736,7 +683,6 @@ def resend_verification(request):
             user.email_verification_sent_at = timezone.now()
             user.save()
             
-            # Send email
             current_site = get_current_site(request)
             verification_url = f"http://{current_site.domain}/users/verify-email/{token}/"
             
@@ -818,7 +764,6 @@ Zespół Insony
             return redirect('login')
             
         except User.DoesNotExist:
-            # Don't reveal that email doesn't exist (security)
             messages.success(
                 request,
                 'Jeśli podany email istnieje w systemie, otrzymasz link do resetowania hasła.'
@@ -853,7 +798,6 @@ def password_reset_confirm(request, uidb64, token):
                 messages.error(request, 'Hasło musi mieć co najmniej 8 znaków')
                 return render(request, 'users/password_reset_confirm.html')
             
-            # Set new password
             user.set_password(password)
             user.save()
             
@@ -886,7 +830,6 @@ def report_error(request):
             messages.error(request, 'Tytuł i opis są wymagane')
             return render(request, 'users/report_error.html')
         
-        # Create report
         ErrorReport.objects.create(
             user=request.user,
             title=title,
@@ -922,20 +865,16 @@ def admin_reports(request):
         messages.error(request, 'Brak uprawnień')
         return redirect('profile')
     
-    # Filter by status
     status_filter = request.GET.get('status', 'all')
-    
     if status_filter == 'all':
         reports = ErrorReport.objects.all()
     else:
         reports = ErrorReport.objects.filter(status=status_filter)
     
-    # Pagination
     paginator = Paginator(reports, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Count by status
     pending_count = ErrorReport.objects.filter(status='pending').count()
     in_progress_count = ErrorReport.objects.filter(status='in_progress').count()
     resolved_count = ErrorReport.objects.filter(status='resolved').count()
@@ -1002,11 +941,9 @@ def report_content(request):
     reason = request.POST.get('reason', '').strip()
     description = request.POST.get('description', '').strip()
     
-    # Validation
     if not all([content_type, content_id_str, reason]):
         return JsonResponse({'ok': False, 'message': 'Brakujące dane'})
     
-    # Validate content_id is numeric
     try:
         content_id = int(content_id_str)
     except (ValueError, TypeError):
@@ -1023,7 +960,6 @@ def report_content(request):
     if existing:
         return JsonResponse({'ok': False, 'message': 'Już zgłosiłeś tę treść'})
     
-    # Get content object for title
     content_obj = None
     title = f"Zgłoszenie: {content_type} #{content_id}"
     
@@ -1042,7 +978,6 @@ def report_content(request):
         except User.DoesNotExist:
             return JsonResponse({'ok': False, 'message': 'Nie znaleziono profilu'})
     
-    # Create report
     if not description:
         reason_label = dict(ErrorReport.REASON_CHOICES).get(reason, reason)
         description = f"Zgłoszenie treści jako: {reason_label}"
@@ -1063,7 +998,6 @@ def report_content(request):
 @login_required  
 def report_content_form(request, content_type, content_id):
     """Full form for reporting content with custom description"""
-    # Get content object
     content_obj = None
     content_title = ""
     
@@ -1109,7 +1043,6 @@ def report_content_form(request, content_type, content_id):
             messages.warning(request, 'Już zgłosiłeś tę treść')
             return redirect('my_reports')
         
-        # Create report
         title = f"Zgłoszenie: {content_title}"
         if not description:
             description = f"Zgłoszenie treści jako: {dict(ErrorReport.REASON_CHOICES).get(reason, reason)}"
@@ -1141,13 +1074,9 @@ def recommendations(request):
     """Show personalized recommendations"""
     
     engine = RecommendationEngine(request.user)
-    
-    # Get recommendations
     track_recommendations = engine.recommend_tracks(limit=20)
     group_recommendations = engine.recommend_groups(limit=10)
     event_recommendations = engine.recommend_events(limit=10)
-    
-    # Get stats for display
     stats = engine.get_recommendation_stats()
     
     return render(request, 'users/recommendations.html', {

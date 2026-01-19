@@ -33,15 +33,12 @@ class RegisterForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Єдиний стиль для інпутів
         text_inputs = ("username", "email", "password1", "password2")
         for name in text_inputs:
             field = self.fields[name]
-            # існуючі attrs + клас
             attrs = field.widget.attrs
             attrs["class"] = (attrs.get("class", "") + " form-control").strip()
 
-        # Плейсхолдери + зручності
         self.fields["username"].widget.attrs.update({
             "placeholder": "Twoja nazwa użytkownika",
             "autofocus": "autofocus",
@@ -59,13 +56,10 @@ class RegisterForm(forms.ModelForm):
             "placeholder": "Powtórz hasło",
         })
 
-        # Приховуємо підказки під полями
         self.fields["username"].help_text = ""
-        # ці 2 поля оголошені у формі, тож help_text теж ховаємо напряму
         self.fields["password1"].help_text = ""
         self.fields["password2"].help_text = ""
 
-    # --- Валідації ---
 
     def clean_email(self):
         email = (self.cleaned_data.get("email") or "").strip()
@@ -97,7 +91,7 @@ class RegisterForm(forms.ModelForm):
         user = super().save(commit=False)
         user.email = self.cleaned_data["email"].strip()
         user.set_password(self.cleaned_data["password1"])
-        user.is_active = False  # Aktywacja przez email
+        user.is_active = False  
         if commit:
             user.save()
         return user

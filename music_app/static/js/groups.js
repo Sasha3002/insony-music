@@ -7,11 +7,10 @@ function initGroupCreate() {
   if (!form || !submitBtn) return;
 
   form.addEventListener('submit', function(e) {
-    // Show loading state
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Sprawdzanie lokalizacji...';
     
-    // Re-enable after 10 seconds (timeout)
+    // Re-enable after 10 seconds 
     setTimeout(() => {
       submitBtn.disabled = false;
       submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Utwórz grupę';
@@ -32,7 +31,6 @@ function updateFileName(input) {
   }
 }
 
-// Make it globally accessible for inline onchange handlers
 window.updateFileName = updateFileName;
 
 // INITIALIZE ON PAGE LOAD

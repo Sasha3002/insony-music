@@ -33,7 +33,6 @@ class User(AbstractUser):
     
 
 class UserFollow(models.Model):
-    """User following/subscription system"""
     follower = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -55,7 +54,6 @@ class UserFollow(models.Model):
 
 
 class UserBlock(models.Model):
-    """User blocking system"""
     blocker = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -77,7 +75,6 @@ class UserBlock(models.Model):
     
 
 class ErrorReport(models.Model):
-    """User error reports - general and content-specific"""
     STATUS_CHOICES = [
         ('pending', 'Oczekujący'),
         ('in_progress', 'W trakcie'),
@@ -152,7 +149,6 @@ class ErrorReport(models.Model):
             return f"{self.user.username} - {self.get_content_type_display()} #{self.content_id} [{self.status}]"
     
     def get_content_object(self):
-        """Get the reported content object"""
         if self.content_type == 'review' and self.content_id:
             from music.models import Review
             try:
@@ -164,5 +160,4 @@ class ErrorReport(models.Model):
                 return User.objects.get(id=self.content_id)
             except User.DoesNotExist:
                 return None
-        # Add more content types as needed
         return None

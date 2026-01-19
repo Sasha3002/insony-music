@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-6^hw^gtm7$pytr_s!i89j!5assu47!1c$z-a^v@-2*jv-q2^p_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '*']
 
 
 # Application definition
@@ -72,16 +72,33 @@ WSGI_APPLICATION = 'music_app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'musicdb',
-        'USER': 'musicuser',
-        'PASSWORD': 'strongpassword',
-        'HOST': 'localhost',
-        'PORT': '5432',
+import os
+
+# Sprawdź czy jesteśmy w Docker (zmienna środowiskowa)
+if os.environ.get('DOCKER_ENV') == 'true':
+    # Docker environment - PostgreSQL z docker-compose
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('POSTGRES_DB', 'musicdb'),
+            'USER': os.environ.get('POSTGRES_USER', 'musicuser'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'strongpassword'),
+            'HOST': os.environ.get('POSTGRES_HOST', 'db'),  # 'db' to nazwa serwisu w docker-compose
+            'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+        }
     }
-}
+else:
+    # Local development - PostgreSQL lokalny
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'musicdb',
+            'USER': 'musicuser',
+            'PASSWORD': 'strongpassword',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 
 
@@ -113,6 +130,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -132,8 +150,8 @@ INSTALLED_APPS += [
 STATICFILES_DIRS = [ BASE_DIR / 'static' ]
 
 LOGIN_URL = '/users/login/'
-LOGIN_REDIRECT_URL = '/users/profile/'     # куди кидати після успішного логіну
-LOGOUT_REDIRECT_URL = '/users/login/'      # куди кидати після логауту
+LOGIN_REDIRECT_URL = '/users/profile/'     
+LOGOUT_REDIRECT_URL = '/users/login/'      
 
 CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 
@@ -143,14 +161,12 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Email Configuration
-#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development - prints to console
-# For production with Gmail SMTP, uncomment below and configure accordingly:
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER') 
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')     #'your-app-password'  App Password, not regular password
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')     
 
 # DEFAULT_FROM_EMAIL = 'noreply@insony.com'
 EMAIL_VERIFICATION_REQUIRED = True

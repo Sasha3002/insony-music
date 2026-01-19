@@ -45,8 +45,6 @@ function initAccountDelete() {
 }
 
 // BLOCKED USERS PAGE
-
-
 function initBlockedUsers() {
   window.unblockUser = async function(username, btn) {
     if (!confirm(`Czy na pewno chcesz odblokować użytkownika ${username}?`)) {
@@ -99,24 +97,20 @@ function initBlockedUsers() {
 
 // PROFILE PAGE
 function initProfile() {
-  // Animate XP bar on load
   const fill = document.getElementById('xpFill');
   const tip = document.getElementById('xpTip');
   
   if (!fill || !tip) return;
 
-  // Get target % from data attribute
   const target = parseFloat(fill.dataset.target || '0');
   const clamp = v => Math.max(0, Math.min(100, v));
 
-  // Animate on load
   requestAnimationFrame(() => {
     fill.style.setProperty('--xp-pct', clamp(target) + '%');
     tip.textContent = Math.round(clamp(target)) + '%';
     tip.style.left = clamp(target) + '%';
   });
 
-  // Mouse hover to show tooltip position
   fill.parentElement.addEventListener('mousemove', (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const pct = clamp(((e.clientX - rect.left) / rect.width) * 100);
@@ -126,7 +120,6 @@ function initProfile() {
 
 // PROFILE EDIT PAGE
 function initProfileEdit() {
-  // Get all genres and artists from data attributes
   const genresData = document.getElementById('genresData');
   const artistsData = document.getElementById('artistsData');
   
@@ -161,7 +154,6 @@ function initProfileEdit() {
       this.input.addEventListener('input', () => this.handleInput());
       this.input.addEventListener('focus', () => this.handleInput());
       
-      // Click outside to close
       document.addEventListener('click', (e) => {
         if (!this.input.contains(e.target) && !this.dropdown.contains(e.target)) {
           this.dropdown.classList.remove('show');
@@ -177,7 +169,6 @@ function initProfileEdit() {
         return;
       }
 
-      // Filter items
       const filtered = this.allItems.filter(item => 
         item.toLowerCase().includes(query) && !this.selectedItems.includes(item)
       );
@@ -319,7 +310,6 @@ function initProfileEdit() {
   if (removeButton) {
     removeButton.addEventListener('click', function() {
       if (confirm('Czy na pewno chcesz usunąć zdjęcie profilowe?')) {
-        // Create hidden input to signal removal
         const input = document.createElement('input');
         input.type = 'hidden';
         input.name = 'remove_picture';

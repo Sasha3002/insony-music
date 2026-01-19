@@ -1,4 +1,4 @@
-/* ==================== AUTHENTICATION PAGES (login, register) ==================== */
+/* ==================== AUTHENTICATION PAGES ==================== */
 
 .auth-card {
   background: #181818;
@@ -6,7 +6,6 @@
   border-radius: 16px;
 }
 
-/* Input fields, placeholders, focus */
 .auth-card .form-control,
 .auth-card .input-group-text,
 .auth-card .btn-outline-secondary {
@@ -25,7 +24,6 @@
   box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
 }
 
-/* Labels, help text, errors */
 .auth-card label,
 .auth-card .form-check-label {
   color: #e6e6e6;
@@ -40,7 +38,6 @@
   color: #ff6b6b;
 }
 
-/* Brand heading and subtitle */
 .auth-brand {
   font-weight: 700;
   letter-spacing: 0.3px;
@@ -51,7 +48,6 @@
   color: #cfd6df !important;
 }
 
-/* Buttons and links */
 .btn-primary {
   background: #2563eb;
   border-color: #2563eb;
@@ -76,7 +72,6 @@
   background: #2a2a2a;
 }
 
-/* Custom alert for auth pages */
 .alert-isony {
   background: #1f1f1f;
   border: 1px solid #3a2a2a;
@@ -243,7 +238,6 @@
 
 /* ==================== PROFILE PAGES ==================== */
 
-/* Profile Cover Section */
 .profile-cover {
   height: 220px;
   background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
@@ -318,7 +312,6 @@
   transition: all 0.2s;
 }
 
-/* Stats Grid */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -365,7 +358,6 @@
   margin-top: 4px;
 }
 
-/* Section Headers */
 .section-header {
   display: flex;
   align-items: center;
@@ -381,7 +373,6 @@
   margin: 0;
 }
 
-/* Two Column Layout */
 .content-columns {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -395,7 +386,6 @@
   margin-top: 96px;
 }
 
-/* Activity Feed */
 .activity-feed {
   display: grid;
   gap: 12px;
@@ -487,7 +477,6 @@
   text-decoration: none;
 }
 
-/* Sidebar Cards */
 .sidebar-card {
   background: linear-gradient(135deg, #1a1a1a, #151515);
   border: 1px solid #2a2a2a;
@@ -573,7 +562,6 @@
   color: #9aa0a6;
 }
 
-/* Empty State */
 .empty-state {
   text-align: center;
   padding: 40px 20px;
@@ -1272,7 +1260,6 @@
 
 /* ==================== REPORTS PAGES (Admin & User) ==================== */
 
-/* Shared Header Styles */
 .admin-reports-header,
 .my-reports-header {
   background: linear-gradient(135deg, #1a1a1a, #151515);
@@ -1298,7 +1285,6 @@
   color: #9aa0a6;
 }
 
-/* Filter Tabs (Admin only) */
 .filter-tabs {
   display: flex;
   gap: 12px;
@@ -1340,7 +1326,6 @@
   font-size: 0.8rem;
 }
 
-/* Shared Report Card Styles */
 .admin-report-card,
 .report-card-item {
   background: linear-gradient(135deg, #1a1a1a, #151515);
@@ -1389,7 +1374,6 @@
   gap: 6px;
 }
 
-/* Shared Status Badge */
 .report-status-badge {
   padding: 6px 14px;
   border-radius: 999px;
@@ -1416,7 +1400,6 @@
   color: #10b981;
 }
 
-/* Shared Description & Meta */
 .admin-report-description,
 .report-card-description {
   color: #b6bdc6;
@@ -1440,7 +1423,6 @@
   gap: 6px;
 }
 
-/* Shared Empty State */
 .empty-reports {
   text-align: center;
   padding: 80px 20px;
@@ -1462,7 +1444,6 @@
   margin-bottom: 20px;
 }
 
-/* Shared Pagination */
 .pagination {
   display: flex;
   justify-content: center;
@@ -1493,7 +1474,6 @@
   color: #fff;
 }
 
-/* Admin Notes Box (My Reports) */
 .admin-notes-box {
   margin-top: 16px;
   padding: 12px;
@@ -1514,7 +1494,6 @@
   font-size: 0.9rem;
 }
 
-/* Report Detail Page (Admin) */
 .report-detail-container {
   max-width: 900px;
   margin: 40px auto;
@@ -1558,7 +1537,6 @@
   gap: 6px;
 }
 
-/* Use larger status badge on detail page */
 .report-detail-header .report-status-badge {
   padding: 8px 16px;
   font-size: 0.9rem;
@@ -1751,7 +1729,6 @@
   margin-bottom: 8px;
 }
 
-/* Report Form Subtitles */
 .report-subtitle {
   color: #9aa0a6;
   font-size: 0.95rem;
@@ -1881,7 +1858,6 @@ textarea.form-control-content {
   flex-shrink: 0;
 }
 
-/* My Reports Link */
 .my-reports-link {
   text-align: center;
   margin-top: 20px;
@@ -1918,7 +1894,6 @@ textarea.form-control-content {
   font-size: 0.9rem;
 }
 
-/* Reason Selection Grid */
 .reason-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1967,7 +1942,7 @@ textarea.form-control-content {
   font-weight: 600;
 }
 
-/* ==================== PASSWORD RESET & VERIFICATION PAGES ==================== */
+/* ==================== PASSWORD RESET AND VERIFICATION PAGES ==================== */
 
 .reset-container,
 .reset-confirm-container,
@@ -2618,7 +2593,6 @@ textarea.form-control-content {
   font-weight: 700;
 }
 
-/* Track Cards */
 .tracks-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -2707,7 +2681,6 @@ textarea.form-control-content {
   font-weight: 600;
 }
 
-/* Group Cards */
 .groups-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -2802,7 +2775,6 @@ textarea.form-control-content {
   gap: 6px;
 }
 
-/* Event Cards */
 .events-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -3053,7 +3025,6 @@ textarea.form-control-modern {
   gap: 4px;
 }
 
-/* Two Column Layout */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -3064,7 +3035,6 @@ textarea.form-control-modern {
   grid-column: 1 / -1;
 }
 
-/* Character Counter */
 .char-counter {
   font-size: 0.8rem;
   color: #6b7280;
@@ -3072,7 +3042,6 @@ textarea.form-control-modern {
   text-align: right;
 }
 
-/* Autocomplete Dropdown */
 .autocomplete-wrapper {
   position: relative;
 }
@@ -3122,7 +3091,6 @@ textarea.form-control-modern {
   font-size: 0.9rem;
 }
 
-/* Selected Tags */
 .selected-tags {
   display: flex;
   flex-wrap: wrap;
@@ -3216,7 +3184,6 @@ textarea.form-control-modern {
   text-decoration: none;
 }
 
-/* Avatar Section */
 .avatar-section {
   display: flex;
   align-items: center;
@@ -3255,7 +3222,6 @@ textarea.form-control-modern {
   margin: 0;
 }
 
-/* Upload & Remove Buttons */
 .btn-upload {
   background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: #fff;

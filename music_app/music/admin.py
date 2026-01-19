@@ -18,34 +18,25 @@ class GenreAdmin(admin.ModelAdmin):
 
 @admin.register(Track)
 class TrackAdmin(admin.ModelAdmin):
-    # які колонки показуємо в списку
     list_display = (
         "title", "artist", "genre",
         "avg_cached", "reviews_cnt",
-        "duration_display",  # читається з @property; сортування дамо по duration
+        "duration_display",  
         "authored_date", "created_at",
     )
-    list_display_links = ("title",)               # клікабельний заголовок
+    list_display_links = ("title",)            
     list_select_related = ("artist", "genre")
     search_fields = ("title", "artist__name")
 
-    # зручні фільтри
     list_filter = (
         "genre", "artist",
         ("authored_date", admin.DateFieldListFilter),
         ("created_at", admin.DateFieldListFilter),
     )
 
-    # ієрархія дат у верхній частині (можна змінити на 'created_at' за потреби)
     date_hierarchy = "authored_date"
-
-    # дефолтне сортування
     ordering = ("-created_at",)
-
-    # системні поля лише для читання у формі
     readonly_fields = ("created_at", "average_rating_cached", "reviews_count_cached")
-
-    # групування полів у формі (необов’язково, але зручніше)
     fieldsets = (
         (None, {
             "fields": ("title", "artist", "genre", "description", "cover_image")
@@ -61,7 +52,6 @@ class TrackAdmin(admin.ModelAdmin):
         }),
     )
 
-    # колонки-метрики з можливістю сортування
     @admin.display(description="Średnia /100", ordering="average_rating_cached")
     def avg_cached(self, obj):
         return None if obj.average_rating_cached is None else round(obj.average_rating_cached, 1)
@@ -70,7 +60,6 @@ class TrackAdmin(admin.ModelAdmin):
     def reviews_cnt(self, obj):
         return obj.reviews_count_cached
 
-    # дозволимо сортувати по duration для колонки duration_display
     @admin.display(description="Czas", ordering="duration")
     def duration_display(self, obj):
         return obj.duration_display
@@ -86,7 +75,7 @@ class ReviewAdmin(admin.ModelAdmin):
     )
     list_select_related = ("track", "user")
     search_fields = ("track__title", "user__username")
-    list_filter = ("created_at", "track__genre")          # <— теж без rating
+    list_filter = ("created_at", "track__genre")          
     ordering = ("-created_at",)
 
 

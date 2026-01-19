@@ -103,7 +103,6 @@
       </div>
     </div>
     <div class="position-relative mt-2">
-        <!-- Трек прогресу -->
         <div class="xp-track" aria-label="Postęp poziomu"
              role="progressbar"
              aria-valuemin="0" aria-valuemax="100"
@@ -112,13 +111,11 @@
                style="--xp-pct: 0%;"
                data-target="{{ level_progress_pct|default:0 }}%"></div>
 
-          <!-- Тики кожні 10% -->
           <div class="xp-ticks">
             <span></span><span></span><span></span><span></span><span></span>
             <span></span><span></span><span></span><span></span>
           </div>
 
-          <!-- Тултіп з поточним % -->
           <div class="xp-tooltip" id="xpTip" style="left: 0%"> {{ level_progress_pct|default:0 }}% </div>
         </div>
 
@@ -127,10 +124,8 @@
         </div>
       </div>
   </div>
-  <!-- Two Column Layout: Activity Feed + Sidebar -->
+  <!-- Activity Feed -->
   <div class="content-columns">
-    
-    <!-- Left Column: Recent Activity -->
     <div>
       <div class="section-header">
         <h2 class="section-title">
@@ -168,9 +163,8 @@
         {% endif %}
       </div>
     </div>
-    <!-- Right Column: Sidebar -->
+
     <div class="sidebar">
-      
       <!-- Favorite Genres Card -->
       <div class="sidebar-card">
         <div class="sidebar-card-title">
@@ -220,7 +214,7 @@
           </div>
         {% endif %}
       </div>
-      <!-- Bio/About Card (if user has bio) -->
+      <!-- Bio -->
       <div class="sidebar-card">
         <div class="sidebar-card-title">
           <i class="bi bi-person-badge"></i>

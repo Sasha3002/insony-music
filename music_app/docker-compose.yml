@@ -1,0 +1,74 @@
+#version: '3.8'
+
+services:
+  # Baza danych PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: music_app_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: musicdb
+      POSTGRES_USER: musicuser  
+      POSTGRES_PASSWORD: strongpassword  
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  # Używam 5433 na hoście żeby nie konfliktować z Twoim lokalnym PostgreSQL na 5432
+    networks:
+      - music_app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U musicuser -d musicdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Aplikacja Django
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: music_app_web
+    restart: unless-stopped
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py import_data &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+      - media_files:/app/media
+      - static_files:/app/staticfiles
+    ports:
+      - "8000:8000"
+    environment:
+      - DOCKER_ENV=true
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-6^hw^gtm7$$pytr_s!i89j!5assu47!1c$$z-a^v@-2*jv-q2^p_
+      - POSTGRES_DB=musicdb
+      - POSTGRES_USER=musicuser  
+      - POSTGRES_PASSWORD=strongpassword  
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - music_app_network
+
+# Wolumeny (trwałe przechowywanie danych)
+volumes:
+  postgres_data:
+    name: music_app_postgres_data
+  media_files:
+    name: music_app_media_files
+  static_files:
+    name: music_app_static_files
+
+# Sieć (izolacja)
+networks:
+  music_app_network:
+    name: music_app_network
+    driver: bridge

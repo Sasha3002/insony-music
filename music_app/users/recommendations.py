@@ -1,7 +1,3 @@
-"""
-Combines content-based, collaborative, and trending algorithms
-"""
-
 from django.db.models import Count, Q, Avg
 from django.utils import timezone
 from datetime import timedelta
@@ -11,38 +7,32 @@ from events.models import Event, EventAttendee
 
 
 class RecommendationEngine:
-    """Hybrid recommendation system for tracks, groups, and events"""
     
     def __init__(self, user):
         self.user = user
-        # Parse comma-separated strings to lists
         self.favorite_genres = [g.strip() for g in user.favorite_genres.split(',') if g.strip()] if user.favorite_genres else []
         self.favorite_artists = [a.strip() for a in user.favorite_artists.split(',') if a.strip()] if user.favorite_artists else []
         self.user_city = getattr(user, 'city', None)
     
-    # ==================== TRACK RECOMMENDATIONS ====================
-    
+    # Track recomendations
     def recommend_tracks(self, limit=20):
-        """Hybrid track recommendations"""
         recommendations = []
         
-        # 40% Content-based (user preferences)
+        # 40% Content-based 
         content_tracks = self._content_based_tracks(limit=8)
         recommendations.extend(content_tracks)
         
-        # 40% Collaborative (similar users)
+        # 40% Collaborative 
         collaborative_tracks = self._collaborative_tracks(limit=8)
         recommendations.extend(collaborative_tracks)
         
-        # 20% Trending (discovery)
+        # 20% Trending 
         trending_tracks = self._trending_tracks(limit=4)
         recommendations.extend(trending_tracks)
         
-        # Remove duplicates, preserve order
         return self._remove_duplicates(recommendations)[:limit]
     
     def _content_based_tracks(self, limit=8):
-        """Recommend based on user's favorite genres and artists"""
         tracks = Track.objects.exclude(
             reviews__user=self.user
         ).select_related('artist', 'genre')
@@ -57,8 +47,7 @@ class RecommendationEngine:
         return list(tracks.order_by('-average_rating_cached', '-created_at')[:limit])
     
     def _collaborative_tracks(self, limit=8):
-        """Recommend based on similar users' favorites"""
-        # Find similar users (users who favorited same tracks)
+        # Find similar users
         user_favorites = self.user.favorite_tracks.values_list('track_id', flat=True)
         
         if not user_favorites:
@@ -84,8 +73,8 @@ class RecommendationEngine:
         tracks = Track.objects.filter(
             favorites__user__in=similar_users
         ).exclude(
-            Q(favorites__user=self.user) |  # Already favorited
-            Q(reviews__user=self.user)  # Already reviewed
+            Q(favorites__user=self.user) |  
+            Q(reviews__user=self.user)  
         ).annotate(
             score=Count('favorites')
         ).select_related('artist', 'genre').order_by('-score', '-average_rating_cached')[:limit]
@@ -93,7 +82,6 @@ class RecommendationEngine:
         return list(tracks)
     
     def _trending_tracks(self, limit=4):
-        """Get trending tracks from last 30 days"""
         thirty_days_ago = timezone.now() - timedelta(days=30)
         
         tracks = Track.objects.filter(
@@ -107,33 +95,26 @@ class RecommendationEngine:
         
         return list(tracks)
     
-    # ==================== GROUP RECOMMENDATIONS ====================
+    # Group recommendations
     
     def recommend_groups(self, limit=10):
-        """Recommend groups based on genres and location"""
         groups = Group.objects.exclude(
             members__user=self.user
         ).annotate(
             members_count=Count('members', filter=Q(members__status='accepted'))
         ).select_related('admin').prefetch_related('genres')
         
-        # Score-based filtering
         scored_groups = []
-        
         for group in groups:
             score = self._calculate_group_score(group)
             if score > 0:
                 scored_groups.append((score, group))
         
-        # Sort by score
         scored_groups.sort(key=lambda x: x[0], reverse=True)
-        
         return [group for score, group in scored_groups[:limit]]
     
     def _calculate_group_score(self, group):
-        """Calculate recommendation score for a group"""
         score = 0
-        
         # Genre match (0-40 points)
         group_genres = [g.name for g in group.genres.all()]
         matching_genres = set(group_genres) & set(self.favorite_genres)
@@ -159,13 +140,11 @@ class RecommendationEngine:
         
         return score
     
-    # ==================== EVENT RECOMMENDATIONS ====================
+    # Event recommendations
     
     def recommend_events(self, limit=10):
-        """Recommend upcoming events"""
         now = timezone.now()
         
-        # Get user's groups
         user_groups = Group.objects.filter(
             members__user=self.user,
             members__status='accepted'
@@ -182,9 +161,7 @@ class RecommendationEngine:
             id__in=attending_event_ids
         ).select_related('group', 'creator').prefetch_related('attendees')
         
-        # Score-based filtering
         scored_events = []
-        
         for event in events:
             score = self._calculate_event_score(event, user_groups)
             if score > 0:
@@ -196,7 +173,6 @@ class RecommendationEngine:
         return [event for score, event in scored_events[:limit]]
     
     def _calculate_event_score(self, event, user_groups):
-        """Calculate recommendation score for an event"""
         score = 0
         
         # From user's groups (0-50 points)
@@ -225,11 +201,10 @@ class RecommendationEngine:
             score += 5
         
         return score
-    
-    # ==================== UTILITY METHODS ====================
-    
+
+    # Utility methods
+
     def _remove_duplicates(self, items):
-        """Remove duplicates while preserving order"""
         seen = set()
         unique = []
         for item in items:
@@ -239,7 +214,6 @@ class RecommendationEngine:
         return unique
     
     def get_recommendation_stats(self):
-        """Get stats about recommendations for debugging"""
         return {
             'favorite_genres': self.favorite_genres,
             'favorite_artists': self.favorite_artists,

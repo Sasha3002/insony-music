@@ -35,6 +35,6 @@ urlpatterns = [
     path('reviews/',   lambda r: placeholder(r, "Recenzje"),  name='review_list'),
     path('about/',     lambda r: placeholder(r, "O projekcie"), name='about'),
 ]
-# Serving media files during development
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,13 +1,3 @@
-"""
-Focused tests for Groups app
-Tests cover the most important functionality:
-- Model creation and properties
-- Group CRUD operations
-- Membership management (join, leave, approve, reject)
-- Invitations system
-- Admin permissions
-"""
-
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -42,7 +32,7 @@ class GroupModelTest(TestCase):
         
         self.assertEqual(group.name, 'Test Group')
         self.assertEqual(group.admin, self.user)
-        self.assertEqual(group.type, 'public')  # Default
+        self.assertEqual(group.type, 'public')  
     
     def test_slug_auto_generation(self):
         """Test that slug is automatically generated from name"""
@@ -64,18 +54,14 @@ class GroupModelTest(TestCase):
             admin=self.user
         )
         
-        # Create accepted members
         user2 = User.objects.create_user(username='user2', email='u2@test.com', password='pass')
         user3 = User.objects.create_user(username='user3', email='u3@test.com', password='pass')
-        
         GroupMembership.objects.create(group=group, user=user2, status='accepted')
         GroupMembership.objects.create(group=group, user=user3, status='accepted')
-        
-        # Create pending member (shouldn't count)
         user4 = User.objects.create_user(username='user4', email='u4@test.com', password='pass')
         GroupMembership.objects.create(group=group, user=user4, status='pending')
         
-        self.assertEqual(group.member_count, 2)  # Only accepted members
+        self.assertEqual(group.member_count, 2) 
 
 
 class GroupMembershipModelTest(TestCase):
@@ -120,7 +106,6 @@ class GroupMembershipModelTest(TestCase):
             status='accepted'
         )
         
-        # Attempting to create duplicate should raise error
         from django.db import IntegrityError
         with self.assertRaises(IntegrityError):
             GroupMembership.objects.create(
@@ -199,21 +184,16 @@ class GroupCreateViewTest(TestCase):
         response = self.client.post(reverse('group_create'), {
             'name': 'New Test Group',
             'description': 'A great group for testing',
-            'location': 'Online',  # Use "Online" to avoid API validation
+            'location': 'Online',  
             'type': 'public',
             'genres': [self.genre.id]
         })
         
-        # Should redirect to group detail
         self.assertEqual(response.status_code, 302)
-        
-        # Verify group was created
         self.assertEqual(Group.objects.count(), 1)
         group = Group.objects.first()
         self.assertEqual(group.name, 'New Test Group')
         self.assertEqual(group.admin, self.user)
-        
-        # Verify creator is auto-added as member
         self.assertTrue(
             GroupMembership.objects.filter(
                 group=group,
@@ -227,12 +207,9 @@ class GroupCreateViewTest(TestCase):
         self.client.login(username='testuser', password='testpass123')
         response = self.client.post(reverse('group_create'), {
             'name': 'Test Group',
-            # Missing description and location
         })
         
-        # Should redirect back to create page
         self.assertEqual(response.status_code, 302)
-        # Group should not be created
         self.assertEqual(Group.objects.count(), 0)
 
 
@@ -260,7 +237,6 @@ class GroupDetailViewTest(TestCase):
             admin=self.admin
         )
         
-        # Add admin as member
         GroupMembership.objects.create(
             group=self.group,
             user=self.admin,
@@ -320,17 +296,14 @@ class GroupJoinViewTest(TestCase):
         """Test that joining requires POST method"""
         self.client.login(username='joiner', password='testpass123')
         response = self.client.get(reverse('group_join', kwargs={'slug': self.public_group.slug}))
-        self.assertEqual(response.status_code, 405)  # Method not allowed
+        self.assertEqual(response.status_code, 405)  
     
     def test_join_public_group(self):
         """Test joining a public group"""
         self.client.login(username='joiner', password='testpass123')
         response = self.client.post(reverse('group_join', kwargs={'slug': self.public_group.slug}))
         
-        # Should redirect to group detail
         self.assertEqual(response.status_code, 302)
-        
-        # Verify membership was created with accepted status
         self.assertTrue(
             GroupMembership.objects.filter(
                 group=self.public_group,
@@ -343,11 +316,7 @@ class GroupJoinViewTest(TestCase):
         """Test joining a private group creates pending membership"""
         self.client.login(username='joiner', password='testpass123')
         response = self.client.post(reverse('group_join', kwargs={'slug': self.private_group.slug}))
-        
-        # Should redirect to group detail
         self.assertEqual(response.status_code, 302)
-        
-        # Verify membership was created with pending status
         self.assertTrue(
             GroupMembership.objects.filter(
                 group=self.private_group,
@@ -358,7 +327,6 @@ class GroupJoinViewTest(TestCase):
     
     def test_cannot_join_twice(self):
         """Test that user cannot join a group they're already in"""
-        # Join once
         GroupMembership.objects.create(
             group=self.public_group,
             user=self.user,
@@ -367,8 +335,6 @@ class GroupJoinViewTest(TestCase):
         
         self.client.login(username='joiner', password='testpass123')
         response = self.client.post(reverse('group_join', kwargs={'slug': self.public_group.slug}))
-        
-        # Should still redirect but not create duplicate
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
             GroupMembership.objects.filter(
@@ -403,7 +369,6 @@ class GroupLeaveViewTest(TestCase):
             admin=self.admin
         )
         
-        # Add members
         GroupMembership.objects.create(group=self.group, user=self.admin, status='accepted')
         GroupMembership.objects.create(group=self.group, user=self.member, status='accepted')
     
@@ -411,11 +376,7 @@ class GroupLeaveViewTest(TestCase):
         """Test successfully leaving a group"""
         self.client.login(username='member', password='testpass123')
         response = self.client.post(reverse('group_leave', kwargs={'slug': self.group.slug}))
-        
-        # Should redirect to group list
         self.assertEqual(response.status_code, 302)
-        
-        # Verify membership was deleted
         self.assertFalse(
             GroupMembership.objects.filter(
                 group=self.group,
@@ -427,11 +388,7 @@ class GroupLeaveViewTest(TestCase):
         """Test that admin cannot leave their own group"""
         self.client.login(username='admin', password='testpass123')
         response = self.client.post(reverse('group_leave', kwargs={'slug': self.group.slug}))
-        
-        # Should redirect back to group detail
         self.assertEqual(response.status_code, 302)
-        
-        # Verify admin is still a member
         self.assertTrue(
             GroupMembership.objects.filter(
                 group=self.group,
@@ -471,7 +428,6 @@ class ApproveMemberViewTest(TestCase):
             admin=self.admin
         )
         
-        # Add members
         GroupMembership.objects.create(group=self.group, user=self.admin, status='accepted')
         GroupMembership.objects.create(group=self.group, user=self.regular_member, status='accepted')
         self.pending_membership = GroupMembership.objects.create(
@@ -488,11 +444,7 @@ class ApproveMemberViewTest(TestCase):
             'membership_id': self.pending_membership.id
         })
         response = self.client.post(url)
-        
-        # Should redirect back to group detail
         self.assertEqual(response.status_code, 302)
-        
-        # Verify membership was approved
         self.pending_membership.refresh_from_db()
         self.assertEqual(self.pending_membership.status, 'accepted')
     
@@ -504,11 +456,7 @@ class ApproveMemberViewTest(TestCase):
             'membership_id': self.pending_membership.id
         })
         response = self.client.post(url)
-        
-        # Should redirect
         self.assertEqual(response.status_code, 302)
-        
-        # Verify membership is still pending
         self.pending_membership.refresh_from_db()
         self.assertEqual(self.pending_membership.status, 'pending')
 
@@ -553,11 +501,7 @@ class RejectMemberViewTest(TestCase):
             'membership_id': self.pending_membership.id
         })
         response = self.client.post(url)
-        
-        # Should redirect back to group detail
         self.assertEqual(response.status_code, 302)
-        
-        # Verify membership was deleted
         self.assertFalse(
             GroupMembership.objects.filter(
                 id=self.pending_membership.id
@@ -595,7 +539,6 @@ class GroupInviteViewTest(TestCase):
             admin=self.admin
         )
         
-        # Add members
         GroupMembership.objects.create(group=self.group, user=self.admin, status='accepted')
         GroupMembership.objects.create(group=self.group, user=self.member, status='accepted')
     
@@ -606,11 +549,7 @@ class GroupInviteViewTest(TestCase):
             reverse('group_invite', kwargs={'slug': self.group.slug}),
             {'username': 'invitee'}
         )
-        
-        # Should redirect to group detail
         self.assertEqual(response.status_code, 302)
-        
-        # Verify invitation was created
         self.assertTrue(
             GroupInvitation.objects.filter(
                 group=self.group,
@@ -631,11 +570,7 @@ class GroupInviteViewTest(TestCase):
             reverse('group_invite', kwargs={'slug': self.group.slug}),
             {'username': 'invitee'}
         )
-        
-        # Should redirect
         self.assertEqual(response.status_code, 302)
-        
-        # Verify invitation was NOT created
         self.assertFalse(
             GroupInvitation.objects.filter(
                 group=self.group,
@@ -680,11 +615,7 @@ class AcceptInvitationViewTest(TestCase):
         self.client.login(username='invitee', password='testpass123')
         url = reverse('accept_invitation', kwargs={'invitation_id': self.invitation.id})
         response = self.client.post(url)
-        
-        # Should redirect to group detail
         self.assertEqual(response.status_code, 302)
-        
-        # Verify membership was created
         self.assertTrue(
             GroupMembership.objects.filter(
                 group=self.group,
@@ -692,8 +623,6 @@ class AcceptInvitationViewTest(TestCase):
                 status='accepted'
             ).exists()
         )
-        
-        # Verify invitation was deleted
         self.assertFalse(
             GroupInvitation.objects.filter(
                 id=self.invitation.id
@@ -737,18 +666,13 @@ class DeclineInvitationViewTest(TestCase):
         self.client.login(username='invitee', password='testpass123')
         url = reverse('decline_invitation', kwargs={'invitation_id': self.invitation.id})
         response = self.client.post(url)
-        
-        # Should redirect to invitations page
         self.assertEqual(response.status_code, 302)
-        
-        # Verify invitation was deleted
         self.assertFalse(
             GroupInvitation.objects.filter(
                 id=self.invitation.id
             ).exists()
         )
         
-        # Verify no membership was created
         self.assertFalse(
             GroupMembership.objects.filter(
                 group=self.group,
@@ -782,7 +706,6 @@ class RemoveMemberViewTest(TestCase):
             admin=self.admin
         )
         
-        # Add members
         GroupMembership.objects.create(group=self.group, user=self.admin, status='accepted')
         GroupMembership.objects.create(group=self.group, user=self.member, status='accepted')
     
@@ -794,11 +717,7 @@ class RemoveMemberViewTest(TestCase):
             'user_id': self.member.id
         })
         response = self.client.post(url)
-        
-        # Should redirect back to group detail
         self.assertEqual(response.status_code, 302)
-        
-        # Verify membership was deleted
         self.assertFalse(
             GroupMembership.objects.filter(
                 group=self.group,
@@ -814,11 +733,7 @@ class RemoveMemberViewTest(TestCase):
             'user_id': self.admin.id
         })
         response = self.client.post(url)
-        
-        # Should redirect
         self.assertEqual(response.status_code, 302)
-        
-        # Verify admin is still a member
         self.assertTrue(
             GroupMembership.objects.filter(
                 group=self.group,

@@ -71,7 +71,6 @@ class EventModelTest(TestCase):
     
     def test_is_past_property(self):
         """Test is_past property"""
-        # Past event
         past_date = timezone.now() - timedelta(days=7)
         past_event = Event.objects.create(
             group=self.group,
@@ -82,8 +81,6 @@ class EventModelTest(TestCase):
             event_date=past_date
         )
         self.assertTrue(past_event.is_past)
-        
-        # Future event
         future_date = timezone.now() + timedelta(days=7)
         future_event = Event.objects.create(
             group=self.group,
@@ -106,14 +103,13 @@ class EventModelTest(TestCase):
             event_date=timezone.now()
         )
         
-        # Create attendees
         user1 = User.objects.create_user(username='user1', email='u1@test.com', password='pass')
         user2 = User.objects.create_user(username='user2', email='u2@test.com', password='pass')
         user3 = User.objects.create_user(username='user3', email='u3@test.com', password='pass')
         
         EventAttendee.objects.create(event=event, user=user1, status='going')
         EventAttendee.objects.create(event=event, user=user2, status='going')
-        EventAttendee.objects.create(event=event, user=user3, status='maybe')  # Shouldn't count
+        EventAttendee.objects.create(event=event, user=user3, status='maybe') 
         
         self.assertEqual(event.attendee_count, 2)
 
@@ -201,7 +197,7 @@ class EventRatingModelTest(TestCase):
             title='Test Event',
             description='Test',
             location='Club',
-            event_date=timezone.now() - timedelta(days=1)  # Past event
+            event_date=timezone.now() - timedelta(days=1) 
         )
     
     def test_create_rating(self):
@@ -258,7 +254,6 @@ class EventCreateViewTest(TestCase):
             admin=self.admin
         )
         
-        # Add members
         GroupMembership.objects.create(group=self.group, user=self.admin, status='accepted')
         GroupMembership.objects.create(group=self.group, user=self.member, status='accepted')
     
@@ -273,17 +268,12 @@ class EventCreateViewTest(TestCase):
         self.client.login(username='nonmember', password='testpass123')
         url = reverse('event_create', kwargs={'group_slug': self.group.slug})
         response = self.client.get(url)
-        
-        # Should redirect back to group detail
         self.assertEqual(response.status_code, 302)
     
     def test_event_create_success(self):
         """Test successfully creating an event"""
         self.client.login(username='member', password='testpass123')
-
-        # Use proper datetime format that matches what the view expects
         future_date = timezone.now() + timedelta(days=7)
-        # Format as ISO string without microseconds
         future_date_str = future_date.strftime('%Y-%m-%dT%H:%M')
 
         url = reverse('event_create', kwargs={'group_slug': self.group.slug})
@@ -294,16 +284,11 @@ class EventCreateViewTest(TestCase):
             'event_date': future_date_str,
         })
 
-        # Should redirect to event detail
         self.assertEqual(response.status_code, 302)
-
-        # Verify event was created
         self.assertTrue(Event.objects.exists())
         event = Event.objects.first()
         self.assertEqual(event.title, 'New Concert')
         self.assertEqual(event.creator, self.member)
-
-        # Verify creator is auto-added as attendee
         self.assertTrue(
             EventAttendee.objects.filter(
                 event=event,
@@ -419,10 +404,7 @@ class EventAttendViewTest(TestCase):
         url = reverse('event_attend', kwargs={'slug': self.event.slug})
         response = self.client.post(url, {'status': 'going'})
         
-        # Should redirect to event detail
         self.assertEqual(response.status_code, 302)
-        
-        # Verify attendance was created
         self.assertTrue(
             EventAttendee.objects.filter(
                 event=self.event,
@@ -433,7 +415,6 @@ class EventAttendViewTest(TestCase):
     
     def test_update_attendance_status(self):
         """Test updating attendance status"""
-        # Create initial attendance
         EventAttendee.objects.create(
             event=self.event,
             user=self.member,
@@ -443,8 +424,6 @@ class EventAttendViewTest(TestCase):
         self.client.login(username='member', password='testpass123')
         url = reverse('event_attend', kwargs={'slug': self.event.slug})
         response = self.client.post(url, {'status': 'maybe'})
-        
-        # Verify status was updated
         attendee = EventAttendee.objects.get(event=self.event, user=self.member)
         self.assertEqual(attendee.status, 'maybe')
     
@@ -459,11 +438,8 @@ class EventAttendViewTest(TestCase):
         self.client.login(username='outsider', password='testpass123')
         url = reverse('event_attend', kwargs={'slug': self.event.slug})
         response = self.client.post(url, {'status': 'going'})
-        
-        # Should redirect
+
         self.assertEqual(response.status_code, 302)
-        
-        # Verify no attendance was created
         self.assertFalse(
             EventAttendee.objects.filter(
                 event=self.event,
@@ -497,7 +473,6 @@ class RateEventViewTest(TestCase):
             admin=self.admin
         )
         
-        # Create past event
         self.past_event = Event.objects.create(
             group=self.group,
             creator=self.admin,
@@ -510,8 +485,6 @@ class RateEventViewTest(TestCase):
         
         GroupMembership.objects.create(group=self.group, user=self.admin, status='accepted')
         GroupMembership.objects.create(group=self.group, user=self.attendee, status='accepted')
-        
-        # Mark attendee as went to event
         EventAttendee.objects.create(
             event=self.past_event,
             user=self.attendee,
@@ -526,11 +499,8 @@ class RateEventViewTest(TestCase):
             'rating': 5,
             'comment': 'Great event!'
         })
-        
-        # Should redirect to event detail
+
         self.assertEqual(response.status_code, 302)
-        
-        # Verify rating was created
         self.assertTrue(
             EventRating.objects.filter(
                 event=self.past_event,
@@ -558,10 +528,7 @@ class RateEventViewTest(TestCase):
             'comment': 'Test'
         })
         
-        # Should redirect
         self.assertEqual(response.status_code, 302)
-        
-        # Verify no rating was created
         self.assertFalse(
             EventRating.objects.filter(
                 event=future_event,
@@ -621,7 +588,6 @@ class EventPollTest(TestCase):
     
     def test_poll_properties(self):
         """Test poll property calculations"""
-        # Create votes
         PollVote.objects.create(poll=self.poll, user=self.admin, vote=True)
         PollVote.objects.create(poll=self.poll, user=self.attendee, vote=True)
         
@@ -632,10 +598,7 @@ class EventPollTest(TestCase):
     
     def test_is_closed_property(self):
         """Test is_closed property"""
-        # Active poll with future closing date
         self.assertFalse(self.poll.is_closed)
-        
-        # Set poll to closed
         self.poll.is_active = False
         self.poll.save()
         self.assertTrue(self.poll.is_closed)
@@ -695,11 +658,8 @@ class VoteOnPollViewTest(TestCase):
         self.client.login(username='attendee', password='testpass123')
         url = reverse('vote_on_poll', kwargs={'poll_id': self.poll.id})
         response = self.client.post(url, {'vote': 'yes'})
-        
-        # Should redirect to event detail
+
         self.assertEqual(response.status_code, 302)
-        
-        # Verify vote was created
         self.assertTrue(
             PollVote.objects.filter(
                 poll=self.poll,
@@ -720,11 +680,8 @@ class VoteOnPollViewTest(TestCase):
         self.client.login(username='member', password='testpass123')
         url = reverse('vote_on_poll', kwargs={'poll_id': self.poll.id})
         response = self.client.post(url, {'vote': 'yes'})
-        
-        # Should redirect
+
         self.assertEqual(response.status_code, 302)
-        
-        # Verify no vote was created
         self.assertFalse(
             PollVote.objects.filter(
                 poll=self.poll,
@@ -788,63 +745,44 @@ class ApplyPollChangesViewTest(TestCase):
     
     def test_admin_can_apply_approved_changes(self):
         """Test that admin can apply changes if poll passed"""
-        # Create majority approval votes
         PollVote.objects.create(poll=self.poll, user=self.admin, vote=True)
         PollVote.objects.create(poll=self.poll, user=self.attendee, vote=True)
         
         self.client.login(username='admin', password='testpass123')
         url = reverse('apply_poll_changes', kwargs={'poll_id': self.poll.id})
         response = self.client.post(url)
-        
-        # Should redirect
+
         self.assertEqual(response.status_code, 302)
-        
-        # Verify event date was changed
         self.event.refresh_from_db()
         self.assertEqual(self.event.event_date, self.new_date)
-        
-        # Verify poll was closed
         self.poll.refresh_from_db()
         self.assertFalse(self.poll.is_active)
     
     def test_cannot_apply_without_majority(self):
         """Test that changes cannot be applied without majority approval"""
-        # Create votes with LESS than 50% approval (1 yes, 1 no = 50%, need >50%)
         PollVote.objects.create(poll=self.poll, user=self.admin, vote=False)
-        PollVote.objects.create(poll=self.poll, user=self.attendee, vote=False)  # Changed to False
-        
-        # Verify approval is less than 50%
+        PollVote.objects.create(poll=self.poll, user=self.attendee, vote=False)  
         self.assertLess(self.poll.approval_percentage, 50)
-        
-        # Store original date
         original_date = self.event.event_date
         
         self.client.login(username='admin', password='testpass123')
         url = reverse('apply_poll_changes', kwargs={'poll_id': self.poll.id})
         response = self.client.post(url)
-        
-        # Should redirect
         self.assertEqual(response.status_code, 302)
-        
-        # Verify event date was NOT changed
+
         self.event.refresh_from_db()
         self.assertEqual(self.event.event_date.replace(microsecond=0), 
                          original_date.replace(microsecond=0))
     
     def test_only_admin_can_apply_changes(self):
         """Test that only group admin can apply poll changes"""
-        # Create approval votes
         PollVote.objects.create(poll=self.poll, user=self.admin, vote=True)
         PollVote.objects.create(poll=self.poll, user=self.attendee, vote=True)
         
-        # Try as regular member
         self.client.login(username='attendee', password='testpass123')
         url = reverse('apply_poll_changes', kwargs={'poll_id': self.poll.id})
         response = self.client.post(url)
-        
-        # Should redirect
+
         self.assertEqual(response.status_code, 302)
-        
-        # Verify event date was NOT changed
         self.event.refresh_from_db()
         self.assertEqual(self.event.event_date, self.original_date)

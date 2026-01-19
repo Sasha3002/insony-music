@@ -98,7 +98,7 @@ function initPlaylistEdit() {
     const updateNameCount = () => {
       nameCount.textContent = nameInput.value.length;
     };
-    updateNameCount(); // Initial count
+    updateNameCount(); 
     nameInput.addEventListener('input', updateNameCount);
   }
 
@@ -107,14 +107,13 @@ function initPlaylistEdit() {
     const updateDescCount = () => {
       descCount.textContent = descInput.value.length;
     };
-    updateDescCount(); // Initial count
+    updateDescCount(); 
     descInput.addEventListener('input', updateDescCount);
   }
 }
 
 // PLAYLIST DETAIL PAGE
 function initPlaylistDetail() {
-  // Remove from playlist function is made global for inline onclick
   window.removeFromPlaylist = async function(playlistId, trackId) {
     if (!confirm('Czy na pewno chcesz usunąć ten utwór z playlisty?')) {
       return;
@@ -211,7 +210,6 @@ function initReviewLikes(csrftoken) {
       const reviewId = btn.dataset.reviewId;
       if (!reviewId) return;
 
-      // Check authentication status from data attribute
       const isAuthenticated = btn.dataset.authenticated === 'true';
       if (!isAuthenticated) {
         window.location.href = btn.dataset.loginUrl;
@@ -305,7 +303,6 @@ function initFavoriteToggle(csrftoken) {
       
       favBtn.innerHTML = `<i class="bi bi-heart${pressed ? '-fill' : ''}"></i> ${text}`;
 
-      // Flash effect
       favBtn.classList.add('btn-success');
       setTimeout(() => favBtn.classList.remove('btn-success'), 300);
 
@@ -461,7 +458,6 @@ function initTrackList() {
     }, 100);
   });
 
-  // Favorite toggle function made global for inline onclick
   window.toggleFavorite = function(button, trackId) {
     fetch(`/favorite/${trackId}/toggle/`, {
       method: 'POST',
@@ -491,7 +487,6 @@ function initTrackList() {
 
 // INITIALIZE ON PAGE LOAD
 document.addEventListener('DOMContentLoaded', function() {
-  // Check which page we're on and initialize accordingly
   if (document.getElementById('playlistCreatePage')) {
     initPlaylistCreate();
   } else if (document.getElementById('playlistEditPage')) {

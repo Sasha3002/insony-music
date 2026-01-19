@@ -6,7 +6,6 @@ from music.models import Genre
 User = get_user_model()
 
 class Group(models.Model):
-    """Music group for organizing events"""
     TYPE_CHOICES = [
         ('public', 'Public'),
         ('private', 'Private'),
@@ -40,14 +39,12 @@ class Group(models.Model):
     
     @property
     def genres_list(self):
-        """Return genres as a list"""
         if self.genres:
             return [g.strip() for g in self.genres.split(',')]
         return []
 
 
 class GroupMembership(models.Model):
-    """Track group memberships"""
     STATUS_CHOICES = [
         ('pending', 'Pending'),      
         ('accepted', 'Accepted'),    
@@ -70,7 +67,6 @@ class GroupMembership(models.Model):
 
 
 class GroupInvitation(models.Model):
-    """Invitations to join groups"""
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='invitations')
     invited_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_invitations')
     invited_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_invitations')

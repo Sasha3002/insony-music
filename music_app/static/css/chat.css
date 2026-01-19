@@ -1,6 +1,5 @@
 /* ==================== CHAT PAGE STYLES ==================== */
 
-/* Chat Container */
 .chat-container {
   max-height: 80vh;
   display: flex;
@@ -10,7 +9,6 @@
   overflow: hidden;
 }
 
-/* Chat Header */
 .chat-header {
   background: linear-gradient(135deg, #1a1a1a, #151515);
   border-radius: 20px 20px 0 0;
@@ -60,7 +58,6 @@
   margin: 0;
 }
 
-/* Messages Area */
 .chat-messages {
   background: #0a0a0a;
   border: 1px solid #2a2a2a;
@@ -74,7 +71,6 @@
   position: relative;
 }
 
-/* Message */
 .message {
   margin-bottom: 16px;
   display: flex;
@@ -180,7 +176,6 @@
   transform: scale(1.1);
 }
 
-/* Chat Input */
 .chat-input {
   background: linear-gradient(135deg, #1a1a1a, #151515);
   border: 1px solid #2a2a2a;
@@ -239,7 +234,6 @@
   cursor: not-allowed;
 }
 
-/* Date Divider */
 .date-divider {
   text-align: center;
   margin: 24px 0;
@@ -267,7 +261,6 @@
   z-index: 1;
 }
 
-/* Empty State */
 .chat-empty-state {
   text-align: center;
   color: #6b7280;
@@ -285,7 +278,6 @@
   margin-bottom: 12px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .chat-header {
     padding: 16px 20px;

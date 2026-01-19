@@ -5,7 +5,6 @@ from groups.models import Group
 User = get_user_model()
 
 class Conversation(models.Model):
-    """Chat conversation between users"""
     TYPE_CHOICES = [
         ('direct', 'Direct Message'),
         ('group', 'Group Chat'), 
@@ -31,7 +30,6 @@ class Conversation(models.Model):
         return self.messages.last()
     
     def get_other_participant(self, user):
-        """Get the other participant in a direct conversation"""
         if self.type == 'direct':
             participants = self.participants.exclude(user=user)
             return participants.first().user if participants.exists() else None
@@ -39,7 +37,6 @@ class Conversation(models.Model):
 
 
 class ChatParticipant(models.Model):
-    """Users participating in a conversation"""
     conversation = models.ForeignKey(Conversation, related_name='participants', on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
@@ -53,7 +50,6 @@ class ChatParticipant(models.Model):
 
 
 class Message(models.Model):
-    """Individual message in a conversation"""
     conversation = models.ForeignKey(Conversation, related_name='messages', on_delete=models.CASCADE)
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
@@ -69,7 +65,6 @@ class Message(models.Model):
     
     @property
     def is_read_by_others(self):
-        """Check if message is read by all other participants"""
         participants = self.conversation.participants.exclude(user=self.sender)
         for participant in participants:
             if not participant.last_read_at or participant.last_read_at < self.created_at:
@@ -78,7 +73,6 @@ class Message(models.Model):
 
 
 class MessageRead(models.Model):
-    """Track when users read messages"""
     message = models.ForeignKey(Message, related_name='reads', on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     read_at = models.DateTimeField(auto_now_add=True)
@@ -88,7 +82,6 @@ class MessageRead(models.Model):
 
 
 class GroupChatMessage(models.Model):
-    """Message in group chat"""
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='chat_messages')
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
@@ -104,7 +97,6 @@ class GroupChatMessage(models.Model):
 
 
 class GroupChatRead(models.Model):
-    """Track when users last read group chat"""
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='chat_reads')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     last_read_at = models.DateTimeField(auto_now=True)

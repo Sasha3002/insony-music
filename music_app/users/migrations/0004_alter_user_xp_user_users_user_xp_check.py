@@ -17,8 +17,8 @@ class Migration(migrations.Migration):
             name='xp',
             field=models.PositiveIntegerField(default=0, validators=[django.core.validators.MinValueValidator(0)]),
         ),
-        migrations.AddConstraint(
-            model_name='user',
-            constraint=models.CheckConstraint(condition=models.Q(('xp__gte', 0)), name='users_user_xp_check'),
-        ),
+        #migrations.AddConstraint(
+        #    model_name='user',
+        #    constraint=models.CheckConstraint(condition=models.Q(('xp__gte', 0)), name='users_user_xp_check'),
+        #),
     ]

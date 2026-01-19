@@ -291,3 +291,14 @@ def delete_group_message(request, message_id):
     message.delete()
     return JsonResponse({'ok': True})
 
+@require_POST
+@login_required
+def delete_message(request, message_id):
+    message = get_object_or_404(Message, id=message_id)
+    
+    if message.sender != request.user:
+        return JsonResponse({'ok': False, 'message': 'Brak uprawnień'})
+    
+    message.delete()
+    return JsonResponse({'ok': True})
+

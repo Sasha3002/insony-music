@@ -48,9 +48,16 @@
               </div>
             {% endif %}
           </div>
-          <div class="message-content">
-            {{ message.content|linebreaks }}
-            <div class="message-time">{{ message.created_at|date:"H:i" }}</div>
+          <div class="message-content-wrapper">
+            <div class="message-content">
+              {{ message.content|linebreaks }}
+              {% if message.sender == request.user %}
+                <button class="message-delete-btn" onclick="deleteMessage({{ message.id }})" title="Usuń wiadomość">
+                  <i class="bi bi-x"></i>
+                </button>
+              {% endif %}
+              <div class="message-time">{{ message.created_at|date:"H:i" }}</div>
+            </div>
           </div>
         </div>
       {% empty %}
@@ -87,6 +94,7 @@
 <input type="hidden" id="pollMessagesUrl" value="/chat/conversation/{{ conversation.id }}/new/">
 <input type="hidden" id="userAvatar" value="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% endif %}">
 <input type="hidden" id="username" value="{{ request.user.username }}">
+<input type="hidden" id="deleteMessageUrlTemplate" value="/chat/message/0/delete/">
 
 {% endblock %}
 
